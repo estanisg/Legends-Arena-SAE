@@ -449,10 +449,9 @@ body.net #wave{display:none}
 .laBox input{height:calc(44*var(--u));border-radius:calc(10*var(--u));border:calc(2*var(--u)) solid #2a4560;background:#0c141c;color:#e8f1f5;font-size:calc(16*var(--u));padding:0 calc(12*var(--u));text-align:center;-webkit-user-select:text;user-select:text;min-width:0;width:100%}
 .laBox input:focus{outline:0;border-color:#c99a3f}
 .laTabs{display:flex;gap:calc(8*var(--u))}.laTabs .mb{flex:1;width:auto;padding:calc(9*var(--u)) calc(4*var(--u));font-size:calc(14*var(--u))}
-#laAuth.chk form,#laAuth.chk .laTabs,#laAuth.chk #laSrvLink,#laAuth.chk #laSrvRow{display:none!important}
-#laSrvLink{font-size:calc(12*var(--u));opacity:.6;text-decoration:underline;cursor:pointer}
-#laSrvRow{display:none;gap:calc(6*var(--u))}#laSrvRow input{flex:1;height:calc(38*var(--u));font-size:calc(13*var(--u))}#laSrvRow .mb{width:auto;flex:none;padding:0 calc(12*var(--u));font-size:calc(13*var(--u))}
+#laAuth.chk form,#laAuth.chk .laTabs{display:none!important}
 #laMsg{min-height:calc(16*var(--u));font-size:calc(13*var(--u));color:#ffd166}
+#laLogo{display:block;margin:0 auto;height:clamp(calc(64*var(--u)),22vh,calc(110*var(--u)));width:auto;max-width:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
 #laBar{position:absolute;z-index:3;top:calc(10*var(--u) + env(safe-area-inset-top,0px));right:calc(12*var(--u) + env(safe-area-inset-right,0px));display:none;align-items:center;gap:calc(6*var(--u))}
 #laWho{max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(13*var(--u));font-weight:700;padding:calc(7*var(--u)) calc(10*var(--u));border-radius:calc(10*var(--u));background:rgba(6,11,20,.7);border:calc(1*var(--u)) solid #c99a3f;text-shadow:0 calc(1*var(--u)) calc(3*var(--u)) #000}
 .laSm{border:0;border-radius:calc(10*var(--u));padding:calc(8*var(--u)) calc(11*var(--u));font-size:calc(13*var(--u));font-weight:800;background:#26364b;color:var(--ink)}.laSm.acc{background:var(--accent);color:#1a1205}
@@ -502,7 +501,7 @@ body.net #wave{display:none}
 <div id="ntScore"></div><div id="ntRes"></div>
 <div id="ntEnd"><div class="ntBox"><h2 id="ntEndT"></h2><p id="ntEndS"></p><button class="mb" id="ntEndB">Volver a la sala</button><button class="mb sec" id="ntEndH">Salir al inicio</button></div></div>
 <div id="laAuth"><div class="laBox">
-<h2>LEGENDS ARENA</h2>
+<img id="laLogo" alt="Legends Arena">
 <div class="laTabs"><button type="button" class="mb" id="laTL">Entrar</button><button type="button" class="mb sec" id="laTR">Registrarse</button></div>
 <form id="laForm" novalidate>
 <input id="laUser" maxlength="12" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -511,8 +510,6 @@ body.net #wave{display:none}
 <button class="mb" id="laGo" type="submit">Entrar</button>
 </form>
 <div id="laMsg"></div>
-<a id="laSrvLink">Cambiar servidor</a>
-<div id="laSrvRow" class="ntRow"><input id="laSrv" placeholder="https://tu-servidor.com" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" class="mb sec" id="laSrvOk">Guardar</button></div>
 </div></div>
 <div id="laLb"><div class="laBox" style="width:min(calc(460*var(--u)),94vw)"><h2>Mejores puntuaciones</h2><div class="laSub">Modo Arena · puntuación máxima de cada jugador</div><div id="laRows"></div><button class="mb" id="laLbX">Cerrar</button></div></div>
 <script>
@@ -522,14 +519,15 @@ body.net #wave{display:none}
 // escribe aquí la URL del servidor, p. ej. 'https://mi-servidor.onrender.com'
 const LA_API_URL='';
 const g=id=>document.getElementById(id);
+{const lg=g('gTitle'),la=g('laLogo');if(lg&&la)la.src=lg.src} // mismo logo del menú de inicio
 const K={t:'la_tok',u:'la_usr',s:'la_srv',q:'la_pend'};
 const ls={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(_){}},del(k){try{localStorage.removeItem(k)}catch(_){}}};
-let API=(ls.get(K.s)||LA_API_URL||'').trim().replace(/\/+$/,'');
+let API=(LA_API_URL||'').trim().replace(/\/+$/,'');
 if(!API&&/^https?:$/.test(location.protocol))API=location.origin;
 let token=ls.get(K.t)||'',user=null,mode='login',busy=false,offline=false;
 
 async function api(path,o){o=o||{};
-  if(!API)throw{net:true,msg:'Falta la dirección del servidor (pulsa «Cambiar servidor»)'};
+  if(!API)throw{net:true,msg:'Falta la dirección del servidor'};
   const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
   try{
     const h={};if(o.body)h['Content-Type']='application/json';if(o.auth!==false&&token)h.Authorization='Bearer '+token;
@@ -578,8 +576,6 @@ async function restore(){const box=g('laAuth');
 // ---- formulario ----
 g('laAuth').addEventListener('keydown',e=>e.stopPropagation());g('laAuth').addEventListener('keyup',e=>e.stopPropagation());
 g('laTL').onclick=()=>setMode('login');g('laTR').onclick=()=>setMode('reg');
-g('laSrvLink').onclick=()=>{const r=g('laSrvRow');r.style.display=r.style.display==='flex'?'none':'flex';g('laSrv').value=API};
-g('laSrvOk').onclick=()=>{let v=g('laSrv').value.trim().replace(/\/+$/,'');if(v&&!/^https?:\/\//i.test(v))v='https://'+v;API=v;if(v)ls.set(K.s,v);else{ls.del(K.s);API=(LA_API_URL||'').replace(/\/+$/,'')||(/^https?:$/.test(location.protocol)?location.origin:'')}msg('Servidor guardado',1)};
 g('laForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;
   const u=g('laUser').value.trim(),p=g('laPw').value;
   if(!/^[A-Za-z0-9_]{3,12}$/.test(u))return msg('Usuario: 3 a 12 caracteres (letras, números o _)');
