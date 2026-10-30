@@ -1,0 +1,9 @@
+{
+  "name": "legends-arena-server",
+  "version": "1.0.0",
+  "description": "Servidor de cuentas y ranking para Legends Arena",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
