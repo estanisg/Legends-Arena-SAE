@@ -2314,75 +2314,105 @@ function hsLine(i){const g=(t,v)=>'<br><b style="color:#7fffc8">'+t+': '+v+'</b>
   return g('Curación por segundo',hsV('s3'))}
 
 // ================= Az · El Bufón Maldito (asesino: pasiva Baraja Maldita, H1 Carta Trucada, H2 Fuera de Escena, Ulti Último Acto) =================
-const AZ={inv:0,spd:0,cards:[],ills:[],smk:[],fx:[],mk:new Map(),ult:null};
+const AZ={inv:0,spd:0,cards:[],ills:[],smk:[],fx:[],mk:new Map(),dy:[],ults:[]};
 let azCT=null,azIT=null;
 const azCardG=new T.PlaneGeometry(1,1.4),azDiaG=new T.OctahedronGeometry(1),azRingG=new T.RingGeometry(.92,1,48);
 function azCardTex(){if(azCT)return azCT;const c=document.createElement('canvas');c.width=96;c.height=132;const g=c.getContext('2d');
-  g.fillStyle='#f6eef0';g.fillRect(3,3,90,126);g.strokeStyle='#c4204a';g.lineWidth=6;g.strokeRect(3,3,90,126);
-  g.fillStyle='#d4143e';g.beginPath();g.moveTo(48,26);g.lineTo(74,66);g.lineTo(48,106);g.lineTo(22,66);g.closePath();g.fill();
-  g.fillStyle='#1c0a2a';g.font='bold 22px serif';g.fillText('J',10,30);g.fillText('J',70,122);azCT=new T.CanvasTexture(c);return azCT}
-function azIconTex(){if(azIT)return azIT;azIT=new T.TextureLoader().load(ASSET.az.icons[3]);return azIT}
+  g.fillStyle='#6e0f1f';g.fillRect(3,3,90,126);g.strokeStyle='#120306';g.lineWidth=7;g.strokeRect(3,3,90,126);g.strokeStyle='#b3162f';g.lineWidth=2;g.strokeRect(11,11,74,110);
+  g.fillStyle='#120306';g.beginPath();g.moveTo(48,22);g.lineTo(78,66);g.lineTo(48,110);g.lineTo(18,66);g.closePath();g.fill();
+  g.fillStyle='#c4102e';g.beginPath();g.moveTo(48,32);g.lineTo(69,66);g.lineTo(48,100);g.lineTo(27,66);g.closePath();g.fill();
+  g.fillStyle='#e8b4bb';g.font='bold 22px serif';g.fillText('J',15,38);g.fillText('J',68,116);azCT=new T.CanvasTexture(c);return azCT}
 function azCardMesh(sc,op){const m=new T.Mesh(azCardG,new T.MeshBasicMaterial({map:azCardTex(),side:T.DoubleSide,transparent:true,opacity:op==null?1:op,depthWrite:false}));m.rotation.x=-Math.PI/2;m.scale.setScalar(sc||1);scene.add(m);return m}
 const azHit=(e,n,col)=>{DTN='m';hit(e,Math.round(n),false,col||'#d03a5a')};
 const azSlow=(e,f,t)=>{e.slowT=Math.max(e.slowT||0,t);e.slowF=Math.min(e.slowF||1,1-f)};
 // ---- Pasiva: marca de Mala Suerte ----
 function azPre(e){if(AZ.busy)return;if(BF){if(e.azM>0&&!(e.azI>0)){e.azI=4;later(()=>azBoom(e),.06)}}else e.azM=4}
 function azBoom(e){if(P.dead||cur!=='az')return;e.azM=0;if(!en.includes(e)||!(e.hp>0))return;
-  for(let i=0;i<22;i++){const a=i/22*6.283;emit(e.x+Math.cos(a)*1.2,1.6,e.z+Math.sin(a)*1.2,1,i%2?0xff2a55:0xb04cff,4,.5,1.5)}
-  emit(e.x,1.8,e.z,16,0xff2a55,6,.5,2);emit(e.x,1.8,e.z,10,0xb04cff,5,.5,2);shake=Math.max(shake,.22);
+  for(let i=0;i<22;i++){const a=i/22*6.283;emit(e.x+Math.cos(a)*1.2,1.6,e.z+Math.sin(a)*1.2,1,i%2?0xc4102e:0x8a0a1e,4,.5,1.5)}
+  emit(e.x,1.8,e.z,16,0xc4102e,6,.5,2);emit(e.x,1.8,e.z,10,0x8a0a1e,5,.5,2);shake=Math.max(shake,.22);
   AZ.busy=true;try{azHit(e,100+.5*stat().ap,'#ff3b6b')}finally{AZ.busy=false}
   if(!(e.hp>0)&&!e.azK){e.azK=1;cd.s1*=.8}}
-function azBasic(e){const x=P.x+Math.sin(P.ang)*1.4,z=P.z+Math.cos(P.ang)*1.4;emit(x,1.9,z,6,0xff2a55,4,.3,.6);emit(e.x,1.8,e.z,5,0xb04cff,4,.3,.6)}
-// ---- H1: Carta Trucada ----
+function azBasic(e){const x=P.x+Math.sin(P.ang)*1.4,z=P.z+Math.cos(P.ang)*1.4;emit(x,1.9,z,6,0xc4102e,4,.3,.6);emit(e.x,1.8,e.z,5,0x8a0a1e,4,.3,.6)}
+// ---- Efectos visuales de Az: cintas negro/rojo, cartas, anillos y tajos (sirven para el jugador local y para los demás en online) ----
+function azRib(col,ad,w){const N=22,g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(new Float32Array(N*6),3));const ix=[];for(let i=0;i<N-1;i++){const a=i*2;ix.push(a,a+1,a+2,a+1,a+3,a+2)}g.setIndex(ix);
+  const m=new T.Mesh(g,new T.MeshBasicMaterial({color:col,transparent:true,opacity:ad?.9:.85,side:T.DoubleSide,depthWrite:false,blending:ad?T.AdditiveBlending:T.NormalBlending}));m.frustumCulled=false;m.renderOrder=ad?9:8;scene.add(m);return{m,N,w,p:[]}}
+const azRbs=w=>[azRib(0x050205,0,w),azRib(0xd0102c,1,w*.45)],azTr=(o,x,y,z)=>o.rb&&o.rb.forEach(r=>azRibUp(r,[x,y,z])),azRibRm=r=>{scene.remove(r.m);r.m.geometry.dispose();r.m.material.dispose()},
+  azKill=o=>{if(o.rb)o.rb.forEach(azRibRm);o.rb=null},azRel=o=>{if(o.rb)AZ.dy.push(...o.rb);o.rb=null},
+  azDel=m=>{scene.remove(m);m.traverse(c=>{if(c.material)c.material.dispose();if(c.geometry&&c.geometry!==azCardG&&c.geometry!==azRingG&&c.geometry!==azDiaG)c.geometry.dispose()})};
+function azRibUp(r,pos){const p=r.p;if(pos){p.unshift(pos);if(p.length>r.N)p.pop()}else p.pop();
+  const a=r.m.geometry.attributes.position.array,n=p.length;
+  for(let i=0;i<r.N;i++){const q=p[Math.min(i,n-1)]||[0,-50,0],nx=p[Math.min(i+1,n-1)]||q,pv=p[Math.max(i-1,0)]||q;let dx=pv[0]-nx[0],dz=pv[2]-nx[2];const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;const h=i<n?r.w*.5*(1-i/(r.N-1)):0;
+    a[i*6]=q[0]-dz*h;a[i*6+1]=q[1];a[i*6+2]=q[2]+dx*h;a[i*6+3]=q[0]+dz*h;a[i*6+4]=q[1];a[i*6+5]=q[2]-dx*h}
+  r.m.geometry.attributes.position.needsUpdate=true}
+function azDash(x0,z0,x1,z1,y){const rb=azRbs(1.5);for(let i=0;i<22;i++){const t=1-i/21;for(const r of rb)azRibUp(r,[x0+(x1-x0)*(1-t),y,z0+(z1-z0)*(1-t)])}AZ.dy.push(...rb)}
+function azBlk(x,z,r0,r1,D){const g=new T.CircleGeometry(1,40);g.rotateX(-Math.PI/2);const m=new T.Mesh(g,new T.MeshBasicMaterial({color:0x050205,transparent:true,opacity:.7,depthWrite:false,side:T.DoubleSide}));m.position.set(x,.18,z);m.scale.set(r0,1,r0);m.renderOrder=3;scene.add(m);
+  AZ.fx.push({m,t:0,T:D,u:(f,k)=>{const s=r0+(r1-r0)*Math.sqrt(k);m.scale.set(s,1,s);m.material.opacity=.7*(1-k)}})}
+function azSlash(x,z,a){const g=new T.Group(),mk=(w,c,ad)=>{const p=new T.PlaneGeometry(9,w);p.rotateX(-Math.PI/2);return new T.Mesh(p,new T.MeshBasicMaterial({color:c,transparent:true,depthWrite:false,side:T.DoubleSide,blending:ad?T.AdditiveBlending:T.NormalBlending}))};
+  const b=mk(.7,0x050205,0),r=mk(.22,0xe0102c,1);g.add(b,r);g.position.set(x,.3,z);g.rotation.y=a;scene.add(g);
+  AZ.fx.push({m:g,t:0,T:.4,u:(f,k)=>{g.scale.set(.3+.9*Math.min(1,k*3),1,1);b.material.opacity=.85*(1-k);r.material.opacity=1-k}})}
+// H1: carta que deja estela negra con filo rojo
+function azVS1(x,z,dx,dz){const m=azCardMesh(1.5),x1=x+dx*1.3,z1=z+dz*1.3;m.position.set(x1,1.9,z1);const c={m,x:x1,z:z1,dx,dz,v:42,L:0,len:17,hit:new Set(),gh:1,rb:azRbs(1.5)};AZ.cards.push(c);emit(x1,1.9,z1,10,0xc4102e,4,.3,.5);return c}
 function azS1(d){if(!begin('s1'))return;P.ang=ang(d);act('1',.4);rootT=.25;const dm=skD('s1'),sl=skI('s1',SKD.az.s1.sl),sd=skI('s1',SKD.az.s1.sd);
-  const m=azCardMesh(1.5);m.position.set(P.x+d[0]*1.3,1.9,P.z+d[1]*1.3);
-  AZ.cards.push({m,x:m.position.x,z:m.position.z,dx:d[0],dz:d[1],v:42,L:0,len:17,dm,sl,sd,first:null,hit:new Set()});emit(P.x+d[0]*1.3,1.9,P.z+d[1]*1.3,10,0xff2a55,4,.3,.5)}
-// ---- H2: Fuera de Escena ----
+  const c=azVS1(P.x,P.z,d[0],d[1]);c.gh=0;c.dm=dm;c.sl=sl;c.sd=sd;c.first=null}
+// H2: humo negro, ilusión y estela de desplazamiento
+function azVS2(x0,z0,nx,nz,gh,dm){azBlk(x0,z0,.6,3.4,1.1);AZ.smk.push({x:x0,z:z0,t:0,T:1.2});for(let i=0;i<30;i++)emit(x0,.8,z0,1,i%3?0x8a0a1e:0x3a0610,4,1,1.5,.5);
+  azDash(x0,z0,nx,nz,1.3);for(let i=0;i<16;i++)emit(nx,1.2,nz,1,i%2?0x8a0a1e:0xd0102c,5,.5,1.5,.6);
+  const cm=azCardMesh(2.2,.9);cm.position.set(x0,1.3,z0);const rg=new T.Mesh(azRingG,new T.MeshBasicMaterial({color:0xb0102a,transparent:true,opacity:.6,side:T.DoubleSide,depthWrite:false}));rg.rotation.x=-Math.PI/2;rg.position.set(x0,.1,z0);rg.scale.setScalar(5);scene.add(rg);
+  AZ.ills.push({x:x0,z:z0,t:0,T:.6,dm,cm,rg,gh})}
 function azS2(d){if(!begin('s2'))return;P.ang=ang(d);act('2',.45);const x0=P.x,z0=P.z,dm=skD('s2');
-  AZ.smk.push({x:x0,z:z0,t:0,T:1.2});for(let i=0;i<30;i++)emit(x0,.8,z0,1,i%3?0x1a0f26:0x5a2a8a,4,1,1.5,.5);
   let L=0;while(L<5){const nx=x0+d[0]*(L+.25),nz=z0+d[1]*(L+.25);if(ARENA<1e3&&Math.hypot(nx,nz)>ARENA-.5)break;if(obst.some(r=>r.r>3&&Math.hypot(nx-r.x,nz-r.z)<r.r+P.r))break;L+=.25}
   let nx=x0+d[0]*L,nz=z0+d[1]*L;for(let k=0;k<4;k++)for(const r of obst){const dx=nx-r.x,dz=nz-r.z,dd=Math.hypot(dx,dz),mn=r.r+P.r+.1;if(dd<mn&&dd>0){nx=r.x+dx/dd*mn;nz=r.z+dz/dd*mn}}
-  P.x=nx;P.z=nz;AZ.inv=1.5;AZ.spd=1.5;for(let i=0;i<16;i++)emit(nx,1.2,nz,1,i%2?0xb04cff:0xff2a55,5,.5,1.5,.6);
-  const cm=azCardMesh(2.2,.9);cm.position.set(x0,1.3,z0);const rg=new T.Mesh(azRingG,new T.MeshBasicMaterial({color:0xff2a55,transparent:true,opacity:.6,side:T.DoubleSide,depthWrite:false}));rg.rotation.x=-Math.PI/2;rg.position.set(x0,.1,z0);rg.scale.setScalar(5);scene.add(rg);
-  AZ.ills.push({x:x0,z:z0,t:0,T:.6,dm,cm,rg})}
-// ---- Ulti: Último Acto ----
+  P.x=nx;P.z=nz;AZ.inv=1.5;AZ.spd=1.5;azVS2(x0,z0,nx,nz,0,dm);NET.tg=[+x0.toFixed(1),+z0.toFixed(1)]}
+// Ulti: sin imágenes de icono; cartas en órbita con estela, sello negro/rojo, dash largo y tajos
 function azUltTarget(){let b=null,bd=17;for(const e of en){if(e.hid||!(e.hp>0)||e.type!=='p')continue;const d=Math.hypot(e.x-P.x,e.z-P.z);if(d<bd){bd=d;b=e}}
   if(!b){bd=17;for(const e of en){if(e.hid||!(e.hp>0))continue;const d=Math.hypot(e.x-P.x,e.z-P.z);if(d<bd){bd=d;b=e}}}return b}
+function azVS3a(own,tx,tz,gh){const u={t:0,T:.8,own,tx,tz,sx:own.x,sz:own.z,done:0,gh,sp:[]},m=azCardMesh(1.8);
+  AZ.fx.push({m,t:0,T:.25,rb:azRbs(1.3),u:(f,k)=>{m.position.set(u.sx+(tx-u.sx)*k,2,u.sz+(tz-u.sz)*k);m.rotation.z+=.4;azTr(f,m.position.x,2,m.position.z)}});
+  for(let i=0;i<5;i++){const c=azCardMesh(1.15);c.userData.rb=azRbs(.9);c.material.opacity=0;u.sp.push(c)}
+  aurRing(u.sx,u.sz,4.2,.5,0xd0102c);azBlk(u.sx,u.sz,.5,4.6,.8);azBlk(tx,tz,.4,2.6,.8);AZ.ults.push(u);return u}
 function azS3(d){const e=azUltTarget();if(!e||!ready('s3'))return;if(!begin('s3'))return;P.ang=Math.atan2(e.x-P.x,e.z-P.z);act('3',.9);rootT=.9;e.azM=4;
-  const m=azCardMesh(1.8);AZ.fx.push({k:'line',m,a:[P.x,2,P.z],b:[e.x,2,e.z],t:0,T:.25,spin:18});
-  const sp=[];for(let i=0;i<5;i++){const s=new T.Sprite(new T.SpriteMaterial({map:azIconTex(),transparent:true,opacity:.0,depthWrite:false}));s.scale.set(2.6,2.6,1);scene.add(s);sp.push(s)}
-  AZ.ult={t:0,T:.8,e,sp,done:false}}
-function azStrike(){const u=AZ.ult,e=u.e;u.done=true;if(P.dead||cur!=='az'||!en.includes(e)||!(e.hp>0))return;
+  const u=azVS3a(P,e.x,e.z,0);u.e=e;NET.tg=[+e.x.toFixed(1),+e.z.toFixed(1)]}
+function azVS3b(sx,sz,nx,nz,ex,ez){azDash(sx,sz,nx,nz,1.6);
+  for(let i=0;i<10;i++){const m=azCardMesh(1.1),a=i/10*6.283,v=[Math.cos(a)*14,3+Math.random()*3,Math.sin(a)*14];m.position.set(ex,1.8,ez);
+    AZ.fx.push({m,t:0,T:.55,rb:azRbs(.8),u:(f,k,dt)=>{const p=m.position;p.x+=v[0]*dt;p.y+=v[1]*dt;v[1]-=14*dt;p.z+=v[2]*dt;m.rotation.z+=dt*20;m.material.opacity=1-k;azTr(f,p.x,p.y,p.z)}})}
+  aurRing(ex,ez,5,.45,0xd0102c);azBlk(ex,ez,.5,5.6,.6);azSlash(ex,ez,.8);azSlash(ex,ez,-.8);
+  emit(ex,1.8,ez,26,0xc4102e,8,.6,2);emit(ex,1.8,ez,20,0x8a0a1e,7,.6,2);for(let i=0;i<20;i++)emit(sx,1.4,sz,1,i%2?0x8a0a1e:0xd0102c,5,.5,1.5,.6)}
+function azStrike(u){const e=u.e;if(P.dead||cur!=='az'||!en.includes(e)||!(e.hp>0))return;
   const dx=P.x-e.x,dz=P.z-e.z,dl=Math.hypot(dx,dz)||1;let nx=e.x+dx/dl*2.2,nz=e.z+dz/dl*2.2;if(ARENA<1e3){const r=Math.hypot(nx,nz),M=ARENA-.6;if(r>M){nx*=M/r;nz*=M/r}}
-  for(let i=0;i<20;i++)emit(P.x,1.4,P.z,1,i%2?0xb04cff:0xff2a55,5,.5,1.5,.6);
-  P.x=nx;P.z=nz;P.ang=Math.atan2(e.x-P.x,e.z-P.z);shake=Math.max(shake,.45);
-  let n=skD('s3');if(e.hp<(e.max||e.hp)*.3)n*=1.4;azHit(e,n,'#ff3b6b');
-  for(let i=0;i<10;i++){const m=azCardMesh(1.1);m.position.set(e.x,1.8,e.z);const a=i/10*6.283;AZ.fx.push({k:'burst',m,v:[Math.cos(a)*14,3+Math.random()*3,Math.sin(a)*14],t:0,T:.55,spin:20})}
-  emit(e.x,1.8,e.z,26,0xff2a55,8,.6,2);emit(e.x,1.8,e.z,20,0xb04cff,7,.6,2);
+  const sx=P.x,sz=P.z;P.x=nx;P.z=nz;P.ang=Math.atan2(e.x-P.x,e.z-P.z);shake=Math.max(shake,.45);
+  let n=skD('s3');if(e.hp<(e.max||e.hp)*.3)n*=1.4;azHit(e,n,'#ff3b6b');azVS3b(sx,sz,nx,nz,e.x,e.z);
   if(!(e.hp>0))cd.s2=0;else azSlow(e,.4,1)}
-function azReset(){AZ.inv=0;AZ.spd=0;for(const o of AZ.cards)scene.remove(o.m);AZ.cards.length=0;for(const o of AZ.ills){scene.remove(o.cm);scene.remove(o.rg)}AZ.ills.length=0;AZ.smk.length=0;for(const o of AZ.fx)scene.remove(o.m);AZ.fx.length=0;
-  if(AZ.ult){AZ.ult.sp.forEach(s=>scene.remove(s));AZ.ult=null}for(const[,m]of AZ.mk)scene.remove(m);AZ.mk.clear();if(SK.az)SK.az.g.children[0].visible=true}
+function azGhStrike(u){const dx=u.sx-u.tx,dz=u.sz-u.tz,dl=Math.hypot(dx,dz)||1;azVS3b(u.sx,u.sz,u.tx+dx/dl*2.2,u.tz+dz/dl*2.2,u.tx,u.tz)}
+// Online: habilidades de otros jugadores (solo visual)
+function azGhost(p,m){const k=m.k,x=m.x,z=m.z,dx=m.dx,dz=m.dz;
+  if(k==='s1')azVS1(x,z,dx,dz);
+  else if(k==='s2'){const o=m.tg||[x-dx*4,z-dz*4];azVS2(o[0],o[1],x,z,1);p.azInv=1.5}
+  else if(k==='s3'&&m.tg)azVS3a(p,m.tg[0],m.tg[1],1);
+  else emit(x,1.5,z,16,0xc4102e,6,.5)}
+function azReset(){AZ.inv=0;AZ.spd=0;for(const o of AZ.cards){azKill(o);azDel(o.m)}AZ.cards.length=0;for(const o of AZ.ills){azDel(o.cm);scene.remove(o.rg)}AZ.ills.length=0;AZ.smk.length=0;for(const o of AZ.fx){azKill(o);azDel(o.m)}AZ.fx.length=0;
+  for(const u of AZ.ults)u.sp.forEach(c=>{azKill({rb:c.userData.rb});azDel(c)});AZ.ults.length=0;AZ.dy.splice(0).forEach(azRibRm);for(const[,m]of AZ.mk)scene.remove(m);AZ.mk.clear();if(SK.az)SK.az.g.children[0].visible=true}
 function azUp(dt){
   for(const e of en){if(e.azI>0)e.azI-=dt;if(e.azM>0){e.azM-=dt;if(e.azM<0)e.azM=0}}
   for(const[e,m]of AZ.mk)if(!(e.azM>0)||!en.includes(e)||e.hid){scene.remove(m);AZ.mk.delete(e)}
-  for(const e of en)if(e.azM>0&&!e.hid&&!AZ.mk.has(e)){const m=new T.Mesh(azDiaG,new T.MeshBasicMaterial({color:0xff2a55,transparent:true,opacity:.9}));m.scale.set(.32,.5,.12);scene.add(m);AZ.mk.set(e,m)}
+  for(const e of en)if(e.azM>0&&!e.hid&&!AZ.mk.has(e)){const m=new T.Mesh(azDiaG,new T.MeshBasicMaterial({color:0xc4102e,transparent:true,opacity:.9}));m.scale.set(.32,.5,.12);scene.add(m);AZ.mk.set(e,m)}
   for(const[e,m]of AZ.mk){m.position.set(e.x,3.7+Math.sin(performance.now()/260)*.1,e.z);m.rotation.y+=dt*4}
   if(SK.az){const on=cur==='az';AZ.inv=Math.max(0,AZ.inv-dt);AZ.spd=Math.max(0,AZ.spd-dt);SK.az.g.children[0].visible=!(on&&AZ.inv>0)}
-  for(let i=AZ.cards.length-1;i>=0;i--){const o=AZ.cards[i],s=o.v*dt;o.m.position.x+=o.dx*s;o.m.position.z+=o.dz*s;o.m.rotation.z+=dt*22;o.L+=s;
-    emit(o.m.position.x,1.9,o.m.position.z,1,0xff2a55,1.5,.35,.2,.3);emit(o.m.position.x,1.9,o.m.position.z,1,0xa040ff,1.5,.45,.2,.3);
-    if(!P.dead&&cur==='az')for(const e of [...en]){if(e.hid||!(e.hp>0)||o.hit.has(e))continue;if(Math.hypot(e.x-o.m.position.x,e.z-o.m.position.z)<1.7+(e.r||0)){o.hit.add(e);const f=!o.first;if(f)o.first=e;azHit(e,o.dm*(f?1:.5),'#ff3b6b');if(f)azSlow(e,o.sl,o.sd)}}
-    if(o.L>=o.len){scene.remove(o.m);AZ.cards.splice(i,1)}}
-  for(let i=AZ.smk.length-1;i>=0;i--){const o=AZ.smk[i];o.t+=dt;emit(o.x,.8,o.z,2,.5<Math.random()?0x1a0f26:0x5a2a8a,2,.9,1.2,.7);if(o.t>=o.T)AZ.smk.splice(i,1)}
+  for(const p of (NET.players||[]))if(p.azInv>0){p.azInv-=dt;const b=p.sk&&p.sk.g.children[0];if(b)b.visible=!(p.azInv>0&&NET.me&&p.team!==NET.me.team)}
+  for(let i=AZ.dy.length-1;i>=0;i--){const r=AZ.dy[i];azRibUp(r,null);if(!r.p.length){azRibRm(r);AZ.dy.splice(i,1)}}
+  for(let i=AZ.cards.length-1;i>=0;i--){const o=AZ.cards[i],s=o.v*dt,p=o.m.position;p.x+=o.dx*s;p.z+=o.dz*s;o.m.rotation.z+=dt*22;o.L+=s;azTr(o,p.x,1.9,p.z);
+    emit(p.x,1.9,p.z,1,0xc4102e,1.5,.35,.2,.3);
+    if(!o.gh&&!P.dead&&cur==='az')for(const e of [...en]){if(e.hid||!(e.hp>0)||o.hit.has(e))continue;if(Math.hypot(e.x-p.x,e.z-p.z)<1.7+(e.r||0)){o.hit.add(e);const f=!o.first;if(f)o.first=e;azHit(e,o.dm*(f?1:.5),'#ff3b6b');if(f)azSlow(e,o.sl,o.sd)}}
+    if(o.L>=o.len){azRel(o);azDel(o.m);AZ.cards.splice(i,1)}}
+  for(let i=AZ.smk.length-1;i>=0;i--){const o=AZ.smk[i];o.t+=dt;emit(o.x,.8,o.z,2,.5<Math.random()?0x3a0610:0x8a0a1e,2,.9,1.2,.7);if(o.t>=o.T)AZ.smk.splice(i,1)}
   for(let i=AZ.ills.length-1;i>=0;i--){const o=AZ.ills[i];o.t+=dt;const k=Math.min(1,o.t/o.T);o.cm.rotation.z+=dt*10;o.cm.position.y=1.3+Math.sin(k*9)*.15;o.rg.material.opacity=.25+.5*k;
-    if(k>=1){for(const e of [...en])if(!e.hid&&e.hp>0&&Math.hypot(e.x-o.x,e.z-o.z)<5.8)azHit(e,o.dm,'#ff3b6b');
-      for(let q=0;q<40;q++){const a=q/40*6.283;emit(o.x+Math.cos(a)*4.5,.6,o.z+Math.sin(a)*4.5,1,q%2?0xff2a55:0xb04cff,5,.6,2)}emit(o.x,1.2,o.z,24,0xff2a55,9,.6,2);shake=Math.max(shake,.4);
-      scene.remove(o.cm);scene.remove(o.rg);AZ.ills.splice(i,1)}}
-  for(let i=AZ.fx.length-1;i>=0;i--){const o=AZ.fx[i];o.t+=dt;const k=Math.min(1,o.t/o.T);o.m.rotation.z+=dt*(o.spin||10);
-    if(o.k==='line')o.m.position.set(o.a[0]+(o.b[0]-o.a[0])*k,o.a[1]+(o.b[1]-o.a[1])*k,o.a[2]+(o.b[2]-o.a[2])*k);else{o.m.position.x+=o.v[0]*dt;o.m.position.y+=o.v[1]*dt;o.v[1]-=14*dt;o.m.position.z+=o.v[2]*dt;o.m.material.opacity=1-k}
-    emit(o.m.position.x,o.m.position.y,o.m.position.z,1,.5<Math.random()?0xff2a55:0xa040ff,1,.3,.2,.2);
-    if(k>=1){scene.remove(o.m);AZ.fx.splice(i,1)}}
-  if(AZ.ult){const u=AZ.ult;u.t+=dt;const k=Math.min(1,u.t/u.T);u.sp.forEach((s,i)=>{const a=i/u.sp.length*6.283+u.t*5,r=2.4*(1-.3*k);s.position.set(P.x+Math.cos(a)*r,1.8+Math.sin(u.t*6+i)*.3,P.z+Math.sin(a)*r);s.material.opacity=Math.min(.75,k*3)*(u.done?Math.max(0,1-(u.t-u.T)*6):1)});
-    if(!u.done&&u.t>=u.T)azStrike();if(u.done&&u.t>=u.T+.2){u.sp.forEach(s=>scene.remove(s));AZ.ult=null}}
+    if(k>=1){if(!o.gh)for(const e of [...en])if(!e.hid&&e.hp>0&&Math.hypot(e.x-o.x,e.z-o.z)<5.8)azHit(e,o.dm,'#ff3b6b');
+      for(let q=0;q<40;q++){const a=q/40*6.283;emit(o.x+Math.cos(a)*4.5,.6,o.z+Math.sin(a)*4.5,1,q%2?0xc4102e:0x8a0a1e,5,.6,2)}emit(o.x,1.2,o.z,24,0xc4102e,9,.6,2);aurRing(o.x,o.z,5.5,.4,0xc4102e);azBlk(o.x,o.z,.5,5.8,.6);if(!o.gh)shake=Math.max(shake,.4);
+      azDel(o.cm);scene.remove(o.rg);AZ.ills.splice(i,1)}}
+  for(let i=AZ.fx.length-1;i>=0;i--){const o=AZ.fx[i];o.t+=dt;const k=Math.min(1,o.t/o.T);o.u(o,k,dt);if(k>=1){azRel(o);azDel(o.m);AZ.fx.splice(i,1)}}
+  for(let i=AZ.ults.length-1;i>=0;i--){const u=AZ.ults[i];u.t+=dt;const k=Math.min(1,u.t/u.T);
+    u.sp.forEach((c,j)=>{const a=j/5*6.283+u.t*6,r=2.6*(1-.35*k),x=u.own.x+Math.cos(a)*r,y=1.8+Math.sin(u.t*7+j)*.3,z=u.own.z+Math.sin(a)*r;c.position.set(x,y,z);c.rotation.z+=dt*12;c.material.opacity=Math.min(1,k*3)*(u.done?Math.max(0,1-(u.t-u.T)*6):1);c.userData.rb.forEach(q=>azRibUp(q,[x,y,z]))});
+    if(!u.done&&u.t>=u.T){u.done=1;u.gh?azGhStrike(u):azStrike(u)}
+    if(u.done&&u.t>=u.T+.2){u.sp.forEach(c=>{AZ.dy.push(...c.userData.rb);azDel(c)});AZ.ults.splice(i,1)}}
 }
 const CHS={az:{s1:azS1,s2:azS2,s3:azS3},haspen:{s1:hsS1,s2:hsS2,s3:hsS3},ivar:{s1:ivS1,s2:ivS2,s3:ivS3},mikela:{s1:mhS1,s2:mhS2,s3:mhS3},aurelio:{s1:aS1,s2:aS2,s3:aS3},zeta:{s1:zS1,s2:zS2,s3:zS3},goran:{s1:gS1,s2:gS2,s3:gS3},stanley:{s1:stS1,s2:stS2,s3:stS3},miracle:{s1:miS1,s2:miS2,s3:miS3}};
 function useS1(d,a){CHS[cur].s1(d,a)}function useS2(d,a){if(cur==='miracle'&&miC){miDet();return}CHS[cur].s2(d||aimDir({manual:false,k:'s2'}),a)}function useS3(d,a){CHS[cur].s3(d,a)}
@@ -2991,6 +3021,7 @@ function ntgBasic(p,m){const ch=p.ch,x=m.x,z=m.z,tx=m.tx,tz=m.tz,L=Math.hypot(tx
   else if(ch==='zeta'){nClip('zba',x,z);pr(zeMini(.7),(b,dt)=>zeBUp(b,dt,b.dx,b.dz),b=>{for(let q=0;q<3;q++)faShard(b.m.position.x,b.m.position.z,b.dx,b.dz,true,2,.5);emit(b.m.position.x,1.7,b.m.position.z,6,0x9fe8ff,5,.3);nClip('zba',b.m.position.x,b.m.position.z,.55)})}
   else if(ch==='aurelio'){nClip(m.sn?'ah2':'aba',x,z,m.ps?.85:1);aurHit({x:tx,z:tz},!!m.hv,x,z)}
   else if(ch==='ivar'&&p.sk){ivFxBasic(ivS(p.sk,p),tx,tz,!!m.hv)}
+  else if(ch==='az'){emit(x+dx*1.4,1.9,z+dz*1.4,6,0xc4102e,4,.3,.6);emit(tx,1.8,tz,5,0x8a0a1e,4,.3,.6)}
   else if(ch==='goran'){nClip(m.sn?'gbs':'gba',x,z,.8);emit(tx,1.4,tz,8,0xd2a06a,4,.35);goPuff(tx,.6,tz,0,.6,0,.8,1.8,.5,.45);goRock(tx,.6,tz,(Math.random()-.5)*4,4,(Math.random()-.5)*4,.3)}
   else if(ch==='mikela'&&p.mh){nClip('mkba',x,z,0,.32);p.mhT=0;for(const h of p.mh)if(h.st==='down'||h.st==='lie'||h.st==='fall')mhRise(h);const h=p.mh[p.mhS^=1];
     mhStrike(h,tx,1.45,tz,{tw:.12,ts:.2,tr:.34,onHit:()=>{mhChips(tx,1.3,tz,3,3.5,4);mhDust(tx,.4,tz,2,1.6)}})}
@@ -3025,6 +3056,7 @@ function ntgCast(p,m){try{const ch=p.ch,k=m.k,x=m.x,z=m.z,dx=m.dx,dz=m.dz,d=[dx,
     else if(k==='s3')zeUltStart(d,x,z,true);
     return true}
   if(ch==='haspen'){hsGhost(p,m,k);return true}
+  if(ch==='az'){azGhost(p,m);return true}
   if(ch==='ivar'){ivGhost(p,m);return true}
   if(ch==='mikela'&&p.mh){const wake=()=>{p.mhT=0;for(const h of p.mh)if(h.st==='down'||h.st==='lie'||h.st==='fall')mhRise(h)},hand=()=>p.mh[p.mhS^=1];
     if(k==='s1'){wake();nClip('mkba',x,z,.55,.32);const tx=x+dx*7.2,tz=z+dz*7.2;mhStrike(hand(),tx,1.5,tz,{tw:.12,ts:.2,tr:.38,onHit:()=>mhImpactG(tx,tz,3)})}
