@@ -28,6 +28,12 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const USER_RE = /^[A-Za-z0-9_]{3,12}$/; // 12 = límite del campo de nombre online del juego
 const MAX_SCORE = 2_000_000;
 const MAX_WAVE = 999;
+// Arena Coins: moneda del juego
+const COINS_START = 500, COINS_VIP = 999999, VIP_NAME = 'estanis';
+const CHAR_IDS = ['aurelio', 'zeta', 'goran', 'stanley', 'miracle', 'mikela', 'ivar', 'haspen', 'az'];
+const FREE_CHARS = ['aurelio', 'zeta', 'goran'], CHAR_PRICE = 100;
+const SKIN_PRICES = { 'miracle:hielo': 2500 };
+const WAVE20_REWARD = 75, REWARD_GAP_MS = 120000;
 const CHAT_MAX = 50, CHAT_COLS = ['r', 'b', 'p', 'y', 'g', 'w'], CHAT_AVS = 5; // chat global: últimos 50, 6 colores, 5 fotos
 
 // ---------------------------------------------------------------- base de datos
@@ -94,9 +100,18 @@ function authUser(req) {
   const s = db.sessions[sha(tok)];
   if (!s || s.exp < Date.now()) return null;
   const u = db.users[s.u];
+  if (u) ensureAcc(u);
   return u ? { key: s.u, u, tokHash: sha(tok) } : null;
 }
-const pub = u => ({ name: u.name, best: u.best || 0, wave: u.wave || 0 });
+function ensureAcc(u) {
+  let ch = false;
+  if (typeof u.coins !== 'number') { u.coins = COINS_START; ch = true; }
+  if (!Array.isArray(u.unlC)) { u.unlC = []; ch = true; }
+  if (!Array.isArray(u.unlS)) { u.unlS = []; ch = true; }
+  if (String(u.name).toLowerCase() === VIP_NAME && !u.vip) { u.coins = COINS_VIP; u.vip = 1; ch = true; }
+  if (ch) save();
+}
+const pub = u => { ensureAcc(u); return { name: u.name, best: u.best || 0, wave: u.wave || 0, coins: u.coins, unl: { c: u.unlC, s: u.unlS } }; };
 function ranking() {
   return Object.values(db.users)
     .filter(u => u.best > 0)
@@ -207,6 +222,33 @@ async function api(req, res, url) {
     let me = null;
     if (a && a.u.best > 0) { const i = all.indexOf(a.u); me = { rank: i + 1, name: a.u.name, score: a.u.best, wave: a.u.wave || 0 }; }
     return send(res, 200, { top, me, total: all.length });
+  }
+
+  if (route === '/api/unlock' && req.method === 'POST') {
+    const a = authUser(req);
+    if (!a) return send(res, 401, { error: 'Sesión caducada' });
+    if (limited('unl:' + a.key, 10, 6e4)) return send(res, 429, { error: 'Más despacio' });
+    let b; try { b = await readBody(req); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
+    const type = String(b.type || ''), id = String(b.id || '');
+    let price = 0, list = null;
+    if (type === 'char' && CHAR_IDS.includes(id) && !FREE_CHARS.includes(id)) { price = CHAR_PRICE; list = a.u.unlC; }
+    else if (type === 'skin' && SKIN_PRICES[id]) { price = SKIN_PRICES[id]; list = a.u.unlS; }
+    else return send(res, 400, { error: 'No se puede desbloquear eso' });
+    if (!list.includes(id)) {
+      if (a.u.coins < price) return send(res, 402, { error: 'No tienes suficientes Arena Coins' });
+      a.u.coins -= price; list.push(id); save(300);
+    }
+    return send(res, 200, { coins: a.u.coins, unl: { c: a.u.unlC, s: a.u.unlS } });
+  }
+
+  if (route === '/api/reward' && req.method === 'POST') {
+    const a = authUser(req);
+    if (!a) return send(res, 401, { error: 'Sesión caducada' });
+    let b; try { b = await readBody(req); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
+    if (b.kind !== 'wave20') return send(res, 400, { error: 'Recompensa no válida' });
+    if (Date.now() - (a.u.lastRew || 0) < REWARD_GAP_MS) return send(res, 200, { coins: a.u.coins, added: 0 });
+    a.u.lastRew = Date.now(); a.u.coins += WAVE20_REWARD; save(300);
+    return send(res, 200, { coins: a.u.coins, added: WAVE20_REWARD });
   }
 
   if (route === '/api/chat' && req.method === 'GET') {
