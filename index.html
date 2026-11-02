@@ -1087,7 +1087,7 @@ function makeHero(col){const g=new T.Group(),b=new T.Group(),mat=new T.MeshStand
 const TR={mode:false,on:false,p:null,t:0,sk:{}};const en=[];let wave=0,waveWait=1.5,hurtT=0,clock=0,auto=false,held=false,reqT=0,wasMoving=false,cdA=0,sw={on:false,t:0,hit:false,tg:null},fbAim=null;
 const P={x:0,z:0,r:.8,speed:10,ang:Math.PI*.75,hp:500,max:500,mp:200,mpMax:200,lvl:1,xp:0,dead:0};
 const focus=new T.Vector3(0,0,0);let slashT=0;
-function banner(t){const b=$('ban');b.textContent=t;b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
+function banner(t){if(ARC.on)return;const b=$('ban');b.textContent=t;b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 const eb=[],ebG=new T.SphereGeometry(.45,10,8),ebM=new T.MeshBasicMaterial({color:0xd6b0ff}),ebGl=new T.SphereGeometry(.8,10,8),ebGlM=new T.MeshBasicMaterial({color:0x9050ff,transparent:true,opacity:.35});
 function fireE(e){const dx=P.x-e.x,dz=P.z-e.z,l=Math.hypot(dx,dz)||1,g=new T.Group();g.add(new T.Mesh(ebG,ebM),new T.Mesh(ebGl,ebGlM));
   g.position.set(e.x+dx/l*1.2,1.6,e.z+dz/l*1.2);scene.add(g);eb.push({m:g,dx:dx/l,dz:dz/l,t:0,dm:e.dm,src:e});SFX.shoot()}
@@ -1123,15 +1123,30 @@ function fzTick(dt){
     if(q.ph===0){const p=Math.max(.01,Math.min(1,q.t/q.T));q.f.scale.set(q.R*p,q.R*p,1);q.m.material.opacity=.2+.12*Math.sin(q.t*18);
       if(q.t>=q.T){q.ph=1;q.t=0;q.f.scale.set(q.R,q.R,1);q.f.material.opacity=.8;q.m.material.opacity=0;
         emit(q.x,1,q.z,40,0xff6a1a,9,.8,3,q.R*.6);emit(q.x,1.5,q.z,20,0xffd24a,6,.6,4);shake=Math.max(shake,.3);
-        if(!P.dead&&!(PX.inv>0)&&!(PX.stas>0)&&Math.hypot(P.x-q.x,P.z-q.z)<q.R){pBurnDm=Math.max(pBurn>0?pBurnDm:0,q.dm*.5);pBurn=5;pBurnT=1;banner('¡Quemándote!')}}}
+        if(!P.dead&&!(PX.inv>0)&&!(PX.stas>0)&&Math.hypot(P.x-q.x,P.z-q.z)<q.R){pBurnDm=Math.max(pBurn>0?pBurnDm:0,q.dm*.5);pBurn=5;pBurnT=1}}}
     else{q.f.material.opacity=Math.max(0,.8*(1-q.t/.9));emit(q.x+(Math.random()-.5)*q.R*1.4,.4,q.z+(Math.random()-.5)*q.R*1.4,1,0xff7a1a,2,.5,2);
       if(q.t>=.9){scene.remove(q.m,q.f);q.m.material.dispose();q.f.material.dispose();FZ.splice(i,1)}}}}
-function stunP(t){if(PX.stas>0||P.dead>0)return;pStun=Math.max(pStun,t);sw.on=false;auto=false;reqT=0;aim=null;hideAim();banner('¡Aturdido!')}
+function stunP(t){if(PX.stas>0||P.dead>0)return;if(t>=pStun){pStun=t;pStunMax=t}sw.on=false;auto=false;reqT=0;aim=null;hideAim()}
+let pStunMax=1,pFire=null,_stn=null;
+function pStunUI(){
+  if(!_stn){const h=$('hud');if(!h)return;const e=document.createElement('div');e.style.cssText='display:none;position:absolute;left:calc(22*var(--u));right:0;top:calc(-28*var(--u));pointer-events:none';
+    e.innerHTML='<div style="display:flex;align-items:center;gap:calc(4*var(--u));height:calc(16*var(--u));font:800 calc(12*var(--u)) system-ui,sans-serif;color:#fff;white-space:nowrap;text-shadow:0 0 calc(3*var(--u)) #000,0 calc(1*var(--u)) calc(2*var(--u)) #000"><i style="flex:none;width:calc(16*var(--u));height:calc(16*var(--u));background:center/contain no-repeat url('+STIC[11]+')"></i><span>Aturdimiento</span></div><div style="margin-top:calc(2*var(--u));height:calc(7*var(--u));background:#000;border:calc(1*var(--u)) solid #000;border-radius:calc(3*var(--u));overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(#c77dff,#7b2cbf);transform-origin:0 50%"></i></div>';
+    h.appendChild(e);_stn={h,e,f:e.lastChild.firstChild,on:false}}
+  const on=pStun>0&&!(P.dead>0);
+  if(on){if(!_stn.on){_stn.on=true;_stn.e.style.display='block';_stn.h.classList.add('stn')}_stn.f.style.transform='scaleX('+Math.max(0,Math.min(1,pStun/pStunMax))+')'}
+  else if(_stn.on){_stn.on=false;_stn.e.style.display='none';_stn.h.classList.remove('stn')}}
+function pFireUpd(on){
+  if(!pFire){if(!on)return;const g=new T.Group();g.userData.s=[];[0xff2a10,0xff8a1a,0xffcf40,0xff4a10,0xff9a2a,0xff2a10].forEach((c,i)=>{const sp=new T.Sprite(faSM(c));sp.userData.i=i;g.add(sp);g.userData.s.push(sp)});H.g.add(g);pFire=g}
+  pFire.visible=on;if(!on)return;const t=clock;
+  for(const sp of pFire.userData.s){const i=sp.userData.i,u=(t*1.7+i*.31)%1;sp.position.set(Math.sin(t*9+i*2)*.45,.3+u*2.3,Math.cos(t*8+i*3)*.45);
+    const f=.6+.4*Math.abs(Math.sin(t*13+i*1.7));sp.scale.setScalar((1.5-u*.9)*f*1.3);sp.material.opacity=.9*(1-u*.8);sp.material.color.setHex(Math.sin(t*16+i*2)>0?0xff8a1a:0xff2a10)}}
 function pStatusTick(dt){
-  if(P.dead>0){pStun=0;pBurn=0;return}
+  if(P.dead>0){pStun=0;pBurn=0}
   if(pStun>0){pStun-=dt;rootT=Math.max(rootT,.05);reqT=0;if(Math.random()<.3)emit(P.x,3.4,P.z,1,0xffe066,1,.5,1.5,.5)}
-  if(pBurn>0){pBurn-=dt;pBurnT-=dt;emit(P.x+(Math.random()-.5),1+Math.random()*1.4,P.z+(Math.random()-.5),1,0xff7a1a,2,.5,2);
-    if(pBurnT<=0){pBurnT+=1;hurtP(pBurnDm,null,'m')}if(pBurn<0)pBurn=0}}
+  if(pBurn>0){pBurn-=dt;pBurnT-=dt;
+    for(const c of[0xff3a1a,0xff9a2a,0xffd24a])emit(P.x+(Math.random()-.5)*.8,.6+Math.random()*1.8,P.z+(Math.random()-.5)*.8,1,c,2.5,.6,3);
+    if(pBurnT<=0){pBurnT+=1;hurtP(pBurnDm,null,'m')}if(pBurn<0)pBurn=0}
+  pStunUI();pFireUpd(pBurn>0&&!(P.dead>0))}
 // Embestidor: aviso de 0,9 s, embiste y, si te alcanza, te daña y te aturde 1 s
 function chCharge(e,dt,stunned){
   let c=e.chg;
@@ -1341,7 +1356,7 @@ function skCM(k,i){const d=SKD[cur||'aurelio'][k],v=skI(k,i?d.mp:d.cd);return i?
 const aurPas=()=>Math.round(75+dmg(1)),miPas=()=>{DTN='m';return Math.round(20+.7*stat().ap)};
 let buff=false,buffT=0,hits=0,dash=null,skA=0,rootT=0,aim=null,flashT=0;
 function gainXP(n){if(P.lvl>=MAXLV)return;P.xp+=n;
-  while(P.lvl<MAXLV&&P.xp>=xpNeed(P.lvl)){P.xp-=xpNeed(P.lvl);P.lvl++;const gH=Math.round(C.up[0]*(P.lvl-1))-Math.round(C.up[0]*(P.lvl-2)),gM=Math.round(C.up[1]*(P.lvl-1))-Math.round(C.up[1]*(P.lvl-2));P.max+=gH;P.mpMax+=gM;P.hp=Math.min(P.max,P.hp+gH);P.mp=Math.min(P.mpMax,P.mp+gM);SFX.level();lvT=1;for(let q=0;q<28;q++){const a=q/28*6.283;emit(P.x+Math.cos(a)*1.6,.2,P.z+Math.sin(a)*1.6,1,0xffd166,1,1,5,.1)}banner('¡Nivel '+P.lvl+'!')}
+  while(P.lvl<MAXLV&&P.xp>=xpNeed(P.lvl)){P.xp-=xpNeed(P.lvl);P.lvl++;const gH=Math.round(C.up[0]*(P.lvl-1))-Math.round(C.up[0]*(P.lvl-2)),gM=Math.round(C.up[1]*(P.lvl-1))-Math.round(C.up[1]*(P.lvl-2));P.max+=gH;P.mpMax+=gM;P.hp=Math.min(P.max,P.hp+gH);P.mp=Math.min(P.mpMax,P.mp+gM);SFX.level();lvT=1;for(let q=0;q<28;q++){const a=q/28*6.283;emit(P.x+Math.cos(a)*1.6,.2,P.z+Math.sin(a)*1.6,1,0xffd166,1,1,5,.1)}}
   if(P.lvl>=MAXLV)P.xp=0}
 function hit(e,n,stun,col,q){if(cur==='az')azPre(e);if(cur==='haspen'&&e.hsM>0)hsBloom(e);const dty=DTN;DTN='p';cbT=4;if(e.rp)return ntHit(e,n,stun,col,q,dty);const cr0=!!BF&&cur!=='aurelio'&&n>2.5*dmg(1);n=sOut(e,n,dty);const cr=cr0||SO.cr;if(e.weakT>0)n=Math.round(n*1.3);e.hp-=n;if(cur==='az'&&e.azM>0&&e.hp<=0&&!e.azK){e.azK=1;cd.s1*=.8}e.flash=.15;emit(e.x,1.5,e.z,9,0xd01c1c,3.5,.5,1);emit(e.x,1.6,e.z,col?14:8,col?0xffb040:0xfff0b0,5,.45);SFX.hit(!!col);shake=Math.max(shake,cr?.32:col?.22:.08);if(stun){if(!NS(cur)&&!IVQ)SFX.stun();emit(e.x,3.4,e.z,10,0xffe066,3,.7,1)}if(!q||Math.random()<.25)popDmg(e.x,3,e.z,n,cr,SO.ty);if(stun){e.stun=(typeof stun==='number'?stun:1.5)*(e.boss?.45:1);e.sfBy=cur;e.sfK=0}
   if(e.hp<=0){emit(e.x,1.4,e.z,22,0xff6a4a,7,.7,2);SFX.die();if(!NET.on){KDA.k++;PXkill()}score+=e.boss?100:e.type==='r'?25:e.sp?30:20;if(e.tel)scene.remove(e.tel);scene.remove(e.g);e.bar.remove();en.splice(en.indexOf(e),1);burst(e.x,e.z);gainXP((10+wave*2)*(e.boss?8:e.type==='r'?1.6:e.sp?1.8:1));addGold(e.boss?150:e.type==='r'?35:e.sp?40:30,e.x,e.z);
@@ -3558,7 +3573,7 @@ function step(dt){
   wasMoving=moving;extra(dt);
   if(aim){aim.t+=dt;updInd(aim.k,aimDir(aim),!P.dead&&aim.t>.15&&!aim.over)}
   if(flashT<=0)flashCone.visible=false;
-  H.r.material.color.setHex(cur==='goran'&&refl>0?0xffd166:buff?0x7fe3ff:C.ring);{const pu=.5+.5*Math.sin(clock*9);if(PX.stas>0)glow(.85,.62,.06);else if(hurtT>0)glow(.45,.05,.05);else if(lvT>0)glow(.4*lvT,.3*lvT,0);else if(refl>0)glow(.25,.18,0);else if(buff)glow(0,.08+.08*pu,.16+.1*pu);else glow(0,0,0);lvT=Math.max(0,lvT-dt)}
+  H.r.material.color.setHex(cur==='goran'&&refl>0?0xffd166:buff?0x7fe3ff:C.ring);{const pu=.5+.5*Math.sin(clock*9);if(PX.stas>0)glow(.85,.62,.06);else if(hurtT>0)glow(.45,.05,.05);else if(pBurn>0){const f=.5+.5*Math.sin(clock*20);glow(.55+.2*f,.05+.3*f,0)}else if(lvT>0)glow(.4*lvT,.3*lvT,0);else if(refl>0)glow(.25,.18,0);else if(buff)glow(0,.08+.08*pu,.16+.1*pu);else glow(0,0,0);lvT=Math.max(0,lvT-dt)}
   H.g.position.set(P.x,0,P.z);H.g.rotation.y=P.ang;H.r.rotation.z+=dt*1.5;
   if(slashT>0){slashT-=dt;if(slashT<=0)slash.visible=false}
   target=moving&&!sw.on&&!dash&&rootT<=0?1:0;swing=sw.on?SW-sw.t:skA;if(sw.on){actK='a';actT=SW-sw.t;actD=SW}else actT=Math.max(0,actT-dt);animZ(SK[cur],dt);
@@ -3747,7 +3762,7 @@ function arTick(dt){for(const k in ARC.au){ARC.t[k]=(ARC.t[k]||0)+dt;if(ARC.t[k]
 setInterval(()=>{arUI.style.display=(ARC.on&&running)?'flex':'none';if(!running||!ARC.on){arCards.style.display='none';arInv.style.display='none';ARC.pick=false;ARC.inv=false}},300);
 
 // ---- estilos de tarjetas (icono junto a cada mejora) y HUD de Suerte ----
-{const st=document.createElement('style');st.textContent='.arcd{width:min(27vw,240px);min-height:min(44vh,280px);background:#101a2c;border:2px solid #ffd166;border-radius:12px;padding:10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}.arcd.lk{border-color:#7dffb0;box-shadow:0 0 16px rgba(125,255,176,.55)}.aric{width:56px;height:56px;border-radius:10px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;flex:none}.aric .arsi{width:44px;height:44px;font-size:36px;line-height:44px}.art{font-weight:800;font-size:clamp(13px,2.4vmin,20px)}.arsub{color:#ffd166;font-size:clamp(10px,1.8vmin,14px)}.arlc{color:#7dffb0;font-weight:800;font-size:clamp(10px,1.8vmin,14px)}.arbd{font-size:clamp(10px,1.8vmin,14px);opacity:.95;display:flex;flex-direction:column;gap:4px;align-items:center}.arln{display:flex;align-items:center;gap:6px;justify-content:center;font-weight:700}.arps{font-size:clamp(9px,1.5vmin,12px);opacity:.85;line-height:1.3}.arsi{display:inline-block;width:clamp(16px,3vmin,24px);height:clamp(16px,3vmin,24px);flex:none;background:center/contain no-repeat;font-style:normal;text-align:center;line-height:clamp(16px,3vmin,24px);font-size:clamp(14px,2.6vmin,20px)}';document.head.appendChild(st)}
+{const st=document.createElement('style');st.textContent='#hud.stn #nm{top:calc(-45*var(--u))}.arcd{width:min(27vw,240px);min-height:min(44vh,280px);background:#101a2c;border:2px solid #ffd166;border-radius:12px;padding:10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}.arcd.lk{border-color:#7dffb0;box-shadow:0 0 16px rgba(125,255,176,.55)}.aric{width:56px;height:56px;border-radius:10px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;flex:none}.aric .arsi{width:44px;height:44px;font-size:36px;line-height:44px}.art{font-weight:800;font-size:clamp(13px,2.4vmin,20px)}.arsub{color:#ffd166;font-size:clamp(10px,1.8vmin,14px)}.arlc{color:#7dffb0;font-weight:800;font-size:clamp(10px,1.8vmin,14px)}.arbd{font-size:clamp(10px,1.8vmin,14px);opacity:.95;display:flex;flex-direction:column;gap:4px;align-items:center}.arln{display:flex;align-items:center;gap:6px;justify-content:center;font-weight:700}.arps{font-size:clamp(9px,1.5vmin,12px);opacity:.85;line-height:1.3}.arsi{display:inline-block;width:clamp(16px,3vmin,24px);height:clamp(16px,3vmin,24px);flex:none;background:center/contain no-repeat;font-style:normal;text-align:center;line-height:clamp(16px,3vmin,24px);font-size:clamp(14px,2.6vmin,20px)}';document.head.appendChild(st)}
 const arLk=document.createElement('div');arLk.style.cssText='position:fixed;left:calc(calc(130*var(--u)) + env(safe-area-inset-left,0px));top:calc(calc(14*var(--u)) + env(safe-area-inset-top,0px));z-index:6;display:none;padding:calc(4*var(--u)) calc(10*var(--u));border-radius:calc(14*var(--u));background:rgba(15,25,35,.75);border:calc(1*var(--u)) solid #c99a3f;font:700 calc(12*var(--u)) system-ui,sans-serif;color:#9dffb8;pointer-events:none';document.body.appendChild(arLk);
 setInterval(()=>{const on=ARC.on&&running;arLk.style.display=on?'block':'none';if(on)arLk.textContent='🍀 Suerte '+ARC.lk},300);
 {const _sgE=startGame;startGame=function(k){fzClear();pStun=0;pBurn=0;_sgE(k)}}
