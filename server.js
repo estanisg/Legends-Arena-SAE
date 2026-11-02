@@ -33,7 +33,7 @@ const COINS_START = 500, COINS_VIP = 999999, VIP_NAME = 'estanis';
 const CHAR_IDS = ['aurelio', 'zeta', 'goran', 'stanley', 'miracle', 'mikela', 'ivar', 'haspen', 'az'];
 const FREE_CHARS = ['aurelio', 'zeta', 'goran'], CHAR_PRICE = 100;
 const SKIN_PRICES = { 'miracle:hielo': 2500 };
-const WAVE20_REWARD = 75, REWARD_GAP_MS = 120000;
+const COIN_PERCENT = 1; // % del puntaje de cada partida de arena que se entrega como Arena Coins (5000 pts = 50 coins)
 const CHAT_MAX = 50, CHAT_COLS = ['r', 'b', 'p', 'y', 'g', 'w'], CHAT_AVS = 5; // chat global: últimos 50, 6 colores, 5 fotos
 
 // ---------------------------------------------------------------- base de datos
@@ -209,9 +209,12 @@ async function api(req, res, url) {
     a.u.lastScoreAt = Date.now();
     let improved = false;
     if (score > (a.u.best || 0)) { a.u.best = score; a.u.wave = wave; a.u.bestAt = Date.now(); improved = true; }
+    ensureAcc(a.u);
+    const added = Math.floor(score * COIN_PERCENT / 100);
+    if (added > 0) a.u.coins += added;
     save();
     const rank = ranking().findIndex(u => u.name === a.u.name) + 1;
-    return send(res, 200, { improved, best: a.u.best, wave: a.u.wave, rank: rank || null });
+    return send(res, 200, { improved, best: a.u.best, wave: a.u.wave, rank: rank || null, coins: a.u.coins, added });
   }
 
   if (route === '/api/leaderboard' && req.method === 'GET') {
@@ -239,16 +242,6 @@ async function api(req, res, url) {
       a.u.coins -= price; list.push(id); save(300);
     }
     return send(res, 200, { coins: a.u.coins, unl: { c: a.u.unlC, s: a.u.unlS } });
-  }
-
-  if (route === '/api/reward' && req.method === 'POST') {
-    const a = authUser(req);
-    if (!a) return send(res, 401, { error: 'Sesión caducada' });
-    let b; try { b = await readBody(req); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
-    if (b.kind !== 'wave20') return send(res, 400, { error: 'Recompensa no válida' });
-    if (Date.now() - (a.u.lastRew || 0) < REWARD_GAP_MS) return send(res, 200, { coins: a.u.coins, added: 0 });
-    a.u.lastRew = Date.now(); a.u.coins += WAVE20_REWARD; save(300);
-    return send(res, 200, { coins: a.u.coins, added: WAVE20_REWARD });
   }
 
   if (route === '/api/chat' && req.method === 'GET') {
