@@ -28,6 +28,7 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const USER_RE = /^[A-Za-z0-9_]{3,12}$/; // 12 = límite del campo de nombre online del juego
 const MAX_SCORE = 2_000_000;
 const MAX_WAVE = 999;
+const CHAT_MAX = 50, CHAT_COLS = ['r', 'b', 'p', 'y', 'g', 'w'], CHAT_AVS = 5; // chat global: últimos 50, 6 colores, 5 fotos
 
 // ---------------------------------------------------------------- base de datos
 const REDIS_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/+$/, '');
@@ -45,7 +46,7 @@ async function redis(cmd) {
   return d.result;
 }
 if (!USE_REDIS) fs.mkdirSync(DATA_DIR, { recursive: true });
-let db = { users: {}, sessions: {} };
+let db = { users: {}, sessions: {}, chat: [], chatSeq: 0 };
 async function loadDb() {
   if (USE_REDIS) {
     const raw = await redis(['GET', REDIS_KEY]); // si falla, el servidor no arranca (así nunca se pisan datos)
@@ -206,6 +207,28 @@ async function api(req, res, url) {
     let me = null;
     if (a && a.u.best > 0) { const i = all.indexOf(a.u); me = { rank: i + 1, name: a.u.name, score: a.u.best, wave: a.u.wave || 0 }; }
     return send(res, 200, { top, me, total: all.length });
+  }
+
+  if (route === '/api/chat' && req.method === 'GET') {
+    const after = parseInt(url.searchParams.get('after'), 10) || 0;
+    return send(res, 200, { messages: (db.chat || []).filter(m => m.id > after) });
+  }
+
+  if (route === '/api/chat' && req.method === 'POST') {
+    const a = authUser(req);
+    if (!a) return send(res, 401, { error: 'Sesión caducada' });
+    if (limited('chat:' + a.key, 1, 1200)) return send(res, 429, { error: 'Más despacio' });
+    let b; try { b = await readBody(req); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
+    const text = String(b.text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (!text) return send(res, 400, { error: 'Mensaje vacío' });
+    let av = parseInt(b.av, 10); if (!(av >= 0 && av < CHAT_AVS)) av = -1;
+    const col = CHAT_COLS.includes(b.col) ? b.col : 'w';
+    if (!Array.isArray(db.chat)) db.chat = [];
+    const message = { id: (db.chatSeq = (db.chatSeq || 0) + 1), name: a.u.name, text, av, col, t: Date.now() };
+    db.chat.push(message);
+    while (db.chat.length > CHAT_MAX) db.chat.shift(); // al pasar de 50 se borran los anteriores
+    save(2000);
+    return send(res, 200, { ok: true, message });
   }
 
   return send(res, 404, { error: 'No encontrado' });
