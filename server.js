@@ -210,8 +210,23 @@ async function api(req, res, url) {
   }
 
   if (route === '/api/chat' && req.method === 'GET') {
-    const after = parseInt(url.searchParams.get('after'), 10) || 0;
-    return send(res, 200, { messages: (db.chat || []).filter(m => m.id > after) });
+    // se devuelve siempre la lista completa, con la foto y el color ACTUALES de cada autor
+    const messages = (db.chat || []).map(m => {
+      const u = db.users[String(m.name).toLowerCase()];
+      return { ...m, av: u && Number.isInteger(u.chatAv) ? u.chatAv : m.av, col: u && CHAT_COLS.includes(u.chatCol) ? u.chatCol : m.col };
+    });
+    return send(res, 200, { messages });
+  }
+
+  if (route === '/api/chat/profile' && req.method === 'POST') {
+    const a = authUser(req);
+    if (!a) return send(res, 401, { error: 'Sesión caducada' });
+    if (limited('chatp:' + a.key, 10, 6e4)) return send(res, 429, { error: 'Más despacio' });
+    let b; try { b = await readBody(req); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
+    let av = parseInt(b.av, 10); if (!(av >= 0 && av < CHAT_AVS)) av = -1;
+    a.u.chatAv = av; a.u.chatCol = CHAT_COLS.includes(b.col) ? b.col : 'w';
+    save(1000);
+    return send(res, 200, { ok: true, av: a.u.chatAv, col: a.u.chatCol });
   }
 
   if (route === '/api/chat' && req.method === 'POST') {
@@ -225,6 +240,7 @@ async function api(req, res, url) {
     const col = CHAT_COLS.includes(b.col) ? b.col : 'w';
     if (!Array.isArray(db.chat)) db.chat = [];
     const message = { id: (db.chatSeq = (db.chatSeq || 0) + 1), name: a.u.name, text, av, col, t: Date.now() };
+    a.u.chatAv = av; a.u.chatCol = col; // el perfil queda en la cuenta
     db.chat.push(message);
     while (db.chat.length > CHAT_MAX) db.chat.shift(); // al pasar de 50 se borran los anteriores
     save(2000);
