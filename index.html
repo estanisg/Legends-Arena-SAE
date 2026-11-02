@@ -1176,6 +1176,7 @@ function dmgUpd(){for(const o of DPOP){const[a,b]=scr(o.x,o.y,o.z);o.d.style.tra
 // · Habilidades físicas escalan con AD (dmg); las mágicas escalan con AP (mdmg) y se reducen con resistencia mágica.
 // ---- estado de objetos / tienda ----
 const zeroIT=()=>({ad:0,ap:0,hp:0,arm:0,mr:0,apen:0,apenF:0,mpen:0,mpenF:0,ls:0,crit:0,cdmg:0,as:0,ms:0,ten:0,mana:0,mreg:0,ooc:0,ah:0,hreg:0});
+var ARC={on:false,go:false,pick:false,lv:1,xp:0,q:0,au:{},t:{}};
 let INV=[],IT=zeroIT(),cbT=0,shOpen=false,FCRIT=0;const RECBUY=new Set();
 let DTN='p';const SO={cr:false,ty:'p',pn:0,pf:0};
 const ERES=e=>e.boss?[30,30]:e.type==='r'?[0,18]:(e.nx||e.tw||e.type==='n'||e.type==='t')?[25,25]:[10,0]; // [armadura, res. mágica] de enemigos
@@ -1271,7 +1272,7 @@ function nearest(max){let b=null,bd=max;for(const e of en){if(e.hid)continue;con
 const bursts=[],fbGl=new T.SphereGeometry(1.2,12,10);
 function burst(x,z){const m=new T.Mesh(fbGl,new T.MeshBasicMaterial({color:0xff9d3d,transparent:true,opacity:.8}));m.position.set(x,1.6,z);scene.add(m);bursts.push({m,t:0})}
 let ivU=0,ivHp=0,ivTk=0;const MAXLV=13,xpNeed=l=>40+l*20,dmg=p=>Math.round((C.ad[0]+C.ad[1]*(P.lvl-1)+IT.ad)*p*(ivU>0?1.25:1));
-const SL={s1:0,s2:0,s3:0},MAXS={s1:5,s2:5,s3:3},ULV=[5,9,13],PIP={},skSpent=()=>SL.s1+SL.s2+SL.s3,skPts=()=>P.lvl-skSpent(),smul=k=>1+(SL[k]-1)*(k==='s3'?.8:.4),canUp=k=>SL[k]<MAXS[k]&&skPts()>0&&(k!=='s3'||P.lvl>=ULV[SL.s3]),cd={s1:0,s2:0,s3:0},CD={get s1(){return PXcd(skCM('s1',0))},set s1(v){},get s2(){return PXcd(skCM('s2',0))},set s2(v){},get s3(){return PXcd(skCM('s3',0))},set s3(v){}},MP={get s1(){return skCM('s1',1)},set s1(v){},get s2(){return skCM('s2',1)},set s2(v){},get s3(){return skCM('s3',1)},set s3(v){}};
+const SL={s1:0,s2:0,s3:0},MAXS={s1:5,s2:5,s3:3},ULV=[5,9,13],PIP={},skSpent=()=>SL.s1+SL.s2+SL.s3,skPts=()=>P.lvl-skSpent(),smul=k=>1+(SL[k]-1)*(k==='s3'?.8:.4),canUp=k=>!ARC.on&&SL[k]<MAXS[k]&&skPts()>0&&(k!=='s3'||P.lvl>=ULV[SL.s3]),cd={s1:0,s2:0,s3:0},CD={get s1(){return PXcd(skCM('s1',0))},set s1(v){},get s2(){return PXcd(skCM('s2',0))},set s2(v){},get s3(){return PXcd(skCM('s3',0))},set s3(v){}},MP={get s1(){return skCM('s1',1)},set s1(v){},get s2(){return skCM('s2',1)},set s2(v){},get s3(){return skCM('s3',1)},set s3(v){}};
 // ===== Datos de habilidades: [nivel 1, nivel máximo] · cd=enfriamiento, mp=maná, b=base, ad=%DF, ap=%PH, hp=%HP máx, ty=tipo de daño (p físico, m mágico) =====
 const SKD={
  aurelio:{s1:{cd:[5,3],mp:[55,25],ty:'p',b:[120,200],ad:[.7,1]},s2:{cd:[8,5],mp:[30,20],ty:'m',b:[0,0],ad:[1.5,1.65]},s3:{cd:[50,25],mp:[100,100],ty:'p',b:[280,340],ad:[.7,1]}},
@@ -2678,12 +2679,12 @@ function stRlAnim(R,B,dt,on,pr){
   if(rx){stM.setFromAxisAngle(stAx.set(1,0,0),rx);stT[2].multiply(stM)}
   for(let i=0;i<3;i++)B[N[i]].quaternion.slerp(stT[i],w)}
 function animZ(R,dt){
-  const AN=ZC[cur],B=R.B,mv=target>.5;if(!R.p0)R.p0=B.pel.position.clone();
+  const AN=ZC[cur],B=R.B,mv=target>.5;if(!AN||!AN.idle)return;if(!R.p0)R.p0=B.pel.position.clone();
   const dead=P.dead>0,act=!dead&&actT>0&&!mv&&AN[ZK[actK]];
   R.t+=dt;R.w+=(target-R.w)*Math.min(1,dt*6);R.ph+=dt*12*R.w;
   if(!dead&&actT>0&&ZK[actK])zS.combat=true;
   let want,tm=0;
-  if(dead){want='die';tm=Math.max(0,Math.min(AN.die.dur,(NET.on?10:3)-P.dead));zS.still=0}
+  if(dead){want=AN.die?'die':'idle';tm=AN.die?Math.max(0,Math.min(AN.die.dur,(NET.on?10:3)-P.dead)):0;zS.still=0}
   else if(act){want=ZK[actK];tm=(1-actT/actD)*AN[want].dur;zS.still=0}
   else if(mv){want='move';zS.still=0}
   else{zS.still+=dt;if(zS.still>3)zS.combat=false;want=zS.combat?'cidle':'idle'}
@@ -3160,9 +3161,12 @@ function ntgUp(dt){
     const tn=p.tint&&p.tint[1]>0;if(tn)p.tint[1]-=dt;p.sk.ring.material.color.setHex(tn?p.tint[0]:ntCH(p.team));
     if(p.mh){p.mhT+=dt;if(p.dead){if(!p.mhD){p.mhD=true;ntgFall(p)}}else{p.mhD=false;if(p.mhT>5)ntgFall(p)}for(const h of p.mh)mhHandUp(h,dt);if(p.team!==NET.me.team&&p.vis===false)for(const h of p.mh){h.g.visible=false;h.pl.forEach(m=>m.visible=false);h.db.forEach(d=>d.m.visible=false)}}}}
 function ntBasicSend(e,col,st){if(!NET.on)return;ntSend({t:'cast',k:'a',x:+P.x.toFixed(1),z:+P.z.toFixed(1),tx:+e.x.toFixed(1),tz:+e.z.toFixed(1),pw:cur==='stanley'&&ammo===1?1:0,big:cur==='miracle'&&e.mark?1:0,hv:(col||st)?1:0,ps:(cur==='aurelio'&&col)?1:0,sn:((cur==='aurelio'||cur==='goran')&&st)?1:0})}
-function gameOver(){running=false;let best=Math.max(score,window.LAA?LAA.best:0);
-  const rk=RANKS.filter(r=>score>=r[0]).pop();$('eRank').innerHTML=`<img src="${rk[3]}"><div class="rn" style="color:${rk[2]}">${rk[1].toUpperCase()}</div>`;
-  $('eP').innerHTML=`Puntaje final: <b>${score}</b><br>Oleada alcanzada: ${wave}<br>Mejor puntaje: ${best}`;$('pause').style.display='none';$('end').style.display='flex';if(window.LAA&&!TR.mode)LAA.submit(score,wave)}
+function gameOver(){if(!running&&ENDEL.style.display==='flex')return;running=false;_dT=0;try{renderer.domElement.style.filter='';renderer._gf=''}catch(_){}
+  try{let best=Math.max(score,window.LAA?LAA.best:0);
+  const rk=RANKS.filter(r=>score>=r[0]).pop()||RANKS[0];$('eRank').innerHTML=`<img src="${rk[3]}"><div class="rn" style="color:${rk[2]}">${rk[1].toUpperCase()}</div>`;
+  $('eP').innerHTML=`Puntaje final: <b>${score}</b><br>Oleada alcanzada: ${wave}<br>Mejor puntaje: ${best}`}catch(e){console.error('[gameOver]',e)}
+  $('pause').style.display='none';$('end').style.display='flex';
+  try{if(window.LAA&&!TR.mode)LAA.submit(score,wave)}catch(e){console.error('[submit]',e)}}
 function showMenu(){TR.on=false;trBtns(false);running=false;if(NET.peer||NET.on)ntLeave();clearField();['main','pause','end'].forEach(i=>$(i).style.display='none');$('menu').style.display='flex';renderMenu(sel)}
 function showMain(){TR.mode=false;TR.on=false;trBtns(false);running=false;if(NET.peer||NET.on)ntLeave();clearField();['menu','pause','end'].forEach(i=>$(i).style.display='none');$('main').style.display='flex'}
 let pSure=false;function pauseUI(){pSure=false;$('pChar').textContent=NET.on?'Rendirse':'Cambiar personaje';qualUI()}
@@ -3432,7 +3436,7 @@ function win(){waveWait=1e9;banner('¡Victoria!');SFX.level();winT=setTimeout(()
 $('mThumbs').innerHTML=Object.keys(CHAR).map(k=>`<button class="th" data-k="${k}" style="background-image:url(${ASSET[k].splash})"><span>${CHAR[k].n}</span></button>`).join('');
 $('mThumbs').onclick=e=>{const b=e.target.closest('.th');if(b)renderMenu(b.dataset.k)};
 $('mSk').onclick=e=>{const b=e.target.closest('.sk');if(b)skDesc(+b.dataset.i)};
-$('play').onclick=()=>startGame(sel);renderMenu('aurelio');
+$('play').onclick=()=>{ARC.go=true;startGame(sel)};renderMenu('aurelio');
 $('main').style.backgroundImage='';
 // ================= Sala de prueba: campeón fijo que no muere + botones de oro y nivel =================
 const TRB=document.createElement('div');TRB.id='trB';TRB.innerHTML='<b>SALA DE PRUEBA</b><button id="trG"><i class="ic ic-coin"></i> +1000 oro</button><button id="trL"><i class="ic ic-upS"></i> +1 nivel</button>';document.body.appendChild(TRB);
@@ -3539,7 +3543,7 @@ function step(dt){
    focus.x+=(P.x+CP.lx-focus.x)*k;focus.z+=(P.z+CP.lz-focus.z)*k}
   CFV.set(focus.x+CP.tx,focus.y,focus.z+CP.tz);camera.position.copy(CFV).add(CAM);if(shake>0){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake=Math.max(0,shake-dt*3)}camera.lookAt(CFV);updP(dt);
   sun.position.set(P.x+18,34,P.z+10);sun.target.position.set(P.x,0,P.z)}
-const hud=$('hud'),hbI=hud.querySelector('.h i'),mbI=hud.querySelector('.m i'),lvE=$('lv');
+const ENDEL=$('end');const hud=$('hud'),hbI=hud.querySelector('.h i'),mbI=hud.querySelector('.m i'),lvE=$('lv');
 let mmN=0;
 // ---- Estados: texto simple sobre la unidad mientras dura el efecto ----
 function nmSt(el,t){if(t){if(!el._st){el._st=1;el._base=el.textContent}if(el.textContent!==t)el.textContent=t}else if(el._st){el._st=0;el.textContent=el._base}}
@@ -3551,7 +3555,7 @@ function ui(){
   for(const k in cd){const b=$(k);{const v=Math.round(cd[k]/CD[k]*360)+'deg';if(b._cdv!==v){b._cdv=v;b.style.setProperty('--cd',v)}}b.classList.toggle('cd',cd[k]>0);b.classList.toggle('lock',SL[k]===0);updPips(k);txt($('c'+k),cd[k]>0?Math.ceil(cd[k]):'');sty(b,'opacity',P.mp<MP[k]?.5:1)}
   sty($('s2'),'borderColor',buff?'#7fe3ff':'');sty(atkB,'borderColor',auto&&atkMode===0?'#ffb13b':'');sty($('ab1'),'display',LN.on?'flex':'none');{const l=!!LN.on;if(document.body._ln!==l){document.body._ln=l;document.body.classList.toggle('ln',l);placeSkillUI()}}sty($('ab2'),'display',LN.on?'flex':'none');sty($('ab1'),'borderColor',auto&&atkMode===1?'#ffb13b':'');sty($('ab2'),'borderColor',auto&&atkMode===2?'#ffb13b':'');const pcv=cur==='aurelio'?hits%5+'/5':cur==='zeta'?zst+'/5':cur==='stanley'?(rel>0?'R':ammo+'/6'):cur==='miracle'?String(en.filter(e=>e.mark).length):cur==='haspen'?String(en.filter(e=>e.hsM>0).length):cur==='mikela'?String(en.filter(e=>e.weakT>0).length):(pasT>0?Math.ceil(pasT):'OK');txt($('pc'),pcv);
   const[a,b]=scr(P.x,C?C.bh:3.7,P.z);sty(hud,'display',P.dead||!running?'none':'block');hud.style.transform=`translate(${a-75}px,${b-30}px)`;
-  if(hud._m!==P.max){hud._m=P.max;hud.style.setProperty('--p1',11800/P.max+'px');hud.style.setProperty('--p2',118000/P.max+'px')}sty(hbI,'width',Math.round(P.hp/P.max*1000)/10+'%');hpTr(hbI,P.hp/P.max);sty(mbI,'width',Math.round(P.mp/P.mpMax*1000)/10+'%');txt(lvE,P.lvl);{const xv=Math.round(P.lvl>=MAXLV?360:P.xp/xpNeed(P.lvl)*360)+'deg';if(lvE._x!==xv){lvE._x=xv;lvE.style.setProperty('--xp',xv)}}
+  if(hud._m!==P.max){hud._m=P.max;hud.style.setProperty('--p1',11800/P.max+'px');hud.style.setProperty('--p2',118000/P.max+'px')}sty(hbI,'width',Math.round(P.hp/P.max*1000)/10+'%');hpTr(hbI,P.hp/P.max);sty(mbI,'width',Math.round(P.mp/P.mpMax*1000)/10+'%');txt(lvE,ARC.on?ARC.lv:P.lvl);{const xv=Math.round(ARC.on?ARC.xp/arNeed()*360:P.lvl>=MAXLV?360:P.xp/xpNeed(P.lvl)*360)+'deg';if(lvE._x!==xv){lvE._x=xv;lvE.style.setProperty('--xp',xv)}}
   for(const e of en)if(!e.rp)bar(e.bar,e.x,e.boss?7:2.9,e.z,e.hp/e.max,true);
   for(const e of en){if(e.g&&e.g.visible===false)continue;const t=stText(e);if(!t)continue;const pl=e.type==='p'?NET.players.find(q=>q.id===e.pid):null;if(pl&&pl.bar)pl._stT=t;else if(pl)stPut(e.x,CHAR[pl.ch].bh||3.4,e.z,t,52);else stPut(e.x,e.boss?7:2.9,e.z,t,6,(e.bar&&e.bar._h)||28)}
   if(NET.on&&!P.dead&&running){const a=[];if(pStunT>0)a.push('Aturdido');if(ntSlowT>0)a.push('Ralentizado');nmSt($('nm'),a.join(' · '))}else nmSt($('nm'),'');
@@ -3571,9 +3575,70 @@ function arngUpd(dt){const A=ARNG;A.a=A.on?Math.min(1,A.a+dt*10):Math.max(0,A.a-
 addEventListener('keydown',e=>{if(e.key===' ')ARNG.on=true});addEventListener('keyup',e=>{if(e.key===' '&&!ARNG.k)ARNG.on=false});
 let last=performance.now();
 let lastR=0,lastP=0,pfA=0,pfN=0,pfDone=false;
-function loop(t){if(!floorOk)floorPaint();if(CFG.fps&&t-lastR<1000/CFG.fps-2){requestAnimationFrame(loop);return}lastR=t;
+
+// ================= Modo Arena estilo Vampire Survivors / Megabonk =================
+const ARS={
+ ivar:{n:'Torbellino',c:'#ff3b3b',h:0xff3b3b,t:'c',r:8.8,cd:5,d:1.6},
+ goran:{n:'Terremoto',c:'#d9b27a',h:0xd2a06a,t:'c',r:7,cd:6,d:1.8},
+ aurelio:{n:'Tajo',c:'#ff9d3d',h:0xffb13b,t:'k',r:9.5,cd:4,d:1.7},
+ az:{n:'Cartas',c:'#c04bff',h:0xc04bff,t:'l',r:14,w:2,cd:3,d:1.3},
+ miracle:{n:'Pulso',c:'#7fe3ff',h:0x7fe3ff,t:'c',r:6.5,cd:5,d:1.5},
+ mikela:{n:'Puño de roca',c:'#d9b27a',h:0xd9b27a,t:'l',r:7.5,w:1.5,cd:4,d:1.7},
+ haspen:{n:'Aura vital',c:'#9ff0ff',h:0x9ff0ff,t:'c',r:6,cd:7,d:1.2,hl:1},
+ stanley:{n:'Ráfaga',c:'#6dffb0',h:0x6dffb0,t:'l',r:16,w:1.6,cd:2.5,d:1.2}};
+const ARL=['ivar','goran','aurelio','az','miracle','mikela','haspen','stanley'];
+const arCD=(k)=>Math.max(.8,ARS[k].cd*Math.pow(.88,ARC.au[k]-1)),arDM=(k)=>ARS[k].d*(1+.35*(ARC.au[k]-1));
+const arUI=document.createElement('div');arUI.id='arc';arUI.style.cssText='position:fixed;left:50%;bottom:calc(6*var(--u));transform:translateX(-50%);display:none;gap:calc(4*var(--u));z-index:6;pointer-events:none';document.body.appendChild(arUI);
+const arCards=document.createElement('div');arCards.style.cssText='position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;gap:2vmin;flex-wrap:wrap;background:rgba(4,8,14,.82);font-family:Montserrat,sans-serif;color:#fff';document.body.appendChild(arCards);
+['pointerdown','touchstart','mousedown'].forEach(ev=>arCards.addEventListener(ev,e=>e.stopPropagation()));
+function arReset(){ARC.lv=1;ARC.xp=0;ARC.q=0;ARC.pick=false;ARC.au={};ARC.t={};arCards.style.display='none';arUI.innerHTML='';arUI.style.display=ARC.on?'flex':'none';if(ARC.on){SL.s1=SL.s2=SL.s3=1}}
+const arNeed=()=>30+ARC.lv*18;
+function arPool(){const a=[];
+ if(INV.length<10)for(const it of SHOP_ITEMS)if(it.t==='l')a.push({k:'i',id:it.id});
+ for(const k of ['s1','s2','s3'])if(SL[k]<MAXS[k])a.push({k:'s',s:k});
+ for(const k of ARL)if(k!==cur)a.push({k:'a',a:k});
+ return a}
+function arPick(){const p=arPool(),o=[];while(o.length<3&&p.length)o.push(p.splice(Math.floor(Math.random()*p.length),1)[0]);return o}
+function arCardHtml(c){let t,sub,body,ic='';
+ if(c.k==='i'){const it=IT_BY[c.id];t=it.n;sub='Objeto legendario';body=stLines(it.st).join('<br>');ic=`background-image:${shImg(it.ic)}`}
+ else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]];t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+SL[c.s]+' → '+(SL[c.s]+1);body=(n&&n.n)||'';ic='background:#2a3550'}
+ else{const d=ARS[c.a],l=ARC.au[c.a]||0;t=d.n;sub=l?'Activa automática · nivel '+l+' → '+(l+1):'Nueva activa automática';body=(l?'+35% daño · −12% reutilización':'Se lanza sola cada '+d.cd+' s')+'<br>(habilidad de '+CHAR[c.a].n+')';ic='background:'+d.c}
+ return `<div style="width:min(26vw,230px);min-height:min(48vh,300px);background:#101a2c;border:2px solid #ffd166;border-radius:12px;padding:12px;text-align:center;cursor:pointer"><div style="width:64px;height:64px;margin:0 auto 8px;border-radius:10px;background-size:cover;${ic}"></div><div style="font-weight:800;font-size:clamp(13px,2.4vmin,20px)">${t}</div><div style="color:#ffd166;font-size:clamp(10px,1.8vmin,14px);margin:4px 0">${sub}</div><div style="font-size:clamp(10px,1.8vmin,14px);opacity:.9">${body}</div></div>`}
+function arApply(c){
+ if(c.k==='i'){INV.push(c.id);itRecalc();const h=P.max;P.hp=Math.min(P.max,P.hp+0)}
+ else if(c.k==='s'){SL[c.s]++}
+ else ARC.au[c.a]=(ARC.au[c.a]||0)+1;
+ arUp(true)}
+function arOpen(){if(ARC.pick||!ARC.q)return;ARC.q--;ARC.pick=true;auto=false;held=false;const o=arPick();
+ if(!o.length){ARC.pick=false;return}
+ arCards.innerHTML='<div style="width:100%;text-align:center;font-weight:800;font-size:clamp(16px,3.4vmin,28px)">¡Nivel '+ARC.lv+'! Elige una tarjeta</div>';
+ o.forEach(c=>{const d=document.createElement('div');d.innerHTML=arCardHtml(c);const el=d.firstChild;el.addEventListener('pointerup',e=>{e.stopPropagation();ARC.pick=false;arCards.style.display='none';arApply(c);SFX.level();if(ARC.q)arOpen()});arCards.appendChild(el)});
+ arCards.style.display='flex'}
+function arUp(force){const ks=Object.keys(ARC.au);if(force||arUI._n!==ks.length){arUI._n=ks.length;arUI.innerHTML=ks.map(k=>`<div data-k="${k}" style="position:relative;width:calc(34*var(--u));height:calc(34*var(--u));border-radius:50%;background:${ARS[k].c};border:2px solid #fff;overflow:hidden;font:800 calc(9*var(--u))/calc(34*var(--u)) Montserrat,sans-serif;color:#000;text-align:center"><span>${ARS[k].n.slice(0,3)}</span><b style="position:absolute;right:2px;bottom:0;font-size:calc(10*var(--u));line-height:1">${ARC.au[k]}</b><i style="position:absolute;inset:0;background:rgba(0,0,0,.65)"></i></div>`).join('')}
+ for(const el of arUI.children){const k=el.dataset.k,f=Math.max(0,Math.min(1,(ARC.t[k]||0)/arCD(k)));el.lastChild.style.clipPath=`inset(${(100-f*100).toFixed(0)}% 0 0 0)`}}
+function arFire(k){const d=ARS[k],L=ARC.au[k],dm=Math.max(dmg(1),stat().ap*.6)*arDM(k);let tg=null,bd=1e9;
+ for(const e of en){if(e.rp||e.hid||!(e.hp>0))continue;const q=Math.hypot(e.x-P.x,e.z-P.z);if(q<bd){bd=q;tg=e}}
+ if(!tg||bd>d.r+1)return false;
+ const dx=(tg.x-P.x)/(bd||1),dz=(tg.z-P.z)/(bd||1);
+ if(d.t==='c'){for(const e of [...en])if(!e.rp&&Math.hypot(e.x-P.x,e.z-P.z)<d.r)hit(e,dm,false,d.c);for(let q=0;q<24;q++){const a=q/24*6.283;emit(P.x+Math.cos(a)*d.r*.9,.4,P.z+Math.sin(a)*d.r*.9,1,d.h,2,.5,2,.2)}if(d.hl)hpAdd(P.max*.04*L)}
+ else if(d.t==='k'){for(const e of [...en]){if(e.rp)continue;const rx=e.x-P.x,rz=e.z-P.z,dd=Math.hypot(rx,rz);if(dd<d.r&&(rx*dx+rz*dz)/(dd||1)>.5)hit(e,dm,false,d.c)}for(let q=0;q<18;q++){const a=Math.atan2(dx,dz)+(q/17-.5)*2.1;emit(P.x+Math.sin(a)*d.r*.7,.8,P.z+Math.cos(a)*d.r*.7,1,d.h,2,.4,1,.2)}}
+ else{rectHit([dx,dz],d.r,d.w,e=>{if(!e.rp)hit(e,dm,false,d.c)});for(let q=1;q<=10;q++)emit(P.x+dx*d.r*q/10,1,P.z+dz*d.r*q/10,2,d.h,1.5,.4,1,.2)}
+ return true}
+function arTick(dt){for(const k in ARC.au){ARC.t[k]=(ARC.t[k]||0)+dt;if(ARC.t[k]>=arCD(k)&&arFire(k))ARC.t[k]=0;else if(ARC.t[k]>arCD(k))ARC.t[k]=arCD(k)}arUp(false)}
+{const _sg=startGame;startGame=function(k){ARC.on=ARC.go&&!TR.mode;ARC.go=false;_sg(k);arReset()}}
+{const _sh=shopToggle;shopToggle=function(f){if(ARC.on&&f!==false)return;_sh(f)}}
+{const _gx=gainXP;gainXP=function(n){if(!ARC.on)return _gx(n);ARC.xp+=n;let up=false;while(ARC.xp>=arNeed()){ARC.xp-=arNeed();ARC.lv++;ARC.q++;up=true;P.max+=Math.round(C.up[0]);P.hp=Math.min(P.max,P.hp+Math.round(C.up[0]));lvT=1;for(let q=0;q<28;q++){const a=q/28*6.283;emit(P.x+Math.cos(a)*1.6,.2,P.z+Math.sin(a)*1.6,1,0xffd166,1,1,5,.1)}}if(up)arOpen()}}
+{const _st=step;step=function(dt){_st(dt);if(ARC.on&&!(P.dead>0)&&running)arTick(dt)}}
+setInterval(()=>{arUI.style.display=(ARC.on&&running)?'flex':'none';if(!running||!ARC.on){arCards.style.display='none';ARC.pick=false}},300);
+function loop(t){try{loop0(t)}catch(err){loopErr(err)}}
+let _le=0,_dT=0;
+function loopErr(err){requestAnimationFrame(loop);if(_le++<5)console.error("[loop]",err);try{if(!NET.on&&P.dead>0&&running){P.dead=-1;gameOver()}}catch(e2){console.error(e2)}}
+function loop0(t){if(!floorOk)floorPaint();if(CFG.fps&&t-lastR<1000/CFG.fps-2){requestAnimationFrame(loop);return}lastR=t;
   const dR=t-lastP;lastP=t;if(running&&!pfDone&&dR<500){pfA+=dR;pfN++;if(pfA>9000){pfDone=true;if(pfN/(pfA/1000)<26&&CFG.pre!=='minimo')banner('El juego va lento: baja los gráficos en Ajustes (menú de pausa)')}}
-  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=P.dead?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++)step(dt)}arngUpd(rawDt);cbT=Math.max(0,cbT-rawDt);renderer.render(scene,camera);ui();if(DPOP.length)dmgUpd();requestAnimationFrame(loop)}
+  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=(P.dead>0&&running)?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!ARC.pick&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++){try{step(dt)}catch(e){if(_le++<5)console.error('[step]',e);if(!NET.on&&P.dead>0){P.dead=-1;gameOver()}break}}}
+  if(!NET.on&&running&&P.dead>0){if(!_dT)_dT=performance.now();else if(performance.now()-_dT>6000){_dT=0;P.dead=-1;gameOver()}}else _dT=0;
+  if(ENDEL.style.display==='flex'){requestAnimationFrame(loop);return}
+  {arngUpd(rawDt);cbT=Math.max(0,cbT-rawDt);renderer.render(scene,camera);ui();if(DPOP.length)dmgUpd()}requestAnimationFrame(loop)}
 addEventListener('resize',resize);resize();requestAnimationFrame(loop);
 // ================= Pantalla de carga (precarga y calentamiento) + selección de rendimiento =================
 const LDKEEP=[],WARM=[],ldBar=$('ldBar'),ldTxt=$('ldTxt'),ldPct=$('ldPct');
@@ -3759,7 +3824,7 @@ function info(){const k=sel,m=LEG[k];if(!m)return;
 window.renderMenu=function(k){sel=k;if(!LEG[k])return;if(!inF(k))pf='todos';side();grid();info();fitAll();requestAnimationFrame(fitAll)};
 $('pkSide').onclick=e=>{const b=e.target.closest('.navb');if(!b)return;pf=b.dataset.f;side();grid();fitAll()};
 $('pkGrid').onclick=e=>{const b=e.target.closest('.lgc');if(!b)return;sel=b.dataset.k;document.querySelectorAll('#pkGrid .lgc').forEach(x=>x.classList.toggle('on',x===b));info()};
-$('pkPlay').onclick=()=>{if(!TR.mode&&window.LOCK&&LOCK.c(sel)){LOCK.buy('char',sel);return}startGame(sel)};
+$('pkPlay').onclick=()=>{if(!TR.mode&&window.LOCK&&LOCK.c(sel)){LOCK.buy('char',sel);return}ARC.go=true;startGame(sel)};
 addEventListener('resize',()=>setTimeout(fitAll,60));
 })();
 </script>
