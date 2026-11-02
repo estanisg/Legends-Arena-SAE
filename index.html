@@ -3902,7 +3902,8 @@ function renderInfo(){const k=selK;if(!k)return;const c=CHAR[k],m=LEG[k];
 function select(k){selK=k;document.querySelectorAll('.lgc').forEach(b=>b.classList.toggle('on',b.dataset.k===k));renderInfo()}
 function renderGrid(){const ks=keys().filter(k=>filt==='todos'||LEG[k].c===filt||(LEG[k].c2||[]).includes(filt));
   $('legGrid').innerHTML=ks.length?ks.map(k=>'<button class="lgc'+(k===selK?' on':'')+'" data-k="'+k+'"><b>'+CHAR[k].n+'</b><small><i class="ci ci-'+LEG[k].c+'"></i>'+CLS[LEG[k].c]+'</small></button>').join(''):'<div class="lgEmpty">Sin leyendas en esta clase</div>';
-  if(ks.length&&!ks.includes(selK))select(ks[0]);else fit()}
+  {const L=$('legList');if(L)L.scrollTop=0}
+  if(ks.length&&!ks.includes(selK))select(ks[0]);else fit();requestAnimationFrame(fit)}
 function renderDet(){const k=selK,c=CHAR[k],m=LEG[k];
   $('ldName').textContent=c.n;$('ldNick').textContent=m.nick;
   $('ldCls').innerHTML='<i class="ci ci-'+m.c+'"></i><b>'+CLS[m.c]+'</b>'+m.tags.map(t=>'<span class="tag">'+t+'</span>').join('');
@@ -3960,7 +3961,7 @@ function info(){const k=sel,m=LEG[k];if(!m)return;
   $('pkStats').innerHTML=ST.map((n,i)=>'<div class="lst"><span>'+n+'</span><div class="lbar"><i style="width:'+m.st[i]+'%"></i></div></div>').join('');
   cropFit($('pkSplash'),k,'panel')}
 window.renderMenu=function(k){sel=k;if(!LEG[k])return;if(!inF(k))pf='todos';side();grid();info();fitAll();requestAnimationFrame(fitAll)};
-$('pkSide').onclick=e=>{const b=e.target.closest('.navb');if(!b)return;pf=b.dataset.f;side();grid();fitAll()};
+$('pkSide').onclick=e=>{const b=e.target.closest('.navb');if(!b)return;pf=b.dataset.f;side();grid();{const L=$('pkList');if(L)L.scrollTop=0}fitAll();requestAnimationFrame(fitAll)};
 $('pkGrid').onclick=e=>{const b=e.target.closest('.lgc');if(!b)return;sel=b.dataset.k;document.querySelectorAll('#pkGrid .lgc').forEach(x=>x.classList.toggle('on',x===b));info()};
 $('pkPlay').onclick=()=>{if(!TR.mode&&window.LOCK&&LOCK.c(sel)){LOCK.buy('char',sel);return}ARC.go=true;startGame(sel)};
 addEventListener('resize',()=>setTimeout(fitAll,60));
