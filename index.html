@@ -1112,15 +1112,15 @@ function mkEnemy(type,a,r){
   const hb=document.createElement('div');hb.className='hp';hb.innerHTML='<i></i>';hb.firstElementChild.style.background=boss?'#ff2a3d':type==='r'?'#b57cff':'#ff5a5f';
   if(boss){hb.style.width=(120*UIU)+'px';hb.style.height=(10*UIU)+'px';hb._h=60}
   document.body.appendChild(hb);
-  const hm=Math.pow(1.1,wave-1),dmm=hm*1.25;let mx=100*hm,spd=3+Math.min(2,wave*.2)+rnd()*.5,dm=8*dmm;
+  const hm=Math.pow(1.17,wave-1),dmm=Math.pow(1.13,wave-1)*1.25;let mx=100*hm,spd=3+Math.min(2,wave*.2)+rnd()*.5,dm=8*dmm;
   if(type==='r'){mx=70*hm;spd*=.9;dm=11*dmm}
   if(boss){mx=900*hm;spd=2.4;dm=24*dmm}mx=Math.round(mx);dm=Math.round(dm);
   const x=Math.cos(a)*r,z=Math.sin(a)*r;emit(x,1,z,boss?36:10,col,3,.6,3);
   en.push({...h,type,boss,at:-1,hit:false,mv:false,chT:3,x,z,hp:mx,max:mx,spd,dm,spawn:boss?1.2:.7,atk:.6,shoot:2+rnd()*1.5,flash:0,ph:rnd()*6,bar:hb})}
 function spawnWave(){wave++;const isB=wave%5===0;
   if(isB){mkEnemy('b',rnd()*6.283,29);shake=Math.max(shake,.5);SFX.boss()}
-  const n=Math.min(20,2+wave*2)-(isB?1:0);
-  for(let i=0;i<n;i++)mkEnemy(wave>=2&&rnd()<Math.min(.4,.15+wave*.04)?'r':'g',rnd()*6.283,29+rnd()*2);
+  const n=Math.min(24,2+wave*2)-(isB?1:0);
+  for(let i=0;i<n;i++)mkEnemy(wave>=2&&rnd()<Math.min(.5,.15+wave*.04)?'r':'g',rnd()*6.283,29+rnd()*2);
   banner((isB?'¡Jefe! · ':'')+'Oleada '+wave);SFX.horn()}
 // ---------- UI ----------
 let W,H_;const v3=new T.Vector3();
@@ -1176,7 +1176,7 @@ function dmgUpd(){for(const o of DPOP){const[a,b]=scr(o.x,o.y,o.z);o.d.style.tra
 // · Habilidades físicas escalan con AD (dmg); las mágicas escalan con AP (mdmg) y se reducen con resistencia mágica.
 // ---- estado de objetos / tienda ----
 const zeroIT=()=>({ad:0,ap:0,hp:0,arm:0,mr:0,apen:0,apenF:0,mpen:0,mpenF:0,ls:0,crit:0,cdmg:0,as:0,ms:0,ten:0,mana:0,mreg:0,ooc:0,ah:0,hreg:0});
-var ARC={on:false,go:false,pick:false,lv:1,xp:0,q:0,au:{},t:{}};
+var ARC={on:false,go:false,pick:false,lv:1,xp:0,q:0,au:{},t:{},lk:0,bn:{}};
 let INV=[],IT=zeroIT(),cbT=0,shOpen=false,FCRIT=0;const RECBUY=new Set();
 let DTN='p';const SO={cr:false,ty:'p',pn:0,pf:0};
 const ERES=e=>e.boss?[30,30]:e.type==='r'?[0,18]:(e.nx||e.tw||e.type==='n'||e.type==='t')?[25,25]:[10,0]; // [armadura, res. mágica] de enemigos
@@ -3196,7 +3196,7 @@ const isBoot=it=>it.t==='k'||it.t==='b',slotFull=(it,rest)=>isBoot(it)?rest.some
 const tenF=()=>Math.max(.1,1-stat().ten/100); // multiplicador de duración de debuffs
 // Máximos que pueden aportar los objetos en total
 const IT_MAX={}; // sin tope de atributos por objetos
-function itSum(list){const n=zeroIT();list.forEach(id=>{const it=IT_BY[id];for(const k in it.st){if(k==='msf')n.ms+=it.st[k]/3.3;else n[k]+=it.st[k]}});return n} // velocidad plana: 330 pts = 100%
+function itSum(list){const n=zeroIT();list.forEach(id=>{const it=IT_BY[id];for(const k in it.st){if(k==='msf')n.ms+=it.st[k]/3.3;else n[k]+=it.st[k]}});if(ARC.on&&list===INV&&ARC.bn)for(const k in ARC.bn)n[k]=(n[k]||0)+ARC.bn[k];return n} // velocidad plana: 330 pts = 100%
 function itClamp(n){for(const k in IT_MAX)if(n[k]>IT_MAX[k])n[k]=IT_MAX[k];return n}
 function capWarn(id){const it=IT_BY[id],n=itSum(priceOf(id).rest.concat(id));return Object.keys(it.st).filter(k=>IT_MAX[k]!==undefined&&n[k]>IT_MAX[k]).map(k=>SH_STAT[k][0]+' '+IT_MAX[k]+SH_STAT[k][1])}
 function markDone(id){RECBUY.add(id);IT_BY[id].fr.forEach(markDone)}
@@ -3592,26 +3592,54 @@ const arCD=(k)=>Math.max(.8,ARS[k].cd*Math.pow(.88,ARC.au[k]-1)),arDM=(k)=>ARS[k
 const arUI=document.createElement('div');arUI.id='arc';arUI.style.cssText='position:fixed;left:50%;bottom:calc(6*var(--u));transform:translateX(-50%);display:none;gap:calc(4*var(--u));z-index:6;pointer-events:none';document.body.appendChild(arUI);
 const arCards=document.createElement('div');arCards.style.cssText='position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;background:rgba(4,8,14,.82);font-family:Montserrat,sans-serif;color:#fff';document.body.appendChild(arCards);
 ['pointerdown','touchstart','mousedown'].forEach(ev=>arCards.addEventListener(ev,e=>e.stopPropagation()));
-function arReset(){ARC.lv=1;ARC.xp=0;ARC.q=0;ARC.pick=false;ARC.au={};ARC.t={};arCards.style.display='none';arUI.innerHTML='';arUI.style.display=ARC.on?'flex':'none';if(ARC.on){SL.s1=SL.s2=SL.s3=1}}
-const arNeed=()=>30+ARC.lv*18;
-function arPool(){const a=[];
- if(INV.length<10)for(const it of SHOP_ITEMS)if(it.t==='l'&&!(it.act&&it.act.k==='revel'))a.push({k:'i',id:it.id});
- for(const k of ['s1','s2','s3'])if(SL[k]<MAXS[k])a.push({k:'s',s:k});
- for(const k of ARL)if(k!==cur)a.push({k:'a',a:k});
- return a}
-function arPick(){const p=arPool(),o=[];while(o.length<3&&p.length)o.push(p.splice(Math.floor(Math.random()*p.length),1)[0]);return o}
+function arReset(){ARC.lv=1;ARC.xp=0;ARC.q=0;ARC.pick=false;ARC.au={};ARC.t={};ARC.lk=0;ARC.bn={};arCards.style.display='none';arUI.innerHTML='';arUI.style.display=ARC.on?'flex':'none';if(ARC.on){SL.s1=SL.s2=SL.s3=1}}
+const arNeed=()=>Math.round(25*Math.pow(1.26,ARC.lv-1));
+// ---- Probabilidades base por tarjeta: Habilidad de personaje 35% · Objeto legendario 15% · Activa aleatoria 5% · Atributo +5% 45% ----
+const ARW={s:35,i:15,a:5,t:45},ARLK=4,arLf=()=>1+.07*ARC.lk; // la Suerte multiplica las probabilidades de objeto legendario y activa
+const ARAT={ad:{n:'Daño físico',m:3},ap:{n:'Poder de habilidad',m:3},hp:{n:'Vida',m:25},arm:{n:'Armadura',m:2},mr:{n:'Resistencia mágica',m:2},as:{n:'Velocidad de ataque',p:1},crit:{n:'Prob. de crítico',p:1},ms:{n:'Velocidad de movimiento',p:1},ah:{n:'Aceleración de habilidad',p:1},lk:{n:'Suerte',w:2}};
+function arAtV(k,lc){let v;if(k==='lk')v=ARLK;else{const pc=5*(1+.04*ARC.lk);if(ARAT[k].p)v=Math.round(pc*10)/10;else{const cur=k==='hp'?P.max:stat()[k];v=Math.max(ARAT[k].m,Math.round(cur*pc/100))}}return lc?v*2:v}
+function arPick(){const S={s:[],i:[],a:[],t:[]};
+  for(const k of ['s1','s2','s3'])if(SL[k]<MAXS[k])S.s.push({k:'s',s:k,w:1});
+  if(INV.length<10)for(const it of SHOP_ITEMS)if(it.t==='l'&&!(it.act&&it.act.k==='revel'))S.i.push({k:'i',id:it.id,w:1});
+  for(const k of ARL)if(k!==cur)S.a.push({k:'a',a:k,w:1});
+  for(const k in ARAT)S.t.push({k:'t',t:k,w:ARAT[k].w||1});
+  const o=[],f=arLf();
+  while(o.length<3){
+    const ws={s:S.s.length?ARW.s:0,i:S.i.length?ARW.i*f:0,a:S.a.length?ARW.a*f:0,t:S.t.length?ARW.t:0},tot=ws.s+ws.i+ws.a+ws.t;
+    if(!tot)break;let r=Math.random()*tot,c='t';for(const k of ['s','i','a','t']){if(r<ws[k]){c=k;break}r-=ws[k]}
+    const L=S[c];let j=0;
+    if(c==='t'){const tw=L.reduce((a,b)=>a+b.w,0);let q=Math.random()*tw;for(;j<L.length-1;j++){if(q<L[j].w)break;q-=L[j].w}}else j=Math.floor(Math.random()*L.length);
+    const card=L.splice(j,1)[0];
+    card.lc=Math.random()<Math.min(.6,.03*ARC.lk); // tarjeta afortunada: efecto doble (la Suerte aumenta su probabilidad)
+    if(c==='t')card.v=arAtV(card.t,card.lc);
+    o.push(card)}
+  return o}
+const arIcU=k=>SIC[k]||(k==='apenF'||k==='apen'?STIC[6]:k==='mpenF'||k==='mpen'?STIC[7]:k==='ls'?STIC[8]:k==='cdmg'?STIC[10]:k==='ten'?STIC[11]:k==='msf'?STIC[13]:null);
+const arIco=k=>{const u=arIcU(k);return u?`<i class="arsi" style="background-image:url(${u})"></i>`:`<i class="arsi">${k==='lk'?'🍀':'•'}</i>`};
+const arSt=(k,v)=>{const d=SH_STAT[k]||[k,''];return `<div class="arln">${arIco(k)}<span>+${v}${d[1]} ${d[0]}</span></div>`};
 function arCardHtml(c){let t,sub,body,ic='';
- if(c.k==='i'){const it=IT_BY[c.id];t=it.n;sub='Objeto legendario';body=stLines(it.st).join('<br>');ic=`background-image:${shImg(it.ic)}`}
- else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]];t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+SL[c.s]+' → '+(SL[c.s]+1);body=(n&&n.n)||'';ic=`background-image:${arIc(cur,{s1:1,s2:2,s3:3}[c.s])}`}
- else{const d=ARS[c.a],l=ARC.au[c.a]||0;t=d.n;sub=l?'Activa automática · nivel '+l+' → '+(l+1):'Nueva activa automática';body=(l?'+35% daño · −12% reutilización':'Se lanza sola cada '+d.cd+' s')+'<br>(habilidad de '+CHAR[c.a].n+')';ic=`background-image:${arIc(c.a,ARI[c.a]||1)}`}
- return `<div style="width:min(26vw,230px);min-height:min(48vh,300px);background:#101a2c;border:2px solid #ffd166;border-radius:12px;padding:12px;text-align:center;cursor:pointer"><div style="width:64px;height:64px;margin:0 auto 8px;border-radius:10px;background-size:cover;${ic}"></div><div style="font-weight:800;font-size:clamp(13px,2.4vmin,20px)">${t}</div><div style="color:#ffd166;font-size:clamp(10px,1.8vmin,14px);margin:4px 0">${sub}</div><div style="font-size:clamp(10px,1.8vmin,14px);opacity:.9">${body}</div></div>`}
+  if(c.k==='i'){const it=IT_BY[c.id];t=it.n;sub='Objeto legendario';
+    body=Object.entries(it.st).map(([k,v])=>arSt(k,v)).join('');
+    if(it.pas)body+=`<div class="arps"><b>${it.pas.n}:</b> ${it.pas.d}</div>`;
+    if(it.act)body+=`<div class="arps"><b>Activa · ${it.act.n}:</b> ${it.act.d}</div>`;
+    ic=`<div class="aric" style="background-image:${shImg(it.ic)}"></div>`}
+  else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]],a=SL[c.s],b=Math.min(MAXS[c.s],a+(c.lc?2:1));t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+a+' → '+b;body=(n&&n.n)||'';ic=`<div class="aric" style="background-image:${arIc(cur,{s1:1,s2:2,s3:3}[c.s])}"></div>`}
+  else if(c.k==='t'){const d=ARAT[c.t];t=d.n;sub=c.t==='lk'?'Atributo · Suerte':'Atributo · mejora aleatoria';
+    if(c.t==='lk')body=`<div class="arln">${arIco('lk')}<span>+${c.v} Suerte</span></div><div class="arps">Más Suerte = más objetos legendarios y activas, mejores bonos de atributo y más tarjetas afortunadas (×2).</div>`;
+    else if(d.p)body=`<div class="arln">${arIco(c.t)}<span>+${c.v}% ${d.n}</span></div>`;
+    else body=`<div class="arln">${arIco(c.t)}<span>+${Math.round(5*(1+.04*ARC.lk)*(c.lc?2:1)*10)/10}% (+${c.v}) ${d.n}</span></div>`;
+    ic=`<div class="aric">${arIco(c.t)}</div>`}
+  else{const d=ARS[c.a],l=ARC.au[c.a]||0,nl=l+(c.lc?2:1);t=d.n;sub=l?'Activa automática · nivel '+l+' → '+nl:'Nueva activa automática'+(c.lc?' (nivel 2)':'');body=(l?'+35% daño · −12% reutilización':'Se lanza sola cada '+d.cd+' s')+'<br>(habilidad de '+CHAR[c.a].n+')';ic=`<div class="aric" style="background-image:${arIc(c.a,ARI[c.a]||1)}"></div>`}
+  const lc=c.lc?`<div class="arlc">🍀 ¡Afortunada! ${c.k==='i'?'+500 de oro':'efecto ×2'}</div>`:'';
+  return `<div class="arcd${c.lc?' lk':''}">${ic}<div class="art">${t}</div><div class="arsub">${sub}</div>${lc}<div class="arbd">${body}</div></div>`}
 function arApply(c){
- if(c.k==='i'){INV.push(c.id);itRecalc();const h=P.max;P.hp=Math.min(P.max,P.hp+0)}
- else if(c.k==='s'){SL[c.s]++}
- else ARC.au[c.a]=(ARC.au[c.a]||0)+1;
- arUp(true)}
+  if(c.k==='i'){INV.push(c.id);itRecalc();if(c.lc)addGold(500)}
+  else if(c.k==='s'){SL[c.s]=Math.min(MAXS[c.s],SL[c.s]+(c.lc?2:1))}
+  else if(c.k==='t'){if(c.t==='lk')ARC.lk+=c.v;else{ARC.bn[c.t]=(ARC.bn[c.t]||0)+c.v;itRecalc()}}
+  else ARC.au[c.a]=(ARC.au[c.a]||0)+(c.lc?2:1);
+  arUp(true)}
 function arShow(o){const t0=performance.now();
- arCards.innerHTML='<div style="text-align:center;font-weight:800;font-size:clamp(16px,3.4vmin,28px)">¡Nivel '+ARC.lv+'! Elige una tarjeta</div>';
+ arCards.innerHTML='<div style="text-align:center;font-weight:800;font-size:clamp(16px,3.4vmin,28px)">¡Nivel '+ARC.lv+'! Elige una tarjeta</div><div style="text-align:center;font-weight:700;font-size:clamp(11px,2.2vmin,16px);color:#9dffb8">🍀 Suerte '+ARC.lk+'</div>';
  const row=document.createElement('div');row.style.cssText='display:flex;gap:2vmin;justify-content:center;align-items:center;transform:scale(.05);opacity:0;transform-origin:center;transition:transform 1s ease-out,opacity 1s';
  o.forEach(c=>{const d=document.createElement('div');d.innerHTML=arCardHtml(c);const el=d.firstChild;el.addEventListener('pointerup',e=>{e.stopPropagation();if(performance.now()-t0<1000)return;ARC.pick=false;arCards.style.display='none';arApply(c);SFX.level();if(ARC.q)arOpen()});row.appendChild(el)});
  arCards.appendChild(row);
@@ -3653,7 +3681,7 @@ function arFire(k){const d=ARS[k],L=ARC.au[k],dm=Math.max(dmg(1),stat().ap*.6)*a
  else if(k==='az'){ // H1 de Az: carta voladora (efecto real, daño propio)
   fx(()=>{azVS1(px,pz,dx,dz)});rectHit([dx,dz],17,1.6,e=>H(e,'#ff3b6b'))}
  else if(k==='miracle'){ // H2 de Miracle: esfera lanzada que detona
-  let c=null;fx(()=>{c=miMake(tx,tz,px,pz,true)});later(()=>{fx(()=>{if(c)miDet(c)});circ(tx,tz,6.5,'#7fe3ff')},.9);later(()=>fx(()=>{if(c)miKill(c)}),2.2)}
+  let c=null;fx(()=>{c=miMake(tx,tz,px,pz,true);if(c)miGl.push(c)});later(()=>{fx(()=>{if(c)miDet(c)});circ(tx,tz,6.5,'#7fe3ff')},.9);later(()=>fx(()=>{if(c)miKill(c)}),2.2)}
  else if(k==='haspen'){ // H2 de Haspen: vórtice en el objetivo (daña y cura)
   fx(()=>hsVortex(tx,tz,true));later(()=>{circ(tx,tz,6,'#9ff0ff');if(Math.hypot(P.x-tx,P.z-tz)<7)hpAdd(P.max*.04*L)},.5)}
  return true}
@@ -3663,6 +3691,11 @@ function arTick(dt){for(const k in ARC.au){ARC.t[k]=(ARC.t[k]||0)+dt;if(ARC.t[k]
 {const _gx=gainXP;gainXP=function(n){if(!ARC.on)return _gx(n);ARC.xp+=n;let up=false;while(ARC.xp>=arNeed()){ARC.xp-=arNeed();ARC.lv++;ARC.q++;up=true;P.max+=Math.round(C.up[0]);P.hp=Math.min(P.max,P.hp+Math.round(C.up[0]));lvT=1;for(let q=0;q<28;q++){const a=q/28*6.283;emit(P.x+Math.cos(a)*1.6,.2,P.z+Math.sin(a)*1.6,1,0xffd166,1,1,5,.1)}}if(up)arOpen()}}
 {const _st=step;step=function(dt){_st(dt);if(ARC.on&&!(P.dead>0)&&running)arTick(dt)}}
 setInterval(()=>{arUI.style.display=(ARC.on&&running)?'flex':'none';if(!running||!ARC.on){arCards.style.display='none';arInv.style.display='none';ARC.pick=false;ARC.inv=false}},300);
+
+// ---- estilos de tarjetas (icono junto a cada mejora) y HUD de Suerte ----
+{const st=document.createElement('style');st.textContent='.arcd{width:min(27vw,240px);min-height:min(44vh,280px);background:#101a2c;border:2px solid #ffd166;border-radius:12px;padding:10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}.arcd.lk{border-color:#7dffb0;box-shadow:0 0 16px rgba(125,255,176,.55)}.aric{width:56px;height:56px;border-radius:10px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;flex:none}.aric .arsi{width:44px;height:44px;font-size:36px;line-height:44px}.art{font-weight:800;font-size:clamp(13px,2.4vmin,20px)}.arsub{color:#ffd166;font-size:clamp(10px,1.8vmin,14px)}.arlc{color:#7dffb0;font-weight:800;font-size:clamp(10px,1.8vmin,14px)}.arbd{font-size:clamp(10px,1.8vmin,14px);opacity:.95;display:flex;flex-direction:column;gap:4px;align-items:center}.arln{display:flex;align-items:center;gap:6px;justify-content:center;font-weight:700}.arps{font-size:clamp(9px,1.5vmin,12px);opacity:.85;line-height:1.3}.arsi{display:inline-block;width:clamp(16px,3vmin,24px);height:clamp(16px,3vmin,24px);flex:none;background:center/contain no-repeat;font-style:normal;text-align:center;line-height:clamp(16px,3vmin,24px);font-size:clamp(14px,2.6vmin,20px)}';document.head.appendChild(st)}
+const arLk=document.createElement('div');arLk.style.cssText='position:fixed;left:calc(calc(130*var(--u)) + env(safe-area-inset-left,0px));top:calc(calc(14*var(--u)) + env(safe-area-inset-top,0px));z-index:6;display:none;padding:calc(4*var(--u)) calc(10*var(--u));border-radius:calc(14*var(--u));background:rgba(15,25,35,.75);border:calc(1*var(--u)) solid #c99a3f;font:700 calc(12*var(--u)) system-ui,sans-serif;color:#9dffb8;pointer-events:none';document.body.appendChild(arLk);
+setInterval(()=>{const on=ARC.on&&running;arLk.style.display=on?'block':'none';if(on)arLk.textContent='🍀 Suerte '+ARC.lk},300);
 function loop(t){try{loop0(t)}catch(err){loopErr(err)}}
 let _le=0,_dT=0;
 function loopErr(err){requestAnimationFrame(loop);if(_le++<5)console.error("[loop]",err);try{if(!NET.on&&P.dead>0&&running){P.dead=-1;gameOver()}}catch(e2){console.error(e2)}}
