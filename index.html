@@ -713,7 +713,25 @@ body.arena #kda{display:none!important}
 @media (max-width:760px){#wave{height:calc(28*var(--u));padding:0 calc(8*var(--u));font-size:calc(16*var(--u));right:calc(calc(6*var(--u)) + var(--hr))}}
 /* tuerca de ajustes = mismo tamaño que el icono de Arena Coins */
 #fs .ic{width:calc(30*var(--u));height:calc(30*var(--u))}
-</style></head>
+</style><style id="patchCss">
+.navb i.ci-luchador{background-image:var(--c-luchador)}.navb i.ci-mago{background-image:var(--c-mago)}.navb i.ci-tirador{background-image:var(--c-tirador)}.navb i.ci-tanque{background-image:var(--c-tanque)}.navb i.ci-asesino{background-image:var(--c-asesino)}.navb i.ci-soporte{background-image:var(--c-soporte)}
+#kda{pointer-events:auto!important;cursor:pointer}
+#kdaP{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(3,7,14,.55);padding:calc(10*var(--u))}
+#kdaP .kbox{position:relative;width:min(calc(640*var(--u)),96vw);max-height:92vh;overflow:auto;background:rgba(8,15,27,.96);border:calc(2*var(--u)) solid #c99a3f;border-radius:calc(14*var(--u));padding:calc(12*var(--u));color:#e8f1f5}
+#kdaP h3{margin:0 0 calc(8*var(--u));text-align:center;font-size:calc(15*var(--u))}
+#kdaP .kx{position:absolute;top:calc(6*var(--u));right:calc(8*var(--u));width:calc(30*var(--u));height:calc(30*var(--u));border-radius:50%;border:calc(1*var(--u)) solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;font-size:calc(14*var(--u));cursor:pointer}
+.ktw{display:grid;grid-template-columns:1fr 1fr;gap:calc(10*var(--u));text-align:left;font-size:calc(11*var(--u));color:#e8f1f5}
+.ktc{border-radius:calc(10*var(--u));padding:calc(6*var(--u));background:rgba(255,255,255,.05);border:calc(1*var(--u)) solid rgba(255,255,255,.12)}
+.ktc.ally{border-color:rgba(90,170,255,.75)}.ktc.foe{border-color:rgba(255,90,95,.75)}
+.kth,.ktr{display:grid;grid-template-columns:1fr auto auto;gap:calc(8*var(--u));align-items:center;padding:calc(3*var(--u)) calc(4*var(--u))}
+.kth{font-weight:800;opacity:.9;border-bottom:calc(1*var(--u)) solid rgba(255,255,255,.2);margin-bottom:calc(3*var(--u))}
+.ktr.me{background:rgba(255,211,77,.14);border-radius:calc(6*var(--u))}
+.ktn{display:flex;flex-direction:column;min-width:0}.ktn b,.ktn small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ktk,.ktm{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+#ntEndTb{width:100%}#ntEnd .ntBox{width:min(calc(660*var(--u)),100%)}
+#hud.stn #nm{top:calc(var(--dbo,45)*-1*var(--u))!important}
+</style>
+</head>
 <body>
 <div id="load"><div id="ldBox"><img id="ldLogo" alt="Legends Arena"><h1 id="ldT">LEGENDS ARENA</h1><div id="ldInfo"><span id="ldTxt">Cargando…</span><span id="ldPct">0%</span></div><div id="ldTrack"><div id="ldIn"><div id="ldBar"></div></div></div><div id="ldHint">Preparando efectos, modelos y mapas para que todo corra fluido</div></div></div>
 <div id="perf"><div id="pfBox"><h2>Ajustes de rendimiento</h2><p>Elige la calidad según tu celular. Podrás cambiarla después desde Ajustes.</p>
@@ -762,7 +780,7 @@ body.arena #kda{display:none!important}
 <div id="ntV1" class="ntV"><input id="ntName" maxlength="12" placeholder="Tu nombre"><style>#ntRooms{display:flex;flex-direction:column;gap:6px;max-height:30vh;overflow:auto;width:100%}#ntRooms .mb{text-align:left}.ntPubL{display:flex;align-items:center;gap:6px;white-space:nowrap}</style><div class="ntRow"><input id="ntPw" maxlength="16" placeholder="Contraseña de tu sala (opcional)"><label class="ntPubL"><input type="checkbox" id="ntPub" checked> Pública</label></div><div class="ntRow"><button class="mb" data-mode="1" data-map="lane">Crear 1v1 · Mapa Línea (Nexos)</button></div><div class="ntRow"><button class="mb" data-mode="1">Crear sala 1v1</button><button class="mb" data-mode="2" data-map="lane">Crear 2v2 · Mapa Línea (Nexos)</button></div><b>Salas disponibles</b><div id="ntRooms"><div class="ntM">Buscando salas…</div></div><div class="ntRow"><input id="ntCode" maxlength="5" placeholder="CÓDIGO (opcional)" style="text-transform:uppercase"><input id="ntPwJ" maxlength="16" placeholder="Contraseña"><button class="mb sec" id="ntJoin">Unirse</button></div><div id="ntMsg" class="ntM"></div><button class="mb sec" id="ntBack">‹ Volver</button></div>
 <div id="ntV2" class="ntV" style="display:none"><div>Sala <b id="ntC" style="font-size:calc(26*var(--u));letter-spacing:calc(3*var(--u))"></b> · <span id="ntModeT"></span></div><div id="ntList"></div><div class="ntRow" id="ntTeamBtns"><button class="mb sec" data-team="A">Ir al equipo azul</button><button class="mb sec" data-team="B">Ir al equipo rojo</button></div><div>Elige tu personaje (no se repite en tu equipo)</div><div id="ntChars"></div><div id="ntWait" class="ntM"></div><button class="mb" id="ntStart">Iniciar partida</button><div id="ntMsg2" class="ntM"></div><button class="mb sec" id="ntLeave">Salir de la sala</button></div></div></div>
 <div id="ntScore"></div><div id="ntRes"></div>
-<div id="ntEnd"><button class="homeBtn" id="ntEndHome" aria-label="Salir al inicio"></button><div class="ntBox"><h2 id="ntEndT"></h2><p id="ntEndS"></p><button class="mb" id="ntEndB">Volver a la sala</button><button class="mb sec" id="ntEndH">Salir al inicio</button></div></div>
+<div id="ntEnd"><button class="homeBtn" id="ntEndHome" aria-label="Salir al inicio"></button><div class="ntBox"><h2 id="ntEndT"></h2><p id="ntEndS"></p><div id="ntEndTb"></div><button class="mb" id="ntEndB">Volver a la sala</button><button class="mb sec" id="ntEndH">Salir al inicio</button></div></div>
 <div id="laAuth"><div class="laBox">
 <img id="laLogo" alt="Legends Arena">
 <div class="laTabs"><button type="button" class="mb" id="laTL">Entrar</button><button type="button" class="mb sec" id="laTR">Registrarse</button></div>
@@ -1129,13 +1147,24 @@ function fzTick(dt){
       if(q.t>=.9){scene.remove(q.m,q.f);q.m.material.dispose();q.f.material.dispose();FZ.splice(i,1)}}}}
 function stunP(t){if(PX.stas>0||P.dead>0)return;if(t>=pStun){pStun=t;pStunMax=t}sw.on=false;auto=false;reqT=0;aim=null;hideAim()}
 let pStunMax=1,pFire=null,_stn=null;
+let _dbf=null,dbRootT=0;
 function pStunUI(){
-  if(!_stn){const h=$('hud');if(!h)return;const e=document.createElement('div');e.style.cssText='display:none;position:absolute;left:calc(22*var(--u));right:0;top:calc(-28*var(--u));pointer-events:none';
-    e.innerHTML='<div style="display:flex;align-items:center;gap:calc(4*var(--u));height:calc(16*var(--u));font:800 calc(12*var(--u)) system-ui,sans-serif;color:#fff;white-space:nowrap;text-shadow:0 0 calc(3*var(--u)) #000,0 calc(1*var(--u)) calc(2*var(--u)) #000"><i style="flex:none;width:calc(16*var(--u));height:calc(16*var(--u));background:center/contain no-repeat url('+STIC[11]+')"></i><span>Aturdimiento</span></div><div style="margin-top:calc(2*var(--u));height:calc(7*var(--u));background:#000;border:calc(1*var(--u)) solid #000;border-radius:calc(3*var(--u));overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(#c77dff,#7b2cbf);transform-origin:0 50%"></i></div>';
-    h.appendChild(e);_stn={h,e,f:e.lastChild.firstChild,on:false}}
-  const on=pStun>0&&!(P.dead>0);
-  if(on){if(!_stn.on){_stn.on=true;_stn.e.style.display='block';_stn.h.classList.add('stn')}_stn.f.style.transform='scaleX('+Math.max(0,Math.min(1,pStun/pStunMax))+')'}
-  else if(_stn.on){_stn.on=false;_stn.e.style.display='none';_stn.h.classList.remove('stn')}}
+  if(!_dbf){const h=$('hud');if(!h)return;const e=document.createElement('div');e.id='dbf';
+    e.style.cssText='position:absolute;left:calc(22*var(--u));right:0;bottom:calc(100% + 3*var(--u));pointer-events:none;display:none;flex-direction:column-reverse;gap:calc(3*var(--u))';
+    const svg=x=>'data:image/svg+xml,'+encodeURIComponent(x),
+      ROOT=svg("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='#fff' stroke-width='2.4' stroke-linecap='round'><rect x='2.5' y='8' width='11' height='8' rx='4'/><rect x='10.5' y='8' width='11' height='8' rx='4'/></g></svg>"),
+      BURN=svg("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='#ff8a1a' d='M12 2c1 4 5 6 5 11a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-7 1-10z'/></svg>"),
+      DEF=[['stun','Aturdimiento',STIC[11]],['root','Inmovilización',ROOT],['slow','Ralentización',STIC[13]],['burn','Quemadura',BURN]],rows={};
+    for(const[k,n,ic]of DEF){const r=document.createElement('div');r.style.display='none';
+      r.innerHTML='<div style="display:flex;align-items:center;gap:calc(4*var(--u));height:calc(16*var(--u));font:800 calc(12*var(--u)) system-ui,sans-serif;color:#fff;white-space:nowrap;text-shadow:0 0 calc(3*var(--u)) #000,0 calc(1*var(--u)) calc(2*var(--u)) #000"><i style="flex:none;width:calc(16*var(--u));height:calc(16*var(--u));background:center/contain no-repeat url(\''+ic+'\')"></i><span>'+n+'</span></div><div style="margin-top:calc(2*var(--u));height:calc(7*var(--u));background:#000;border:calc(1*var(--u)) solid #000;border-radius:calc(3*var(--u));overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(#c77dff,#7b2cbf);transform-origin:0 50%"></i></div>';
+      e.appendChild(r);rows[k]={r,f:r.lastChild.firstChild,v:0,mx:1,on:false}}
+    h.appendChild(e);_dbf={h,e,rows,n:0}}
+  const dead=P.dead>0,V={stun:dead||PX.stas>0?0:(NET.on?pStunT:pStun),root:dead||!NET.on?0:dbRootT,slow:dead||!NET.on?0:ntSlowT,burn:dead?0:pBurn};
+  let n=0;
+  for(const k in _dbf.rows){const o=_dbf.rows[k],v=Math.max(0,V[k]||0);if(v>o.v+.001)o.mx=Math.max(v,.1);o.v=v;const on=v>0;
+    if(on!==o.on){o.on=on;o.r.style.display=on?'block':'none'}
+    if(on){n++;o.f.style.transform='scaleX('+Math.min(1,v/Math.max(.1,o.mx))+')'}}
+  if(n!==_dbf.n){_dbf.n=n;_dbf.e.style.display=n?'flex':'none';_dbf.h.classList.toggle('stn',n>0);_dbf.h.style.setProperty('--dbo',15+30*n)}}
 function pFireUpd(on){
   if(!pFire){if(!on)return;const g=new T.Group();g.userData.s=[];[0xff2a10,0xff8a1a,0xffcf40,0xff4a10,0xff9a2a,0xff2a10].forEach((c,i)=>{const sp=new T.Sprite(faSM(c));sp.userData.i=i;g.add(sp);g.userData.s.push(sp)});H.g.add(g);pFire=g}
   pFire.visible=on;if(!on)return;const t=clock;
@@ -2876,7 +2905,7 @@ function lnMkNexus(team){const col=ntCH(team),n=new T.Group();n.position.set(tea
   const disc=new T.Mesh(new T.CircleGeometry(LN.R,48),new T.MeshBasicMaterial({color:col,transparent:true,opacity:.1,side:T.DoubleSide,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=.05;
   n.add(base,st,cr,ring,disc);LN.g.add(n);return{g:n,cr,cm}}
 function lnBegin(){lnBuild();LN.on=true;LN.saved={ARENA,obst:obst.splice(0)};ARENA=1e4;ARENA_OBJ.forEach(o=>o.visible=false);scene.add(LN.g);
-  LN.nx={};LN.mn=[];LN.ents={};LN.fx=[];LN.id=0;LN.wt=5;LN.wn=0;LN.sync=0;LN.zt=0;LN.zin=0;LN.hpS='';
+  LN.nx={};LN.mn=[];LN.ents={};LN.fx=[];LN.id=0;LN.wt=5;LN.wn=0;LN.tm=0;LN.dec=0;LN.sync=0;LN.zt=0;LN.zin=0;LN.hpS='';
   for(const t of['A','B']){const v=lnMkNexus(t),[x,z]=lnW(t==='A'?-LN.U:LN.U,0),hb=document.createElement('div');hb.className='hp';hb.innerHTML='<i></i>';hb.firstElementChild.style.background=ntCS(t);hb.style.width='170px';hb.style.height='8px';hb._h=85;document.body.appendChild(hb);
     const o={team:t,x,z,hp:LN.HP,max:LN.HP,v,bar:hb,flash:0};LN.nx[t]=o;obst.push({x,z,r:4.2});
     if(t!==NET.me.team){const e={rp:1,mid:'nx'+t,nx:1,type:'n',boss:false,at:-1,hit:false,mv:false,chT:0,x,z,hp:LN.HP,max:LN.HP,spd:0,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:0,g:v.g,bar:hb,weakT:0,stun:0,slowT:0,_st:0,_sl:0,mat:{emissive:{setHex(){}},emissiveIntensity:0}};o.e=e;en.push(e)}}
@@ -2887,24 +2916,24 @@ function lnClear(){if(!LN.on)return;
   for(const t in LN.nx){const o=LN.nx[t];o.bar.remove();LN.g.remove(o.v.g);if(o.e){const i=en.indexOf(o.e);if(i>=0)en.splice(i,1)}}LN.nx={};
   if(LN.saved){ARENA=LN.saved.ARENA;obst.splice(0);obst.push(...LN.saved.obst);LN.saved=null}ARENA_OBJ.forEach(o=>o.visible=true);scene.remove(LN.g);LN.on=false}
 // ---- Minions (los simula el anfitrión; todos los demás solo los dibujan) ----
-function lnWave(){LN.wn++;for(const t of['A','B']){const s=t==='A'?-1:1;[[0,-2.5],[0,2.5],[1,-2.5],[1,2.5]].forEach(([r,v])=>{const[x,z]=lnW(s*(LN.U-(r?4:8)),v),mx=r?140:220;LN.mn.push({id:++LN.id,team:t,r,x,z,hp:mx,max:mx,a:t==='A'?2.356:-.785,at:-1,cd:0,hd:false,tg:null})})}
-  const m={t:'wv',n:LN.wn};ntBcast(m);ntHandle(m)}
+function lnWave(){LN.wn++;for(const t of['A','B']){const s=t==='A'?-1:1;[[0,-2.5],[0,2.5],[1,-2.5],[1,2.5]].concat(LN.wn%3===0?[[2,0]]:[]).forEach(([r,v])=>{const[x,z]=lnW(s*(LN.U-(r?4:8)),v),mx=r===2?280:r?140:220;LN.mn.push({id:++LN.id,team:t,r,x,z,hp:mx,max:mx,a:t==='A'?2.356:-.785,at:-1,cd:0,hd:false,tg:null})})}
+  const m={t:'wv',n:LN.wn,sp:LN.wn%3===0?1:0};ntBcast(m);ntHandle(m)}
 function lnFxEv(m,tx,tz){const ev={t:'lb',fx:+m.x.toFixed(1),fz:+m.z.toFixed(1),tx:+tx.toFixed(1),tz:+tz.toFixed(1),r:m.r,tm:m.team,nx:m.nx?1:0};ntBcast(ev);lnFxMake(ev)}
 function lnFxMake(ev){if(NET.me&&ev.tm!==NET.me.team&&!ev.nx&&!ntSee(ev.fx,ev.fz)&&!ntSee(ev.tx,ev.tz))return;const col=ntCH(ev.tm);
   if(ev.r){const m=new T.Mesh(ebG,new T.MeshBasicMaterial({color:col}));m.position.set(ev.fx,ev.nx?5:1.6,ev.fz);if(ev.nx)m.scale.setScalar(2.4);scene.add(m);LN.fx.push({m,a:[ev.fx,ev.fz],b:[ev.tx,ev.tz],t:0,col,y0:ev.nx?5:null})}
   else emit(ev.tx,1.4,ev.tz,6,col,3.5,.35,1)}
 function lnHitM(m,n,by){if(m.hp<=0)return;m.hp-=n;if(m.hp<=0){m.hp=0;lnMinionXP(m,by)}}
 function lnHitN(t,n){const o=LN.nx[t];if(!o||o.hp<=0||NET.over)return;o.hp=Math.max(0,o.hp-n);o.flash=.25;
-  if(o.hp<=0){NET.over=true;lnBroadcast();const e={t:'end',w:t==='A'?'B':'A',nx:1};ntBcast(e);ntHandle(e)}}
+  if(o.hp<=0){NET.over=true;ntStSend();lnBroadcast();const e={t:'end',w:t==='A'?'B':'A',nx:1};ntBcast(e);ntHandle(e)}}
 function lnHit(mid,n,by){if(NET.over||!NET.host)return;n=Math.min(400,Math.max(0,+n||0));const p=NET.players.find(q=>q.id===by);
   if(typeof mid==='string'){const t=mid[2];if(p&&p.team===t)return;lnHitN(t,n);return}
   const m=LN.mn.find(q=>q.id===mid);if(!m||(p&&p.team===m.team))return;lnHitM(m,n,by)}
-function lnStrike(m){const t=m.tg;if(!t)return;const dm=m.r?15:12;
+function lnStrike(m){const t=m.tg;if(!t)return;if(t.k!=='h'&&m.r===2){m.sc=0;m.sp=null}const dm=m.r===2?45:m.r?15:12;
   if(t.k==='m'){if(t.o.hp>0){lnFxEv(m,t.o.x,t.o.z);lnHitM(t.o,dm,null)}}
   else if(t.k==='n'){lnFxEv(m,t.x,t.z);lnHitN(t.t,dm)}
-  else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);if(me)ntOnDmg({n:dm,by:'t'+m.team});else ntSendTo(p.id,{t:'dmg',n:dm,by:'t'+m.team})}}
-function lnMinionXP(m,by){for(const p of NET.players){if(p.team===m.team)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(dead&&!k)continue;
-    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const xp=k?50:25,gd=k?60:0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
+  else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);const dd={n:dm,by:'t'+m.team};if(m.r===2){m.sc=(m.sp===p.id?m.sc:0)+1;m.sp=p.id;if(m.sc>=3){m.sc=0;dd.st=1.5}}if(me)ntOnDmg(dd);else{dd.t='dmg';ntSendTo(p.id,dd)}}}
+function lnMinionXP(m,by){if(by&&NET.players.some(q=>q.id===by&&q.team!==m.team)){ntS(by).m++;ntStSend()}for(const p of NET.players){if(p.team===m.team)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(dead&&!k)continue;
+    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,xp=k?(sp?100:50):(sp?50:25),gd=k?(sp?150:80):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
 // ---- Ataque del Nexo: 50 de daño por segundo, fija al jugador que ataca a otro bajo su Nexo ----
 function lnAgro(aid){const p=NET.players.find(q=>q.id===aid);if(!p)return;const o=LN.nx[p.team==='A'?'B':'A'];if(o&&o.hp>0)o.fix=aid}
 function lnNexusAI(dt){for(const t of['A','B']){const o=LN.nx[t];if(!o||o.hp<=0)continue;const et=t==='A'?'B':'A';o.cd=Math.max(0,(o.cd||0)-dt);o.seen=o.seen||{};
@@ -2920,7 +2949,7 @@ function lnNexusAI(dt){for(const t of['A','B']){const o=LN.nx[t];if(!o||o.hp<=0)
     if(!tg||o.cd>0)continue;o.cd=1;lnFxEv({x:o.x,z:o.z,r:1,team:t,nx:1},tg.x,tg.z);
     if(tg.k==='m')lnHitM(tg.o,50,null);
     else{const dm=50*Math.pow(2,Math.min(o.esc||0,6));o.esc=(o.esc||0)+1;if(tg.p===NET.me)ntOnDmg({n:dm,by:'t'+t});else ntSendTo(tg.p.id,{t:'dmg',n:dm,by:'t'+t})}}}
-function lnHost(dt){LN.wt-=dt;if(LN.wt<=0){LN.wt=LN.WAVE;lnWave()}LN.ck=(LN.ck||0)+dt;lnNexusAI(dt);
+function lnHost(dt){LN.wt-=dt;if(LN.wt<=0){LN.wt=LN.WAVE;lnWave()}LN.tm=(LN.tm||0)+dt;if(LN.tm>=(NET.players.length>2?480:300)){if(!LN.dec){LN.dec=1;const dm={t:'dec'};ntBcast(dm);ntHandle(dm)}for(const t of['A','B']){const o=LN.nx[t];if(!o||o.hp<=0||NET.over)continue;const d=LN.HP*.01*dt;if(o.hp-d<=0)lnHitN(t,o.hp);else o.hp-=d}}LN.ck=(LN.ck||0)+dt;lnNexusAI(dt);
   const ms=LN.mn,S=LN.S;
   for(const m of ms){if(m.hp<=0)continue;m.cd=Math.max(0,m.cd-dt);
     if(m.at>=0){m.at+=dt*1.25;if(!m.hd&&m.at>=(m.r?1.45:.42)){m.hd=true;lnStrike(m)}if(m.at>=(m.r?1.97:1.1)){m.at=-1;m.cd=m.r?.4:.2}continue}
@@ -2942,8 +2971,8 @@ function lnBroadcast(){const s={t:'ln',n:[Math.round(LN.nx.A.hp),Math.round(LN.n
 // ---- Dibujo de los minions y del Nexo en cada jugador ----
 function lnMkMinion(r){const id=r[0],team=r[1]?'B':'A',type=r[2]?'r':'g',h=mkEnemyModel(type,false);h.mat.color.setHex(ntMine(team)?0xa8d0ff:0xffb0b0);
   const hb=document.createElement('div');hb.className='hp';hb.innerHTML='<i></i>';hb.firstElementChild.style.background=ntCS(team);document.body.appendChild(hb);
-  const e={...h,rp:1,mid:id,type,boss:false,at:-1,hit:false,mv:false,chT:0,x:r[3],z:r[4],hp:r[5],max:r[2]?140:220,spd:3,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:Math.random()*6,bar:hb,weakT:0,stun:0,slowT:0,_st:0,_sl:0};
-  const q={e,team,tx:r[3],tz:r[4],hp:r[5],a:r[6],ca:r[6],end:r[2]?1.97:1.1};e.g.position.set(r[3],0,r[4]);e.g.rotation.y=r[6];LN.ents[id]=q;if(team!==NET.me.team)en.push(e);
+  const e={...h,rp:1,mid:id,type,boss:false,at:-1,hit:false,mv:false,chT:0,x:r[3],z:r[4],hp:r[5],max:r[2]===2?280:r[2]?140:220,spd:3,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:Math.random()*6,bar:hb,weakT:0,stun:0,slowT:0,_st:0,_sl:0};
+  const q={e,team,tx:r[3],tz:r[4],hp:r[5],a:r[6],ca:r[6],end:r[2]?1.97:1.1};e.g.position.set(r[3],0,r[4]);e.g.rotation.y=r[6];if(r[2]===2)e.g.scale.setScalar(1.5);LN.ents[id]=q;if(team!==NET.me.team)en.push(e);
   emit(e.x,1,e.z,8,ntCH(team),3,.6,3);return q}
 function lnApply(s){if(!LN.on)return;
   ['A','B'].forEach((t,i)=>{const o=LN.nx[t];if(!o)return;const h=s.n[i];if(h<o.hp)o.flash=.25;if(h<=0&&o.hp>0)emit(o.x,3,o.z,60,ntCH(t),9,1,3);o.hp=h;if(o.e)o.e.hp=h});
@@ -3009,7 +3038,7 @@ function ntTeamSet(id,team){const L=NET.lobby,s=L.slots.find(q=>q.id===id);if(!s
 // ---- Red ----
 function ntBcast(m,ex){for(const id in NET.conns){const c=NET.conns[id];if(id!==ex&&c.open)c.send(m)}}
 function ntSend(m){if(NET.host){m.id=NET.id;ntBcast(m)}else if(NET.hc&&NET.hc.open)NET.hc.send(m)}
-function ntRoute(m){if(m.to===NET.id)ntHandle(m);else{const c=NET.conns[m.to];if(c&&c.open)c.send(m)}}
+function ntRoute(m){if(NET.host&&m.t==='dmg'&&!m.by&&m.from&&m.to){NET.dl=NET.dl||{};(NET.dl[m.to]=NET.dl[m.to]||{})[m.from]=performance.now()}if(m.to===NET.id)ntHandle(m);else{const c=NET.conns[m.to];if(c&&c.open)c.send(m)}}
 function ntSendTo(id,m){m.from=NET.id;m.to=id;if(NET.host)ntRoute(m);else if(NET.hc&&NET.hc.open)NET.hc.send(m)}
 function ntLobbySync(){ntBcast({t:'lobby',L:NET.lobby});ntLobbyUI()}
 
@@ -3047,7 +3076,7 @@ function ntHostRecv(c,m){const id=c.peer;{const n=performance.now(),pv=NET.seen[
     case'dmg':case'fx':m.from=id;if(m.t==='dmg'&&!ntOkDmg(id,m))break;ntRoute(m);break;
     case'sur':ntSurr(id);break;case'death':ntDeath(id,m.by);break;case'mdmg':if(NET.map==='lane'&&performance.now()>=(NET.lag[id]||0))lnHit(m.mid,m.n,id);break;case'agro':if(NET.map==='lane')lnAgro(m.a);break}}
 function ntClientRecv(m){switch(m.t){case'lobby':clearTimeout(NET._jt);NET.lobby=m.L;ntLobbyUI();break;case'full':ntLeave();ntShow(1);ntMsg('La sala está llena');break;case'badpw':ntLeave();ntShow(1);ntMsg('Contraseña incorrecta');break;case'start':ntStart(m.slots,m.map);break;default:ntHandle(m)}}
-function ntHandle(m){if(!NET.on)return;switch(m.t){case'snap':NET.ls=performance.now();for(const q of m.s)ntState(q);break;case'st':ntState(m);break;case'cast':ntCastFx(m);break;case'dmg':ntOnDmg(m);break;case'fx':ntOnFx(m);break;case'score':ntOnScore(m);break;case'end':ntEnd(m.w,m.nx,m.sr,m.by);break;case'left':ntOnLeft(m.id);break;case'ln':lnApply(m);break;case'lb':lnFxMake(m);break;case'wv':banner('¡Oleada de minions en camino!');break;case'xp':gainXP(m.n);if(m.g)addGold(m.g);if(m.c)KDA.m++;break;case'hp':hpNet(m);break}}
+function ntHandle(m){if(!NET.on)return;switch(m.t){case'snap':NET.ls=performance.now();for(const q of m.s)ntState(q);break;case'st':ntState(m);break;case'cast':ntCastFx(m);break;case'dmg':ntOnDmg(m);break;case'fx':ntOnFx(m);break;case'score':ntOnScore(m);break;case'end':ntEnd(m.w,m.nx,m.sr,m.by);break;case'left':ntOnLeft(m.id);break;case'ln':lnApply(m);break;case'lb':lnFxMake(m);break;case'wv':banner(m.sp?'¡Minion de asedio en camino!':'¡Oleada de minions en camino!');break;case'kst':NET.st=m.s;if(window.kstRefresh)kstRefresh();break;case'dec':banner('¡Los Nexos se debilitan! -1% de vida por segundo');break;case'xp':gainXP(m.n);if(m.g)addGold(m.g);if(m.c)KDA.m++;break;case'hp':hpNet(m);break}}
 function ntErr(e){const t=e&&e.type;ntLeave();ntShow(1);ntMsg(t==='peer-unavailable'?'No se encontró esa sala':t==='network'||t==='server-error'||t==='socket-error'?'No hay conexión con el servidor':'Error de conexión ('+(t||'?')+')')}
 function ntCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 function ntHost(mode,map){if(typeof Peer==='undefined'){ntMsg('No se pudo cargar la red (¿sin internet?)');return}ntLeave();NET.host=true;NET.code=ntCode();NET.pw=($('ntPw').value||'').trim().slice(0,16);NET.pub=$('ntPub').checked;ntMsg('Creando sala…');
@@ -3088,7 +3117,7 @@ function ntBase(p){const tm=NET.players.filter(q=>q.team===p.team),i=tm.indexOf(
 function ntEnt(p){const e={rp:1,pid:p.id,type:'p',boss:false,at:-1,hit:false,mv:false,chT:0,x:p.x,z:p.z,hp:p.hp,max:p.max,spd:0,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:0,g:p.sk.g,bar:p.bar,weakT:0,_st:0,_sl:0,mat:{emissive:{setHex(){}},emissiveIntensity:0}};
   Object.defineProperty(e,'stun',{get(){return this._st},set(v){this._st=v;if(v>0)ntSendTo(this.pid,{t:'fx',st:v})}});
   Object.defineProperty(e,'slowT',{get(){return this._sl},set(v){this._sl=v;if(v>0)setTimeout(()=>ntSendTo(this.pid,{t:'fx',sl:{t:this._sl,f:this.slowF||.5}}),0)}});return e}
-function ntStart(slots,map){kdaReset();NET.hs={};NET.seen={};NET.lag={};NET.ls=performance.now();NET.stall=false;NET.map=map==='lane'?'lane':'arena';NET.goal=NET.map==='lane'?(slots.length>2?15:10):20;NET.players=slots.map(s=>({...s}));NET.me=NET.players.find(p=>p.id===NET.id);if(!NET.me)return;NET.score={A:0,B:0};NET.over=false;NET.on=true;NET.inv=0;NET.lastBy=null;ntSlowT=0;pStunT=0;
+function ntStart(slots,map){kdaReset();NET.st={};NET.dl={};NET.hs={};NET.seen={};NET.lag={};NET.ls=performance.now();NET.stall=false;NET.map=map==='lane'?'lane':'arena';NET.goal=NET.map==='lane'?(slots.length>2?15:10):20;NET.players=slots.map(s=>({...s}));NET.me=NET.players.find(p=>p.id===NET.id);if(!NET.me)return;NET.score={A:0,B:0};NET.over=false;NET.on=true;NET.inv=0;NET.lastBy=null;ntSlowT=0;pStunT=0;
   $('ntPanel').style.display='none';$('main').style.display='none';sel=NET.me.ch;startGame(NET.me.ch);
   const myT=NET.me.team;
   for(const p of NET.players){const b=ntBase(p);p.bx=b.x;p.bz=b.z;if(p===NET.me)continue;
@@ -3102,19 +3131,19 @@ function ntState(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me||
   if(m.d&&!p.dead){p.dead=1;p.dt=0;if(p.ent){const i=en.indexOf(p.ent);if(i>=0)en.splice(i,1)}}
   else if(!m.d&&p.dead){p.dead=0;p.x=p.tx;p.z=p.tz;p.sk.g.visible=true;p.zs=null;if(p.ent&&!en.includes(p.ent))en.push(p.ent)}}
 function ntOnDmg(m){if(P.dead>0||NET.over||NET.inv>0)return;NET.lastBy=m.by||m.from;NET.lastT=performance.now();if(NET.map==='lane'&&!m.by&&NET.me){const nxo=LN.nx[NET.me.team];if(nxo&&Math.hypot(P.x-nxo.x,P.z-nxo.z)<=LN.R){if(NET.host)lnAgro(m.from);else if(NET.hc&&NET.hc.open)NET.hc.send({t:'agro',a:m.from})}}if(m.st){const ts=m.st*tenF();rootT=Math.max(rootT,ts);pStunT=Math.max(pStunT,ts)}PX.fh=!m.by;hurtP(m.n,null,m.ty,m.pn,m.pf);PX.fh=0}
-function ntOnFx(m){if(P.dead>0||NET.over||NET.inv>0)return;if(m.pl){ivSP={x0:P.x,z0:P.z,x1:m.pl[0],z1:m.pl[1],t:0,L:.26};rootT=Math.max(rootT,.3)}if(m.st){const ts=m.st*tenF();rootT=Math.max(rootT,ts);pStunT=Math.max(pStunT,ts)}if(m.sl){ntSlowT=m.sl.t*tenF();ntSlowF=m.sl.f}}
+function ntOnFx(m){if(P.dead>0||NET.over||NET.inv>0)return;if(m.pl){ivSP={x0:P.x,z0:P.z,x1:m.pl[0],z1:m.pl[1],t:0,L:.26};rootT=Math.max(rootT,.3);dbRootT=Math.max(dbRootT,.3)}if(m.st){const ts=m.st*tenF();rootT=Math.max(rootT,ts);pStunT=Math.max(pStunT,ts)}if(m.sl){ntSlowT=m.sl.t*tenF();ntSlowF=m.sl.f}}
 function ntHit(e,n,stun,col,q,dty){if(stun){e.sfBy=cur;e.sfK=0;e.sfT=typeof stun==='number'?stun:1.5}const cr0=!!BF&&cur!=='aurelio'&&n>2.5*dmg(1);n=sOut(e,n,dty||'p');const cr=cr0||SO.cr;if(e.weakT>0)n=Math.round(n*1.3);e.flash=.15;emit(e.x,1.5,e.z,9,0xd01c1c,3.5,.5,1);emit(e.x,1.6,e.z,col?14:8,col?0xffb040:0xfff0b0,5,.45);SFX.hit(!!col);shake=Math.max(shake,col?.22:.08);
   if(!q||Math.random()<.25)popDmg(e.x,3,e.z,n,cr,SO.ty);if(e.mid){const nn=Math.round(n);if(NET.host)lnHit(e.mid,nn,NET.id);else if(NET.hc&&NET.hc.open)NET.hc.send({t:'mdmg',mid:e.mid,n:nn});return}const m={t:'dmg',n,ty:SO.ty,pn:SO.pn,pf:SO.pf};if(stun)m.st=typeof stun==='number'?stun:1.5;if(e.dummy)trDmg(e,m);else{ASS[e.pid]=performance.now();ntSendTo(e.pid,m)}}
-function ntDie(){zU=null;zst=0;refl=0;dash=null;buff=false;aim=null;hideAim();auto=false;sw.on=false;P.hp=0;P.dead=10;SFX.lose();emit(P.x,1.5,P.z,30,0xffffff,6,.8,1);if(typeof miKill==='function')miKill();
+function ntDie(){zU=null;zst=0;refl=0;dash=null;buff=false;aim=null;hideAim();auto=false;sw.on=false;P.hp=0;P.dead=Math.round(10+(Math.min(MAXLV,P.lvl||1)-1)*15/(MAXLV-1));SFX.lose();emit(P.x,1.5,P.z,30,0xffffff,6,.8,1);if(typeof miKill==='function')miKill();
   const by=performance.now()-NET.lastT<8000?NET.lastBy:null;if(NET.host)ntDeath(NET.id,by);else if(NET.hc&&NET.hc.open)NET.hc.send({t:'death',by})}
 function ntRespawn(){const me=NET.me;P.dead=0;P.hp=P.max;P.mp=P.mpMax;P.x=me.bx;P.z=me.bz;P.ang=ntFace(me.team);focus.set(P.x,0,P.z);for(const k in cd)cd[k]=0;rootT=0;dash=null;sw.on=false;auto=false;actT=0;hurtT=0;zU=null;ntSlowT=0;NET.inv=2.5;banner('¡Reaparecido!')}
-function ntDeath(vid,by){if(NET.over||!NET.host)return;const v=NET.players.find(p=>p.id===vid),k=by&&NET.players.find(p=>p.id===by);if(!v)return;
+function ntDeath(vid,by){if(NET.over||!NET.host)return;const v=NET.players.find(p=>p.id===vid),k=by&&NET.players.find(p=>p.id===by);if(!v)return;{ntS(vid).d++;const kt0=k?k.team:(typeof by==='string'&&by.length===2&&by[0]==='t'?by[1]:null);if(kt0&&kt0!==v.team){if(k)ntS(k.id).k++;const dl=(NET.dl||{})[vid]||{},nw=performance.now();for(const id in dl){if(id===by||nw-dl[id]>10000)continue;const ap=NET.players.find(p=>p.id===id);if(ap&&ap.team===kt0)ntS(id).a++}}ntStSend()}
   const kt=k?k.team:(typeof by==='string'&&by.length===2&&by[0]==='t'?by[1]:null),ok=!!(kt&&kt!==v.team);if(ok)NET.score[kt]++;const m={t:'score',A:NET.score.A,B:NET.score.B,k:ok?by:null,v:vid};ntBcast(m);ntHandle(m);
   const w=NET.score.A>=NET.goal?'A':NET.score.B>=NET.goal?'B':null;if(w){NET.over=true;const e={t:'end',w};ntBcast(e);ntHandle(e)}}
 function ntOnScore(m){NET.score.A=m.A;NET.score.B=m.B;ntScoreUI();ntKda(m);if(NET.map==='lane'&&m.k===NET.id)gainXP(40);if(m.k&&m.k===NET.id)addGold(250);banner(m.k?ntName(m.k)+' eliminó a '+ntName(m.v):ntName(m.v)+' fue derrotado')}
-function ntEnd(w,nx,sr,by){NET.over=true;const won=NET.me&&w===NET.me.team;$('ntEndT').textContent=won?'¡Victoria!':'Derrota';$('ntEndT').style.color=won?'#7dff7a':'#ff5a5f';$('ntEndS').textContent=(sr?(NET.me&&sr===NET.me.team?'Tu equipo se rindió · ':'El equipo rival se rindió · '):nx?'Nexo destruido · ':'')+(NET.me?`Tu equipo ${NET.score[NET.me.team]} — ${NET.score[NET.me.team==='A'?'B':'A']} Rival`:`Azul ${NET.score.A} — ${NET.score.B} Rojo`);$('pause').style.display='none';$('ntEnd').style.display='flex';SFX.level();if(NET.host&&NET.lobby){NET.lobby.started=false;ntBcast({t:'lobby',L:NET.lobby})}if(by&&by===NET.id)ntToLobby()}
+function ntEnd(w,nx,sr,by){NET.over=true;const won=NET.me&&w===NET.me.team;$('ntEndT').textContent=won?'¡Victoria!':'Derrota';$('ntEndT').style.color=won?'#7dff7a':'#ff5a5f';$('ntEndS').textContent=(sr?(NET.me&&sr===NET.me.team?'Tu equipo se rindió · ':'El equipo rival se rindió · '):nx?'Nexo destruido · ':'')+(NET.me?`Tu equipo ${NET.score[NET.me.team]} — ${NET.score[NET.me.team==='A'?'B':'A']} Rival`:`Azul ${NET.score.A} — ${NET.score.B} Rojo`);$('pause').style.display='none';$('ntEnd').style.display='flex';if(window.ntEndTable)ntEndTable();SFX.level();if(NET.host&&NET.lobby){NET.lobby.started=false;ntBcast({t:'lobby',L:NET.lobby})}if(by&&by===NET.id)ntToLobby()}
 function ntSurrender(){if(!NET.on||NET.over||!NET.me)return;if(NET.host)ntSurr(NET.id);else if(NET.hc&&NET.hc.open)NET.hc.send({t:'sur'})}
-function ntSurr(id){if(!NET.host||NET.over)return;const p=NET.players.find(q=>q.id===id);if(!p)return;NET.over=true;const e={t:'end',w:p.team==='A'?'B':'A',sr:p.team,by:id};ntBcast(e);ntHandle(e)}
+function ntSurr(id){if(!NET.host||NET.over)return;const p=NET.players.find(q=>q.id===id);if(!p)return;NET.over=true;ntStSend();const e={t:'end',w:p.team==='A'?'B':'A',sr:p.team,by:id};ntBcast(e);ntHandle(e)}
 function ntOnLeft(id){const p=NET.players.find(q=>q.id===id);if(!p)return;if(p.sk)scene.remove(p.sk.g);if(p.mh)ntgHandsKill(p);if(p.bar)p.bar.remove();if(p.ent){const i=en.indexOf(p.ent);if(i>=0)en.splice(i,1)}
   NET.players=NET.players.filter(q=>q!==p);if(!NET.over&&NET.me&&NET.players.every(q=>q.team===NET.me.team))ntEnd(NET.me.team)}
 // ---- Animación de los demás héroes (misma lógica que animZ pero con su propio estado) ----
@@ -3134,7 +3163,7 @@ function ntCastFx(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me)
   else if(sh.t==='circle'){g=new T.CircleGeometry(sh.r,28);g.rotateX(-Math.PI/2);g.translate(0,0,sh.off||0)}
   else{const a=(sh.a||90)*Math.PI/180;g=new T.CircleGeometry(sh.r||7,24,-Math.PI/2-a/2,a);g.rotateX(-Math.PI/2)}
   const o=new T.Mesh(g,new T.MeshBasicMaterial({color:col,transparent:true,opacity:.5,depthWrite:false,side:T.DoubleSide}));o.position.set(m.x,.25,m.z);o.rotation.y=Math.atan2(m.dx,m.dz);scene.add(o);NET.fx.push({m:o,t:0});emit(m.x,1.5,m.z,10,col,5,.4)}
-function ntUp(dt){if(!NET.on)return;for(const p of NET.players)if(p.revT>0)p.revT-=dt;ntVisUpd();if(pStunT>0)pStunT-=dt;if(NET.map==='lane')lnUp(dt);ntgUp(dt);NET.inv=Math.max(0,NET.inv-dt);ntSlowT=Math.max(0,ntSlowT-dt);
+function ntUp(dt){if(!NET.on)return;for(const p of NET.players)if(p.revT>0)p.revT-=dt;ntVisUpd();if(pStunT>0)pStunT-=dt;if(dbRootT>0)dbRootT-=dt;if(NET.map==='lane')lnUp(dt);ntgUp(dt);NET.inv=Math.max(0,NET.inv-dt);ntSlowT=Math.max(0,ntSlowT-dt);
   NET.acc+=dt;if(NET.acc>=.06){NET.acc=0;ntSt({t:'st',x:+P.x.toFixed(2),z:+P.z.toFixed(2),a:+P.ang.toFixed(2),hp:Math.round(P.hp),mx:P.max,ak:actK,at:+actT.toFixed(2),ad:+actD.toFixed(2),mv:target>.5?1:0,d:P.dead>0?1:0,lv:P.lvl,xf:+(P.lvl>=MAXLV?1:P.xp/xpNeed(P.lvl)).toFixed(2),mp:Math.round(P.mp),mm:P.mpMax,su:pStunT>0?1:0,ss:ntSlowT>0?1:0,iv:invP()?1:0})}
   for(const p of NET.players){if(p===NET.me||!p.sk)continue;const k=Math.min(1,dt*14);p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let da=p.ta-p.a;da=Math.atan2(Math.sin(da),Math.cos(da));p.a+=da*k;p.at=Math.max(0,p.at-dt);p.rl=Math.max(0,(p.rl||0)-dt);if(p.dead)p.dt+=dt;
     p.sk.g.position.set(p.x,0,p.z);p.sk.g.rotation.y=p.a;p.sk.ring.rotation.z+=dt*1.5;p.sk.g.visible=(!p.dead||p.dt<2.2)&&(p.team===NET.me.team||p.vis!==false);animR(p.sk,dt,p);PXghost(p.sk.g,(!!p.iv||p.azInv>0)&&p.team===NET.me.team,p);
@@ -3630,7 +3659,7 @@ function ui(){
   if(hud._m!==P.max){hud._m=P.max;hud.style.setProperty('--p1',11800/P.max+'px');hud.style.setProperty('--p2',118000/P.max+'px')}sty(hbI,'width',Math.round(P.hp/P.max*1000)/10+'%');hpTr(hbI,P.hp/P.max);sty(mbI,'width',Math.round(P.mp/P.mpMax*1000)/10+'%');txt(lvE,ARC.on?ARC.lv:P.lvl);{const xv=Math.round(ARC.on?ARC.xp/arNeed()*360:P.lvl>=MAXLV?360:P.xp/xpNeed(P.lvl)*360)+'deg';if(lvE._x!==xv){lvE._x=xv;lvE.style.setProperty('--xp',xv)}}
   for(const e of en)if(!e.rp)bar(e.bar,e.x,e.boss?7:2.9,e.z,e.hp/e.max,true);
   for(const e of en){if(e.g&&e.g.visible===false)continue;const t=stText(e);if(!t)continue;const pl=e.type==='p'?NET.players.find(q=>q.id===e.pid):null;if(pl&&pl.bar)pl._stT=t;else if(pl)stPut(e.x,CHAR[pl.ch].bh||3.4,e.z,t,52);else stPut(e.x,e.boss?7:2.9,e.z,t,6,(e.bar&&e.bar._h)||28)}
-  if(NET.on&&!P.dead&&running){const a=[];if(pStunT>0)a.push('Aturdido');if(ntSlowT>0)a.push('Ralentizado');nmSt($('nm'),a.join(' · '))}else nmSt($('nm'),'');
+  nmSt($('nm'),'');
   txt($('pnm'),NET.on&&NET.me?(NET.me.name||''):'');
   if(NET.on)for(const q of NET.players){if(q===NET.me||!q.bar)continue;nmSt(q.bar._enm||(q.bar._enm=q.bar.querySelector('.enm')),q._stT||'');q._stT=null}
   stFlush();
@@ -3871,7 +3900,7 @@ new MutationObserver(()=>{if(cfg.style.display==='flex'||cfg.style.display==='bl
 const CLS={luchador:'Luchador',tanque:'Tanque',tirador:'Tirador',mago:'Mago',asesino:'Asesino',soporte:'Soporte'};
 // Recortes de imagen (los genera editor_recortes.html). Formato: personaje:{card:[x,y,zoom],panel:[...],art:[...]}
 const CROPS={aurelio:{card:[0.616,0.5,1],panel:[0.513,0.5,1],art:[0.538,0.5,1]},zeta:{card:[0.68,0.5,1],panel:[0.478,0.5,1],art:[0.566,0.5,1]},goran:{card:[0.538,0.5,1],panel:[0.5,0.5,1],art:[0.527,0.5,1]},stanley:{card:[0.741,0.5,1],panel:[0.535,0.5,1],art:[0.636,0.5,1]},miracle:{card:[0.545,0.5,1],panel:[0.466,0.5,1],art:[0.448,0.5,1]},mikela:{card:[0.482,0.5,1],panel:[0.485,0.5,1],art:[0.476,0.5,1]},ivar:{card:[0.513,0.5,1],panel:[0.501,0.5,1],art:[0.519,0.5,1]},az:{card:[0.52,0.5,1],panel:[0.52,0.5,1],art:[0.52,0.5,1]},haspen:{card:[0.48,0.5,1],panel:[0.382,0.5,1],art:[0.389,0.5,1]}};
-const LEG={"aurelio": {"c": "luchador", "nick": "El Caballero Dorado", "tags": ["Aturdimiento", "Resistente"], "st": [60, 85, 55, 30], "story": ["Antes de la caída del Reino de Solaris, Aurelio era el capitán de la guardia real. Cuando el trono se apagó, juró no volver a bajar la espada hasta descubrir quién lo traicionó.", "Hoy recorre la Arena con su armadura dorada abollada por mil batallas, convencido de que cada duelo lo acerca un poco más a la verdad."]}, "zeta": {"c": "tirador", "nick": "La Chispa de Acero", "tags": ["Daño sostenido", "Ralentización"], "st": [85, 35, 40, 60], "story": ["Zeta fue ensamblada en los talleres del Cinturón de Acero como un prototipo de defensa. Su núcleo eléctrico desarrolló algo que sus creadores jamás programaron: curiosidad.", "Escapó con el Brazo Z19 y ahora entra a la Arena para demostrar que una máquina también puede elegir su destino."]}, "goran": {"c": "tanque", "nick": "El Puño del Monte", "tags": ["Control de masas", "Reducción de daño"], "st": [65, 75, 60, 35], "story": ["Nacido en las laderas del Monte Quebrado, Goran aprendió de niño que la tierra no perdona ni olvida. Su pueblo lo bautizó el Puño del Monte tras detener un derrumbe con las manos desnudas.", "Ahora pelea para que ningún otro hogar vuelva a quedar bajo las rocas."]}, "stanley": {"c": "tirador", "nick": "El Pistolero Esmeralda", "tags": ["Daño a distancia", "Ráfaga"], "st": [90, 25, 25, 70], "story": ["Stanley era un cazarrecompensas sin fortuna hasta que encontró un revólver con una esmeralda viva en la empuñadura. Dicen que la gema elige a quien dispara, y no al revés.", "Cada bala le recuerda que la suerte también se gasta, por eso nunca desperdicia un disparo."]}, "miracle": {"c": "mago", "nick": "La Hechicera de Cristal", "tags": ["Daño en área", "Marcas"], "st": [88, 25, 55, 65], "story": ["Miracle despertó en una cueva de cristales sin recordar su nombre; solo el eco de una voz que le susurraba hechizos. Los cristales obedecen su voluntad y crecen donde su magia los toca.", "Busca en la Arena los fragmentos del recuerdo que perdió, aunque a veces teme lo que pueda encontrar."]}, "mikela": {"c": "luchador", "nick": "La Fuerza de la Roca", "tags": ["Cuerpo a cuerpo", "Desplazamiento"], "st": [70, 65, 50, 45], "story": ["Mikela es hija de los canteros del desfiladero. Entrenó golpeando muros de piedra hasta que la propia roca aprendió a obedecerla.", "Cuando cierra el puño, el suelo se levanta a su favor y ningún enemigo escapa de su alcance."]}, "ivar": {"c": "asesino", "c2": ["luchador"], "nick": "El Gladiador Encadenado", "tags": ["Persecución", "Daño sostenido"], "st": [80, 45, 50, 75], "story": ["Ivar fue esclavo en las fosas de combate del Imperio, donde lo encadenaban a sus rivales para que no pudieran huir. Aprendió a convertir esas cadenas en su mejor arma.", "Libre al fin, compite en la Arena por elección, y cada victoria rompe un eslabón más de su pasado."]}, "az": {"c": "asesino", "nick": "El Bufón Maldito", "tags": ["Movilidad", "Daño explosivo"], "st": [90, 35, 45, 85], "story": ["Az fue el bufón de una corte que nadie recuerda, y el único que se atrevía a reír del rey. Cuando el castillo cayó, conservó la baraja maldita con la que cada truco termina en una sentencia.", "Ahora actúa en la Arena como en un escenario: una carta para marcar, otra para desaparecer, y un último acto del que el público nunca olvida el final."]}, "haspen": {"c": "soporte", "nick": "La Sirena del Lago", "tags": ["Curación", "Control de masas"], "st": [30, 45, 90, 55], "story": ["Haspen, la última sirena del Lago Eterno, despierta del sueño de las aguas con un solo propósito: proteger la vida que aún florece. Su voz calma las tormentas y sus flores sanan heridas.", "Aunque su corazón es gentil, el lago recuerda a quienes se atreven a perturbar su paz."]}};
+const LEG={"aurelio": {"c": "luchador", "nick": "El Caballero Dorado", "tags": ["Aturdimiento", "Resistente"], "st": [60, 85, 55, 30], "story": ["Antes de la caída del Reino de Solaris, Aurelio era el capitán de la guardia real. Cuando el trono se apagó, juró no volver a bajar la espada hasta descubrir quién lo traicionó.", "Hoy recorre la Arena con su armadura dorada abollada por mil batallas, convencido de que cada duelo lo acerca un poco más a la verdad."]}, "zeta": {"c": "tirador", "nick": "La Chispa de Acero", "tags": ["Daño sostenido", "Ralentización"], "st": [85, 35, 40, 60], "story": ["Zeta fue ensamblada en los talleres del Cinturón de Acero como un prototipo de defensa. Su núcleo eléctrico desarrolló algo que sus creadores jamás programaron: curiosidad.", "Escapó con el Brazo Z19 y ahora entra a la Arena para demostrar que una máquina también puede elegir su destino."]}, "goran": {"c": "tanque", "nick": "El Puño del Monte", "tags": ["Control de masas", "Reducción de daño"], "st": [65, 75, 60, 35], "story": ["Nacido en las laderas del Monte Quebrado, Goran aprendió de niño que la tierra no perdona ni olvida. Su pueblo lo bautizó el Puño del Monte tras detener un derrumbe con las manos desnudas.", "Ahora pelea para que ningún otro hogar vuelva a quedar bajo las rocas."]}, "stanley": {"c": "tirador", "nick": "El Pistolero Esmeralda", "tags": ["Daño a distancia", "Ráfaga"], "st": [90, 25, 25, 70], "story": ["Stanley era un cazarrecompensas sin fortuna hasta que encontró un revólver con una esmeralda viva en la empuñadura. Dicen que la gema elige a quien dispara, y no al revés.", "Cada bala le recuerda que la suerte también se gasta, por eso nunca desperdicia un disparo."]}, "miracle": {"c": "mago", "nick": "La Hechicera de Cristal", "tags": ["Daño en área", "Marcas"], "st": [88, 25, 55, 65], "story": ["Miracle despertó en una cueva de cristales sin recordar su nombre; solo el eco de una voz que le susurraba hechizos. Los cristales obedecen su voluntad y crecen donde su magia los toca.", "Busca en la Arena los fragmentos del recuerdo que perdió, aunque a veces teme lo que pueda encontrar."]}, "mikela": {"c": "luchador", "nick": "La Fuerza de la Roca", "tags": ["Cuerpo a cuerpo", "Desplazamiento"], "st": [70, 65, 50, 45], "story": ["Mikela es hija de los canteros del desfiladero. Entrenó golpeando muros de piedra hasta que la propia roca aprendió a obedecerla.", "Cuando cierra el puño, el suelo se levanta a su favor y ningún enemigo escapa de su alcance."]}, "ivar": {"c": "luchador", "nick": "El Gladiador Encadenado", "tags": ["Persecución", "Daño sostenido"], "st": [80, 45, 50, 75], "story": ["Ivar fue esclavo en las fosas de combate del Imperio, donde lo encadenaban a sus rivales para que no pudieran huir. Aprendió a convertir esas cadenas en su mejor arma.", "Libre al fin, compite en la Arena por elección, y cada victoria rompe un eslabón más de su pasado."]}, "az": {"c": "asesino", "nick": "El Bufón Maldito", "tags": ["Movilidad", "Daño explosivo"], "st": [90, 35, 45, 85], "story": ["Az fue el bufón de una corte que nadie recuerda, y el único que se atrevía a reír del rey. Cuando el castillo cayó, conservó la baraja maldita con la que cada truco termina en una sentencia.", "Ahora actúa en la Arena como en un escenario: una carta para marcar, otra para desaparecer, y un último acto del que el público nunca olvida el final."]}, "haspen": {"c": "soporte", "nick": "La Sirena del Lago", "tags": ["Curación", "Control de masas"], "st": [30, 45, 90, 55], "story": ["Haspen, la última sirena del Lago Eterno, despierta del sueño de las aguas con un solo propósito: proteger la vida que aún florece. Su voz calma las tormentas y sus flores sanan heridas.", "Aunque su corazón es gentil, el lago recuerda a quienes se atreven a perturbar su paz."]}};
 const LAB=['Pasiva','H1','H2','Ulti'],ST=['Daño','Durabilidad','Utilidad','Dificultad'];
 const leg=$('leg');let filt='todos',selK=null,tab='info';
 const keys=()=>Object.keys(CHAR).filter(k=>LEG[k]);
@@ -4343,5 +4372,19 @@ window.PREP={render,cfg,HPD,use:hpUse,ui:hpUI};
 const sync=()=>{const on=getComputedStyle(m).display!=='none';if(on){const p=v.play();if(p&&p.catch)p.catch(()=>{})}else v.pause()};
 new MutationObserver(sync).observe(m,{attributes:true,attributeFilter:['style','class']});
 document.addEventListener('visibilitychange',sync);addEventListener('pointerdown',sync,{once:true});sync()})();</script>
+<script>(function(){const $=id=>document.getElementById(id);
+window.ntS=id=>{NET.st=NET.st||{};return NET.st[id]||(NET.st[id]={k:0,d:0,a:0,m:0})};
+window.ntStSend=()=>{if(!NET.host||!NET.on)return;const m={t:'kst',s:NET.st};ntBcast(m);ntHandle(m)};
+function rowsOf(team,lane){return NET.players.filter(p=>p.team===team).map(p=>{const s=ntS(p.id);return '<div class="ktr'+(p===NET.me?' me':'')+'"><span class="ktn"><b>'+ntEsc(ntName(p.id))+'</b><small>'+ntEsc(CHAR[p.ch]?CHAR[p.ch].n:'')+'</small></span><span class="ktk">'+s.k+' / '+s.d+' / '+s.a+'</span>'+(lane?'<span class="ktm">'+s.m+'</span>':'')+'</div>'}).join('')}
+function colOf(team,title,lane){return '<div class="kth"><span>'+title+' · '+(NET.score?NET.score[team]:0)+'</span><span>K/D/A</span>'+(lane?'<span>Min.</span>':'')+'</div>'+rowsOf(team,lane)}
+window.ntTeamsHTML=()=>{if(!NET.me)return '';const mt=NET.me.team,et=mt==='A'?'B':'A',lane=NET.map==='lane';return '<div class="ktw"><div class="ktc ally">'+colOf(mt,'Tu equipo',lane)+'</div><div class="ktc foe">'+colOf(et,'Rival',lane)+'</div></div>'};
+let pn=null;
+function render(){if(pn&&pn.style.display==='flex')$('kdaPB').innerHTML=ntTeamsHTML()}
+function close(){if(pn)pn.style.display='none'}
+function open(){if(!NET.on||!NET.me)return;if(!pn){pn=document.createElement('div');pn.id='kdaP';pn.innerHTML='<div class="kbox"><button class="kx" aria-label="Cerrar">\u2715</button><h3>Marcador</h3><div id="kdaPB"></div></div>';document.body.appendChild(pn);pn.addEventListener('click',e=>{if(e.target===pn||e.target.closest('.kx'))close()})}pn.style.display='flex';render()}
+window.kstRefresh=render;
+window.ntEndTable=()=>{const t=$('ntEndTb');if(t)t.innerHTML=ntTeamsHTML();close()};
+const k=$('kda');if(k)k.addEventListener('click',open);
+})();</script>
 </body>
 </html>
