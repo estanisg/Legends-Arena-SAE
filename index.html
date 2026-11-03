@@ -831,6 +831,7 @@ body.arena #kda{display:none!important}
 <div id="ntV2" class="ntV" style="display:none"><div class="ntCodeTag ntM">Sala <b id="ntC"></b> · <span id="ntModeT"></span></div>
 <div class="ntRoomG"><div id="ntList"></div>
 <div class="ntRR"><div>Elige tu personaje (no se repite en tu equipo)</div><div id="ntChars"></div>
+<div id="ntHp"></div>
 <div class="ntRRb"><div id="ntWait" class="ntM"></div><button class="mb" id="ntStart">Iniciar partida</button></div></div></div>
 <div id="ntMsg2" class="ntM"></div><button class="mb sec" id="ntLeave" style="display:none">Salir de la sala</button></div></div></div>
 <style id="frCss">
@@ -840,7 +841,9 @@ body.arena #kda{display:none!important}
 #ntFr{position:absolute;right:calc(14*var(--u) + env(safe-area-inset-right,0px));top:calc(10*var(--u) + env(safe-area-inset-top,0px));width:auto;padding:calc(8*var(--u)) calc(14*var(--u));z-index:7}
 .chC b,.ntP{cursor:pointer}
 #frScr{position:fixed;inset:0;z-index:150;display:none;color:#fff;background:linear-gradient(rgba(5,9,18,.6),rgba(5,9,18,.82)),var(--mbg) center/cover no-repeat #070b12}
-#frScr *{text-transform:none!important}
+#frScr,#frScr *,#frAsk,#frAsk *{font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif!important;font-weight:500!important;letter-spacing:calc(1*var(--u))!important;text-transform:uppercase!important;color:#fff!important;-webkit-text-fill-color:#fff!important;background-clip:border-box!important;-webkit-background-clip:border-box!important}
+#frScr input,#frAsk input{text-transform:none!important}
+#frToast{font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif!important;font-weight:500!important;letter-spacing:calc(1*var(--u));text-transform:uppercase;color:#fff!important}
 #frTitle{position:absolute;left:calc(70*var(--u) + env(safe-area-inset-left,0px));top:calc(8*var(--u) + env(safe-area-inset-top,0px));height:calc(46*var(--u));display:flex;align-items:center;font-size:calc(16*var(--u));font-weight:800}
 #frWrap{position:absolute;left:calc(12*var(--u) + env(safe-area-inset-left,0px));right:calc(12*var(--u) + env(safe-area-inset-right,0px));top:calc(62*var(--u) + env(safe-area-inset-top,0px));bottom:calc(8*var(--u) + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);gap:calc(10*var(--u))}
 #frList,#frChat{background:rgba(6,11,20,.62);border:calc(2*var(--u)) solid #c99a3f;border-radius:calc(12*var(--u));min-height:0;overflow:hidden}
@@ -865,6 +868,11 @@ body.arena #kda{display:none!important}
 .frEmpty{margin:auto;text-align:center;opacity:.75;padding:calc(10*var(--u))}
 #frRow{display:flex;gap:calc(6*var(--u))}
 #frRow input{flex:1;min-width:0}
+#frIn{height:calc(40*var(--u));border-radius:calc(10*var(--u));border:calc(2*var(--u)) solid #2a4560;background:#0c141c;padding:0 calc(12*var(--u));font-size:max(16px,calc(14*var(--u)));-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;-webkit-appearance:none;appearance:none;outline:none;touch-action:manipulation}
+#frIn:focus{border-color:#ffb13b}
+#frIn:disabled{opacity:.55}
+#frIn::placeholder{color:rgba(255,255,255,.6)!important;-webkit-text-fill-color:rgba(255,255,255,.6)!important;opacity:1}
+#frSend:disabled{opacity:.55}
 #frRow .mb{width:auto;flex:none;padding:calc(7*var(--u)) calc(14*var(--u))}
 #frSt{min-height:calc(12*var(--u));color:#ff9a9a}
 #frAsk{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}
@@ -876,7 +884,7 @@ body.arena #kda{display:none!important}
 #frToast{position:fixed;left:50%;top:calc(14*var(--u) + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:170;background:rgba(0,0,0,.8);color:#ffd36b;padding:calc(8*var(--u)) calc(16*var(--u));border-radius:calc(10*var(--u));pointer-events:none;display:none;font-weight:700}
 </style>
 <div id="frScr"><button class="homeBtn" id="frBack" aria-label="Volver"></button><div id="frTitle">Amigos</div><button class="mb sec" id="frNot">Notificaciones: sí</button>
-<div id="frWrap"><div id="frList"></div><div id="frChat"><div id="frHd"><span id="frWho">Elige un amigo</span><button class="mb" id="frJoin" style="display:none">Entrar a su sala</button><button class="mb sec" id="frDel" style="display:none">Quitar</button></div><div id="frMsgs"><div class="frEmpty">Elige un amigo de la lista para chatear.</div></div><div id="frSt"></div><div id="frRow"><input id="frIn" maxlength="140" placeholder="Escribe un mensaje" autocomplete="off"><button class="mb" id="frSend">Enviar</button></div></div></div></div>
+<div id="frWrap"><div id="frList"></div><div id="frChat"><div id="frHd"><span id="frWho">Elige un amigo</span><button class="mb" id="frJoin" style="display:none">Entrar a su sala</button><button class="mb sec" id="frDel" style="display:none">Quitar</button></div><div id="frMsgs"><div class="frEmpty">Elige un amigo de la lista para chatear.</div></div><div id="frSt"></div><div id="frRow"><input id="frIn" maxlength="140" placeholder="Elige un amigo para escribir" autocomplete="off" autocorrect="off" enterkeyhint="send" disabled><button class="mb" id="frSend" disabled>Enviar</button></div></div></div></div>
 <div id="frAsk"><div id="frAskBox"><b id="frAskN"></b><button class="mb" id="frAskAdd">Agregar como amigo</button><button class="mb sec" id="frAskX">Cerrar</button></div></div>
 <div id="frToast"></div>
 <div id="ntScore"></div><div id="ntRes"></div>
@@ -4319,7 +4327,9 @@ const _ntgCO=ntgCast;ntgCast=function(p,m){const o=MIFX;MIFX=p.ch==='miracle'&&p
 .prRow{display:flex;flex-wrap:wrap;gap:calc(6*var(--u))}
 .prS{position:relative;width:calc(46*var(--u));padding:0;border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:calc(2*var(--u))}
 .prS i{display:block;width:calc(42*var(--u));height:calc(42*var(--u));border-radius:calc(8*var(--u));border:calc(2*var(--u)) solid rgba(120,165,230,.45);background:#0a1830 center/cover no-repeat}
-.prS.hq i{border-radius:50%}
+.prS.hq{width:calc(62*var(--u))}
+.prS.hq i{border-radius:50%;width:calc(54*var(--u));height:calc(54*var(--u))}
+.prS.hq small{font-size:calc(9.5*var(--u))}
 .prS.em i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:calc(18*var(--u));color:rgba(160,200,255,.55)}
 .prS small{font-size:calc(8*var(--u));line-height:1.1;text-align:center;color:#b9d4f5;white-space:nowrap}
 .prS.on i{border-color:#ffd84a;box-shadow:0 0 calc(8*var(--u)) rgba(255,216,74,.8)}
@@ -4329,14 +4339,14 @@ const _ntgCO=ntgCast;ntgCast=function(p,m){const o=MIFX;MIFX=p.ch==='miracle'&&p
 .prGrid{display:flex;flex-wrap:wrap;gap:calc(6*var(--u))}
 .prO{position:relative;padding:0;border:calc(2*var(--u)) solid var(--tc,#aeb7c6);border-radius:calc(7*var(--u));width:calc(40*var(--u));height:calc(40*var(--u));background:#0a1830 center/cover no-repeat}
 .prO.on{box-shadow:0 0 calc(8*var(--u)) rgba(255,216,74,.9);outline:calc(2*var(--u)) solid #ffd84a}
-.prO.hq{width:calc(98*var(--u));height:auto;aspect-ratio:auto;border-radius:calc(8*var(--u));display:flex;align-items:center;gap:calc(6*var(--u));padding:calc(4*var(--u));background:rgba(10,24,48,.85);color:#fff;text-align:left}
-.prO.hq i{flex:none;width:calc(30*var(--u));height:calc(30*var(--u));border-radius:50%;background:center/cover no-repeat}
-.prO.hq b{word-break:break-word;font-size:calc(9.5*var(--u));line-height:1.1}
+.prO.hq{width:calc(124*var(--u));height:auto;aspect-ratio:auto;border-radius:calc(8*var(--u));display:flex;align-items:center;gap:calc(6*var(--u));padding:calc(4*var(--u));background:rgba(10,24,48,.85);color:#fff;text-align:left}
+.prO.hq i{flex:none;width:calc(40*var(--u));height:calc(40*var(--u));border-radius:50%;background:center/cover no-repeat}
+.prO.hq b{word-break:break-word;font-size:calc(11*var(--u));line-height:1.1}
 .prO.t-l{--tc:#ffc83d}.prO.t-b{--tc:#3ddcb0}.prO.t-c{--tc:#aeb7c6}
 .prO.used::after{content:"\2713";position:absolute;right:calc(-3*var(--u));top:calc(-3*var(--u));width:calc(14*var(--u));height:calc(14*var(--u));line-height:calc(14*var(--u));text-align:center;border-radius:50%;background:#2a68d0;color:#fff;font-size:calc(9*var(--u))}
 #prInfo{display:flex;flex-direction:column;align-items:center;gap:calc(6*var(--u));text-align:center}
 #prInfo .big{width:calc(84*var(--u));height:calc(84*var(--u));border-radius:calc(12*var(--u));border:calc(2*var(--u)) solid var(--tc,#82c3ff);background:#0a1830 center/cover no-repeat}
-#prInfo .big.hq{border-radius:50%}
+#prInfo .big.hq{border-radius:50%;width:calc(100*var(--u));height:calc(100*var(--u))}
 #prInfo h4{margin:0;font-size:calc(15*var(--u))}
 #prInfo .sub{font-size:calc(9.5*var(--u));color:#9bc4f0}
 #prInfo p{margin:0;font-size:calc(10*var(--u));line-height:1.45;text-align:left;width:100%}
@@ -4347,10 +4357,19 @@ const _ntgCO=ntgCast;ntgCast=function(p,m){const o=MIFX;MIFX=p.ch==='miracle'&&p
 /* botones Hplus en partida (cerca de H1, uno al lado del otro) */
 #hpBox{position:fixed;z-index:5;display:none;gap:calc(6*var(--u));right:calc(calc(276*var(--u)) + var(--sr));bottom:calc(calc(30*var(--u)) + var(--sb))}
 body.ln #hpBox{right:calc(calc(276*var(--u)) + var(--ox) + var(--sr));bottom:calc(calc(30*var(--u)) + var(--oy) + var(--sb))}
-.hpb{position:relative;width:calc(36*var(--u));height:calc(36*var(--u));padding:0;border-radius:50%;border:calc(2*var(--u)) solid #d9e6f2;background:#101c2b center/cover no-repeat;touch-action:none;overflow:hidden;color:#fff}
+.hpb{position:relative;width:calc(46*var(--u));height:calc(46*var(--u));padding:0;border-radius:50%;border:calc(2*var(--u)) solid #d9e6f2;background:#101c2b center/cover no-repeat;touch-action:none;overflow:hidden;color:#fff}
 .hpb::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(5,10,16,.88) var(--cd,0deg),rgba(5,10,16,0) 0);pointer-events:none}
 .hpb.on{border-color:#ffd84a;box-shadow:0 0 calc(10*var(--u)) rgba(255,216,74,.95)}
-.hpb span{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:calc(14*var(--u));font-weight:800;color:#fff;-webkit-text-stroke:calc(3*var(--u)) #000;paint-order:stroke fill;pointer-events:none}
+.hpb span{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:calc(17*var(--u));font-weight:800;color:#fff;-webkit-text-stroke:calc(3*var(--u)) #000;paint-order:stroke fill;pointer-events:none}
+/* selector de Hplus en la sala multijugador (debajo del personaje) */
+#ntHp{display:flex;flex-direction:column;gap:calc(6*var(--u));align-items:center}
+.ntHpT{font-size:calc(12*var(--u));align-self:flex-start}
+#ntHpS,#ntHpO{display:flex;gap:calc(8*var(--u));justify-content:center;flex-wrap:wrap}
+.ntHs,.ntHo{display:flex;flex-direction:column;align-items:center;gap:calc(3*var(--u));padding:calc(5*var(--u)) calc(8*var(--u));border:calc(2*var(--u)) solid #2a4560;border-radius:calc(10*var(--u));background:#0c141c;cursor:pointer;min-width:calc(72*var(--u))}
+.ntHs i,.ntHo i{display:block;width:calc(54*var(--u));height:calc(54*var(--u));border-radius:50%;background:#101c2b center/cover no-repeat}
+.ntHs small,.ntHo small{font-size:calc(10.5*var(--u));line-height:1.1;text-align:center}
+.ntHs.on,.ntHo.on{border-color:#ffb13b}
+.ntHo.used:not(.on){opacity:.6}
 #mVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;filter:brightness(.82)}
 </style>
 <script id="hplusSys">
@@ -4450,6 +4469,19 @@ function setSlot(k,s,v){const c=cfg(k);
   else if(s==='st')c.st=v;else if(s==='bt')c.bt=v;
   else{const i=+s[1],j=c.it.indexOf(v);if(j>=0&&j!==i)c.it[j]=c.it[i];c.it[i]=v}
   save(k,c)}
+// ---- Selector de Hplus en la sala multijugador (comparte la configuración de Preparación) ----
+let hpSlot=0;
+const ntMe=()=>{const L=NET.lobby;return L&&L.slots.find(q=>q.id===NET.id)};
+function ntHpRender(){const el=document.getElementById('ntHp');if(!el)return;const me=ntMe();
+  if(!me||!me.ch||!CHAR[me.ch]){el.innerHTML='<div class="ntHpT">Hplus</div><div class="ntM">Elige un personaje para configurar sus Hplus</div>';return}
+  const c=cfg(me.ch);
+  el.innerHTML='<div class="ntHpT">Elige tus Hplus · '+CHAR[me.ch].n+'</div><div id="ntHpS">'+c.hp.map((id,i)=>'<button class="ntHs'+(i===hpSlot?' on':'')+'" data-s="'+i+'"><i style="background-image:url('+HPD[id].ic+')"></i><small>Hplus '+(i+1)+'</small></button>').join('')+'</div>'
+   +'<div id="ntHpO">'+HPK.map(id=>'<button class="ntHo'+(c.hp[hpSlot]===id?' on':'')+(c.hp.includes(id)?' used':'')+'" data-h="'+id+'" title="'+HPD[id].s+'"><i style="background-image:url('+HPD[id].ic+')"></i><small>'+HPD[id].n+'</small></button>').join('')+'</div>'}
+{const el=document.getElementById('ntHp');if(el)el.addEventListener('click',e=>{
+  const s=e.target.closest('.ntHs');if(s){hpSlot=+s.dataset.s;ntHpRender();return}
+  const o=e.target.closest('.ntHo');if(!o)return;const me=ntMe();if(!me||!me.ch)return;
+  setSlot(me.ch,hpSlot?'h1':'h0',o.dataset.h);ntHpRender()})}
+{const _lu=ntLobbyUI;ntLobbyUI=function(){const r=_lu.apply(this,arguments);try{ntHpRender()}catch(e){console.warn('hplus sala',e)}return r}}
 function render(k){if(!k)return;if(PS.k!==k){PS.k=k;PS.slot='h0';PS.cls='todos';PS.foc=null}
   const c=cfg(k),sl=PS.slot,isH=sl[0]==='h';
   const slotHtml=SLOTS.map(([s,lab])=>{const v=slotVal(c,s),h=s[0]==='h';
@@ -4534,7 +4566,8 @@ function renderList(){const L=$('frList');if(!F.open)return;
   L.innerHTML=(F.reqs.length?'<div class="frH">Solicitudes</div>'+rq+(F.list.length?'<div class="frH">Amigos</div>':''):'')+fr+((!F.list.length&&!F.reqs.length)?'<div class="frEmpty">Aún no tienes amigos.<br>Toca el nombre de un jugador en el chat global o en una sala para enviarle una solicitud.</div>':'');
   head()}
 function head(){const f=F.list.find(x=>x.name.toLowerCase()===F.sel);$('frWho').textContent=f?f.name+(f.online?' · conectado':' · desconectado'):'Elige un amigo';
-  $('frJoin').style.display=f&&f.room?'':'none';$('frDel').style.display=f?'':'none'}
+  $('frJoin').style.display=f&&f.room?'':'none';$('frDel').style.display=f?'':'none';
+  const can=!!f,inp=$('frIn');if(inp.disabled===can){inp.disabled=!can;$('frSend').disabled=!can;inp.placeholder=can?'Escribe un mensaje':'Elige un amigo para escribir'}if(!can){if(document.activeElement===inp)inp.blur();if(inp.value)inp.value=''}}
 async function refresh(){if(!U()||F.busy)return;F.busy=true;
   try{const r=await api('/api/friends');if(r.ok&&r.data&&Array.isArray(r.data.friends)){
     const old=F.list;let more=false;
@@ -4607,7 +4640,7 @@ $('frJoin').onclick=()=>{const f=F.list.find(x=>x.name.toLowerCase()===F.sel);if
 $('frDel').onclick=async()=>{const f=F.list.find(x=>x.name.toLowerCase()===F.sel);if(!f)return;
   if($('frDel').dataset.s!=='1'){$('frDel').dataset.s='1';$('frDel').textContent='¿Seguro?';setTimeout(()=>{$('frDel').dataset.s='';$('frDel').textContent='Quitar'},2500);return}
   $('frDel').dataset.s='';$('frDel').textContent='Quitar';
-  try{await api('/api/friends/remove',{method:'POST',body:{name:f.name}});F.sel=null;F.msgs=[];renderMsgs();await refresh()}catch(_){toast('Sin conexión')}};
+  try{await api('/api/friends/remove',{method:'POST',body:{name:f.name}});F.sel=null;F.msgs=[];renderMsgs();head();await refresh()}catch(_){toast('Sin conexión')}};
 $('frSend').onclick=send;$('frIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
 // ---- sondeos periódicos ----
 let tk=0;
