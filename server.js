@@ -150,6 +150,138 @@ function readBody(req) {
   });
 }
 
+// ---------------------------------------------------------------- amigos, mensajes privados y presencia
+const FR_MAX = 100, DM_MAX = 60, ONLINE_MS = 45000, ROOM_MS = 20000;
+const presence = new Map(); // key -> { seen, room, pw, roomAt } (solo en memoria)
+const pairKey = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+function ensureFr(u) {
+  if (!Array.isArray(u.friends)) u.friends = [];
+  if (!u.read || typeof u.read !== 'object') u.read = {};
+  if (!Array.isArray(u.reqIn)) u.reqIn = [];   // solicitudes recibidas (claves de usuario)
+  if (!Array.isArray(u.reqOut)) u.reqOut = []; // solicitudes enviadas
+}
+function makeFriends(ka, ua, kb, ub) {
+  ensureFr(ua); ensureFr(ub);
+  if (!ua.friends.includes(kb)) ua.friends.push(kb);
+  if (!ub.friends.includes(ka)) ub.friends.push(ka);
+  ua.reqIn = ua.reqIn.filter(k => k !== kb); ua.reqOut = ua.reqOut.filter(k => k !== kb);
+  ub.reqIn = ub.reqIn.filter(k => k !== ka); ub.reqOut = ub.reqOut.filter(k => k !== ka);
+}
+function touch(key) { const p = presence.get(key) || {}; p.seen = Date.now(); presence.set(key, p); return p; }
+function dmList(a, b) { if (!db.dms) db.dms = {}; return db.dms[pairKey(a, b)] || []; }
+const dmOut = (m, me) => ({ id: m.id, mine: m.from === me, text: m.text, t: m.t });
+
+async function friendsApi(req, res, url) {
+  const route = url.pathname;
+  if (!(route === '/api/presence' || route === '/api/friends' || route.startsWith('/api/friends/') || route === '/api/dm' || route === '/api/dm/read')) return false;
+  const a = authUser(req);
+  if (!a) { send(res, 401, { error: 'Sesión caducada' }); return true; }
+  ensureFr(a.u);
+  const me = a.key; touch(me);
+  const find = name => { const k = String(name || '').trim().toLowerCase(); const u = db.users[k]; return u ? { k, u } : null; };
+  const body = async () => { try { return await readBody(req); } catch (_) { return null; } };
+
+  if (route === '/api/presence' && req.method === 'POST') {
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const p = touch(me), room = String(b.room || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    if (room.length === 5) { p.room = room; p.pw = b.pw ? 1 : 0; p.roomAt = Date.now(); } else p.room = '';
+    send(res, 200, { ok: true }); return true;
+  }
+
+  if (route === '/api/friends' && req.method === 'GET') {
+    const now = Date.now(); let total = 0;
+    const list = a.u.friends.map(fk => {
+      const fu = db.users[fk]; if (!fu) return null;
+      const p = presence.get(fk) || {}, online = now - (p.seen || 0) < ONLINE_MS;
+      const room = online && p.room && now - (p.roomAt || 0) < ROOM_MS ? { code: p.room, pw: p.pw ? 1 : 0 } : null;
+      const msgs = dmList(me, fk), lr = a.u.read[fk] || 0;
+      const unread = msgs.filter(m => m.from === fk && m.id > lr).length; total += unread;
+      const last = msgs[msgs.length - 1];
+      return { name: fu.name, av: Number.isInteger(fu.chatAv) ? fu.chatAv : -1, best: fu.best || 0, online, room, unread,
+        last: last ? { text: last.text.slice(0, 40), mine: last.from === me, t: last.t } : null };
+    }).filter(Boolean);
+    list.sort((x, y) => (y.unread > 0) - (x.unread > 0) || (y.online - x.online) || x.name.localeCompare(y.name));
+    const requests = a.u.reqIn.map(k => db.users[k]).filter(Boolean).map(u => ({ name: u.name, av: Number.isInteger(u.chatAv) ? u.chatAv : -1, best: u.best || 0 }));
+    const sent = a.u.reqOut.map(k => db.users[k]).filter(Boolean).map(u => u.name);
+    send(res, 200, { friends: list, unread: total, requests, sent }); return true;
+  }
+
+  if (route === '/api/friends/add' && req.method === 'POST') {
+    if (limited('fra:' + me, 20, 6e4)) { send(res, 429, { error: 'Más despacio' }); return true; }
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const f = find(b.name);
+    if (!f) { send(res, 404, { error: 'Ese usuario no existe' }); return true; }
+    if (f.k === me) { send(res, 400, { error: 'No puedes agregarte a ti mismo' }); return true; }
+    ensureFr(f.u);
+    if (a.u.friends.includes(f.k)) { send(res, 200, { ok: true, already: true, name: f.u.name }); return true; }
+    if (a.u.friends.length >= FR_MAX || f.u.friends.length >= FR_MAX) { send(res, 400, { error: 'Lista de amigos llena' }); return true; }
+    if (a.u.reqIn.includes(f.k)) { // ya te había enviado solicitud: se acepta
+      makeFriends(me, a.u, f.k, f.u); save(); send(res, 200, { ok: true, accepted: true, name: f.u.name }); return true;
+    }
+    if (a.u.reqOut.includes(f.k)) { send(res, 200, { ok: true, pending: true, name: f.u.name }); return true; }
+    if (f.u.reqIn.length >= 50) { send(res, 400, { error: 'Ese usuario tiene demasiadas solicitudes' }); return true; }
+    f.u.reqIn.push(me); a.u.reqOut.push(f.k);
+    save(); send(res, 200, { ok: true, sent: true, name: f.u.name }); return true;
+  }
+
+  if (route === '/api/friends/accept' && req.method === 'POST') {
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const f = find(b.name);
+    if (!f || !a.u.reqIn.includes(f.k)) { send(res, 404, { error: 'No hay solicitud de ese usuario' }); return true; }
+    if (a.u.friends.length >= FR_MAX || (f.u.friends || []).length >= FR_MAX) { send(res, 400, { error: 'Lista de amigos llena' }); return true; }
+    makeFriends(me, a.u, f.k, f.u); save(); send(res, 200, { ok: true, name: f.u.name }); return true;
+  }
+
+  if (route === '/api/friends/decline' && req.method === 'POST') {
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const f = find(b.name);
+    if (f) { ensureFr(f.u); a.u.reqIn = a.u.reqIn.filter(k => k !== f.k); f.u.reqOut = f.u.reqOut.filter(k => k !== me); save(); }
+    send(res, 200, { ok: true }); return true;
+  }
+
+  if (route === '/api/friends/remove' && req.method === 'POST') {
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const f = find(b.name);
+    if (f) {
+      ensureFr(f.u);
+      a.u.friends = a.u.friends.filter(k => k !== f.k); f.u.friends = f.u.friends.filter(k => k !== me);
+      delete a.u.read[f.k]; delete f.u.read[me];
+      if (db.dms) delete db.dms[pairKey(me, f.k)];
+      save();
+    }
+    send(res, 200, { ok: true }); return true;
+  }
+
+  if (route === '/api/dm' && req.method === 'GET') {
+    const f = find(url.searchParams.get('with'));
+    if (!f || !a.u.friends.includes(f.k)) { send(res, 403, { error: 'No es tu amigo' }); return true; }
+    const after = +url.searchParams.get('after') || 0, all = dmList(me, f.k);
+    if (url.searchParams.get('read') === '1' && all.length) {
+      const lastId = all[all.length - 1].id;
+      if ((a.u.read[f.k] || 0) < lastId) { a.u.read[f.k] = lastId; save(2000); }
+    }
+    send(res, 200, { messages: all.filter(m => m.id > after).map(m => dmOut(m, me)) }); return true;
+  }
+
+  if (route === '/api/dm' && req.method === 'POST') {
+    if (limited('dm:' + me, 1, 800)) { send(res, 429, { error: 'Más despacio' }); return true; }
+    const b = await body(); if (!b) { send(res, 400, { error: 'Solicitud inválida' }); return true; }
+    const f = find(b.to);
+    ensureFr(f ? f.u : {});
+    if (!f || !a.u.friends.includes(f.k) || !(f.u.friends || []).includes(me)) { send(res, 403, { error: 'No es tu amigo' }); return true; }
+    const text = String(b.text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (!text) { send(res, 400, { error: 'Mensaje vacío' }); return true; }
+    if (!db.dms) db.dms = {};
+    const key = pairKey(me, f.k), arr = db.dms[key] || (db.dms[key] = []);
+    const m = { id: (db.dmSeq = (db.dmSeq || 0) + 1), from: me, text, t: Date.now() };
+    arr.push(m); while (arr.length > DM_MAX) arr.shift();
+    a.u.read[f.k] = m.id; // si respondes, lo anterior ya está leído
+    save(1500); send(res, 200, { ok: true, message: dmOut(m, me) }); return true;
+  }
+
+  send(res, 404, { error: 'No encontrado' }); return true;
+}
+
 // ---------------------------------------------------------------- API
 async function api(req, res, url) {
   const route = url.pathname;
@@ -281,6 +413,8 @@ async function api(req, res, url) {
     save(2000);
     return send(res, 200, { ok: true, message });
   }
+
+  if (await friendsApi(req, res, url)) return;
 
   return send(res, 404, { error: 'No encontrado' });
 }
