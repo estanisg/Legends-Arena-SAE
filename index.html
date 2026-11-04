@@ -1610,7 +1610,7 @@ function drawCZ(){czx.clearRect(0,0,czc.width,czc.height);if(!aim||aim.t<=.15||P
   czx.globalAlpha=out?1:.3+.6*pr;czx.lineWidth=out?7:5;czx.beginPath();czx.arc(aim.cx,aim.cy,ZR,aim.ca-.45,aim.ca+.45);czx.stroke();czx.globalAlpha=1}
 // Habilidades de Aurelio
 const DSP={aurelio:['s3'],goran:['s3'],stanley:['s2'],mikela:['s2'],az:['s2','s3']}; // habilidades de desplazamiento: bloqueadas al estar inmovilizado
-function ready(k){return SL[k]>0&&cd[k]<=0&&P.mp>=MP[k]&&!P.dead&&!dash&&!zU&&!(pStun>0)&&!(dbRootT>0&&DSP[cur]&&DSP[cur].includes(k))}
+function ready(k){return SL[k]>0&&cd[k]<=0&&(ARC.on||P.mp>=MP[k])&&!P.dead&&!dash&&!zU&&!(pStun>0)&&!(dbRootT>0&&DSP[cur]&&DSP[cur].includes(k))}
 function aS1(d){if(!ready('s1'))return;P.mp-=MP.s1;cd.s1=CD.s1;sw.on=false;auto=false;rootT=.55;act('1',.55);P.ang=Math.atan2(d[0],d[1]);skA=.55;
   for(const e of [...en]){const dx=e.x-P.x,dz=e.z-P.z,l=Math.hypot(dx,dz);if(l<9.8&&(l<1.2||(dx*d[0]+dz*d[1])/l>=.5))hit(e,skD('s1')*(e.rp&&!e.mid?1:.6),false,'#ff9d3d')}
   aurS1FX();flashCone.position.set(P.x,.15,P.z);flashCone.rotation.y=P.ang;flashCone.visible=true;flashT=.2;playClip('ah1',1);shake=Math.max(shake,.3);for(let q=0;q<22;q++){const a=P.ang+(Math.random()-.5)*2.09,r=1.5+Math.random()*8;emit(P.x+Math.sin(a)*r,1.2,P.z+Math.cos(a)*r,1,q%2?0xffffff:0x9fe8ff,3,.5,1)}}
@@ -4078,51 +4078,50 @@ function rUlt(e,dt,st){let u=e.ub;
 function arX(dt){FRM++;if(!ARC.on)return;
   if(!arX._i){arX._i=1;try{SH_STAT.pr=['Alcance de recogida de XP','']}catch(_){}
     const st=document.createElement('style');st.textContent='body.arn #shb{display:none!important}#s1.evo,#s2.evo,#s3.evo{border-color:#ffd166!important;background:radial-gradient(#7a5a12,#3b2a06)!important;box-shadow:0 0 calc(10*var(--u)) #ffc83d,inset 0 0 calc(8*var(--u)) rgba(255,200,61,.55)!important}';document.head.appendChild(st);
-    setInterval(()=>{document.body.classList.toggle('arn',!!(ARC.on&&running));for(const k of['s1','s2']){const b=$(k);if(b)b.classList.toggle('evo',!!(ARC.on&&running&&SL[k]>=MAXS[k]))}},200);
+    setInterval(()=>{document.body.classList.toggle('arn',!!(ARC.on&&running));try{mbI.parentElement.style.display=ARC.on&&running?'none':''}catch(_){}for(const k of['s1','s2']){const b=$(k);if(b)b.classList.toggle('evo',!!(ARC.on&&running&&SL[k]>=MAXS[k]))}},200);
     for(const ch in CHS)for(const s of['s1','s2']){const f=CHS[ch][s];CHS[ch][s]=function(d,a){const b=cd[s];f(d,a);if(ARC.on&&SL[s]>=MAXS[s]&&b<=0&&cd[s]>0)cd[s]*=.5}}}
   if(P.dead>0)SQ.length=0;else if(SQ.length){SQA+=dt*(12+wave);while(SQA>=1&&SQ.length){SQA--;mkEnemy(SQ.pop(),rnd()*6.283,29+rnd()*2)}}
-  gemUp(dt);autoSk(dt)}
+  P.mp=P.mpMax;gemUp(dt);autoSk(dt)}
 
 function arReset(){ARC.lv=1;ARC.xp=0;ARC.q=0;ARC.pick=false;ARC.au={};ARC.t={};ARC.lk=0;ARC.pr=0;ARC.bn={};SQ.length=0;SQA=0;EV={};gemClear();arCards.style.display='none';arUI.innerHTML='';arUI.style.display=ARC.on?'flex':'none';if(ARC.on){SL.s1=SL.s2=SL.s3=1}}
 const arNeed=()=>Math.round(25*Math.pow(1.26,ARC.lv-1));
 // ---- Probabilidades base por tarjeta: Habilidad de personaje 35% · Objeto legendario 15% · Activa aleatoria 5% · Atributo +5% 45% ----
 const ARW={s:35,i:15,a:5,t:45},ARLK=4,arLf=()=>1+.07*ARC.lk; // la Suerte multiplica las probabilidades de objeto legendario y activa
 const ARAT={ad:{n:'Daño físico',m:3},ap:{n:'Poder de habilidad',m:3},hp:{n:'Vida',m:25},arm:{n:'Armadura',m:2},mr:{n:'Resistencia mágica',m:2},as:{n:'Velocidad de ataque',p:1},crit:{n:'Prob. de crítico',p:1},ms:{n:'Velocidad de movimiento',p:1},ah:{n:'Aceleración de habilidad',p:1},lk:{n:'Suerte',w:2},pr:{n:'Alcance de XP',m:1,w:1}};
-function arAtV(k,lc){let v;if(k==='lk')v=ARLK;else if(k==='pr')v=1;else{const pc=5*(1+.04*ARC.lk);if(ARAT[k].p)v=Math.round(pc*10)/10;else{const cur=k==='hp'?P.max:stat()[k];v=Math.max(ARAT[k].m,Math.round(cur*pc/100))}}return lc?v*2:v}
-function arPick(){const S={s:[],i:[],a:[],t:[]};
-  for(const k of ['s1','s2','s3'])if(SL[k]<MAXS[k])S.s.push({k:'s',s:k,w:1});
-  if(INV.length<10)for(const it of SHOP_ITEMS)if(it.t==='l'&&!(it.act&&it.act.k==='revel'))S.i.push({k:'i',id:it.id,w:1});
-  for(const k of ARL)if(k!==cur)S.a.push({k:'a',a:k,w:1});
-  for(const k in ARAT)S.t.push({k:'t',t:k,w:ARAT[k].w||1});
-  const o=[],f=arLf();
-  while(o.length<3){
-    const ws={s:S.s.length?ARW.s:0,i:S.i.length?ARW.i*f:0,a:S.a.length?ARW.a*f:0,t:S.t.length?ARW.t:0},tot=ws.s+ws.i+ws.a+ws.t;
-    if(!tot)break;let r=Math.random()*tot,c='t';for(const k of ['s','i','a','t']){if(r<ws[k]){c=k;break}r-=ws[k]}
-    const L=S[c];let j=0;
-    if(c==='t'){const tw=L.reduce((a,b)=>a+b.w,0);let q=Math.random()*tw;for(;j<L.length-1;j++){if(q<L[j].w)break;q-=L[j].w}}else j=Math.floor(Math.random()*L.length);
-    const card=L.splice(j,1)[0];
-    card.lc=Math.random()<Math.min(.6,.03*ARC.lk); // tarjeta afortunada: efecto doble (la Suerte aumenta su probabilidad)
-    if(c==='t')card.v=arAtV(card.t,card.lc);
-    o.push(card)}
+function arAtV(k,lc,pc){let v;if(k==='lk')v=ARLK;else if(k==='pr')v=1;else{const p=(pc||5)*(1+.04*ARC.lk);if(ARAT[k].p)v=Math.round(p*10)/10;else{const cur=k==='hp'?P.max:stat()[k];v=Math.max(ARAT[k].m,Math.round(cur*p/100))}}return lc?v*2:v}
+// ---- Rareza de tarjetas: Común 45 % (gris) · Raro 30 % (azul) · Ultra raro 17 % (morado) · Épico 5 % (rojo) · Legendario 3 % (dorado). La Suerte favorece Épico y Legendario ----
+const ARR=[['Común','#9aa3ad',45],['Raro','#4da3ff',30],['Ultra raro','#b46bff',17],['Épico','#ff4d4d',5],['Legendario','#ffd166',3]];
+function arPool(r){const o=[],it=()=>{if(INV.length<10)for(const x of SHOP_ITEMS)if(x.t==='l'&&!(x.act&&x.act.k==='revel'))o.push({k:'i',id:x.id,r,w:1})};
+  if(r<=2)for(const k in ARAT)if(k!=='lk'&&k!=='pr')o.push({k:'t',t:k,pc:[5,12,24][r],r,w:1});
+  if(r===1){o.push({k:'t',t:'pr',r,w:2});for(const s of['s1','s2'])if(SL[s]<MAXS[s]&&SL[s]+1<5)o.push({k:'s',s,r,w:4})}
+  if(r===2){o.push({k:'t',t:'lk',r,w:2});if(SL.s3<MAXS.s3)o.push({k:'s',s:'s3',r,w:5})}
+  if(r===3){for(const k of ARL)if(k!==cur)o.push({k:'a',a:k,r,w:3});it()}
+  if(r===4){it();for(const s of['s1','s2'])if(SL[s]<MAXS[s]&&SL[s]+1>=5)o.push({k:'s',s,r,w:6})}
+  return o}
+function arWP(L){let t=0;for(const c of L)t+=c.w||1;let q=Math.random()*t;for(const c of L){q-=c.w||1;if(q<0)return c}return L[L.length-1]}
+function arPick(){const o=[],used=new Set(),f=arLf(),key=c=>c.k+(c.t||c.s||c.a||c.id);
+  while(o.length<3){const W=ARR.map((x,i)=>x[2]*(i>=3?f:1)),tot=W.reduce((a,b)=>a+b,0);let q=Math.random()*tot,r=0;for(;r<4;r++){if(q<W[r])break;q-=W[r]}
+    let L=null;for(const rr of[r,0,1,2,3,4]){const l=arPool(rr).filter(c=>!used.has(key(c)));if(l.length){L=l;break}}
+    if(!L)break;const c=arWP(L);used.add(key(c));c.lc=Math.random()<Math.min(.6,.03*ARC.lk);if(c.k==='t')c.v=arAtV(c.t,c.lc,c.pc);o.push(c)}
   return o}
 const arIcU=k=>SIC[k]||(k==='apenF'||k==='apen'?STIC[6]:k==='mpenF'||k==='mpen'?STIC[7]:k==='ls'?STIC[8]:k==='cdmg'?STIC[10]:k==='ten'?STIC[11]:k==='msf'?STIC[13]:null);
 const arIco=k=>{const u=arIcU(k);return u?`<i class="arsi" style="background-image:url(${u})"></i>`:`<i class="arsi">${k==='lk'?'🍀':k==='pr'?'🧲':'•'}</i>`};
 const arSt=(k,v)=>{const d=SH_STAT[k]||[k,''];return `<div class="arln">${arIco(k)}<span>+${v}${d[1]} ${d[0]}</span></div>`};
 function arCardHtml(c){let t,sub,body,ic='';
-  if(c.k==='i'){const it=IT_BY[c.id];t=it.n;sub='Objeto legendario';
+  if(c.k==='i'){const it=IT_BY[c.id];t=it.n;sub='Objeto';
     body=Object.entries(it.st).map(([k,v])=>arSt(k,v)).join('');
     if(it.pas)body+=`<div class="arps"><b>${it.pas.n}:</b> ${it.pas.d}</div>`;
     if(it.act)body+=`<div class="arps"><b>Activa · ${it.act.n}:</b> ${it.act.d}</div>`;
     ic=`<div class="aric" style="background-image:${shImg(it.ic)}"></div>`}
   else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]],a=SL[c.s],b=Math.min(MAXS[c.s],a+(c.lc?2:1));t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+a+' → '+b;body=((n&&n.n)||'')+(c.s!=='s3'&&b>=MAXS[c.s]?'<br><b style="color:#ffd166">⚡ Nivel máximo: se lanzará automáticamente (−50% de reutilización)</b>':'');ic=`<div class="aric" style="background-image:${arIc(cur,{s1:1,s2:2,s3:3}[c.s])}"></div>`}
   else if(c.k==='t'){const d=ARAT[c.t];t=d.n;sub=c.t==='lk'?'Atributo · Suerte':'Atributo · mejora aleatoria';
-    if(c.t==='lk')body=`<div class="arln">${arIco('lk')}<span>+${c.v} Suerte</span></div><div class="arps">Más Suerte = más objetos legendarios y activas, mejores bonos de atributo y más tarjetas afortunadas (×2).</div>`;
+    if(c.t==='lk')body=`<div class="arln">${arIco('lk')}<span>+${c.v} Suerte</span></div><div class="arps">Más Suerte = más cartas épicas y legendarias, mejores bonos de atributo y más tarjetas afortunadas (×2).</div>`;
     else if(d.p)body=`<div class="arln">${arIco(c.t)}<span>+${c.v}% ${d.n}</span></div>`;
-    else body=`<div class="arln">${arIco(c.t)}<span>+${Math.round(5*(1+.04*ARC.lk)*(c.lc?2:1)*10)/10}% (+${c.v}) ${d.n}</span></div>`;
+    else body=`<div class="arln">${arIco(c.t)}<span>+${Math.round((c.pc||5)*(1+.04*ARC.lk)*(c.lc?2:1)*10)/10}% (+${c.v}) ${d.n}</span></div>`;
     ic=`<div class="aric">${arIco(c.t)}</div>`}
   else{const d=ARS[c.a],l=ARC.au[c.a]||0,nl=l+(c.lc?2:1);t=d.n;sub=l?'Activa automática · nivel '+l+' → '+nl:'Nueva activa automática'+(c.lc?' (nivel 2)':'');body=(l?'+35% daño · −12% reutilización':'Se lanza sola cada '+d.cd+' s')+'<br>(habilidad de '+CHAR[c.a].n+')';ic=`<div class="aric" style="background-image:${arIc(c.a,ARI[c.a]||1)}"></div>`}
   const lc=c.lc?`<div class="arlc">🍀 ¡Afortunada! ${c.k==='i'?'+500 de oro':'efecto ×2'}</div>`:'';
-  return `<div class="arcd${c.lc?' lk':''}">${ic}<div class="art">${t}</div><div class="arsub">${sub}</div>${lc}<div class="arbd">${body}</div></div>`}
+  const R=ARR[c.r||0];return `<div class="arcd${c.lc?' lk':''}" style="border-color:${R[1]};box-shadow:0 0 14px ${c.lc?'rgba(125,255,176,.6)':R[1]+'88'}">${ic}<div style="font-weight:800;font-size:clamp(10px,1.7vmin,13px);color:${R[1]}">${R[0]}</div><div class="art">${t}</div><div class="arsub">${sub}</div>${lc}<div class="arbd">${body}</div></div>`}
 function arApply(c){
   if(c.k==='i'){INV.push(c.id);itRecalc();if(c.lc)addGold(500)}
   else if(c.k==='s'){SL[c.s]=Math.min(MAXS[c.s],SL[c.s]+(c.lc?2:1))}
