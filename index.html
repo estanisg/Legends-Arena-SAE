@@ -4031,7 +4031,7 @@ const arUI=document.createElement('div');arUI.id='arc';arUI.style.cssText='posit
 const arCards=document.createElement('div');arCards.style.cssText='position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;background:rgba(4,8,14,.82);font-family:Montserrat,sans-serif;color:#fff';document.body.appendChild(arCards);
 ['pointerdown','touchstart','mousedown'].forEach(ev=>arCards.addEventListener(ev,e=>e.stopPropagation()));
 // ===================== ARENA: hordas ilimitadas · gemas de XP · evolución de habilidades · jefes y enemigos de rango =====================
-let SQ=[],SQA=0,ENG=new Map(),FRM=0,LDT=0,EV={},EVT={s1:0,s2:0,s3:0},GM=[],GMI=null;
+let XPH=[],XPT=0,SQ=[],SQA=0,ENG=new Map(),FRM=0,LDT=0,EV={},EVT={s1:0,s2:0,s3:0},GM=[],GMI=null;
 const GMX=1500,GMO=new T.Object3D(),GMC=new T.Color(),coneG=new T.CircleGeometry(1,28,Math.PI/2-.61,1.22),EVN={s1:'H1',s2:'H2',s3:'Ulti'};
 function enGrid(){ENG.clear();for(const o of en){const k=(Math.floor(o.x/2)+512)*2048+Math.floor(o.z/2)+512;let a=ENG.get(k);if(!a)ENG.set(k,a=[]);a.push(o)}}
 // Oleada: sin límite de enemigos (n crece con la oleada) y salen escalonados desde la cola SQ para no congelar el juego. Jefe cada 10 oleadas.
@@ -4044,6 +4044,7 @@ function gemAdd(x,z,v){if(GM.length>=GMX){const g=GM[(rnd()*GM.length)|0];g.v+=v
 function gemClear(){GM.length=0;if(GMI)GMI.count=0}
 function arXp(e){const b=e.boss?60:e.type==='r'?5:e.type==='f'?6:e.type==='h'?7:e.type==='c'?4:2,v=Math.max(1,Math.round(b*(1+wave*.06)));
   if(!ARC.on){gainXP(v*5);return}if(e.boss){for(let i=0;i<6;i++)gemAdd(e.x,e.z,Math.max(1,Math.round(v/6)))}else gemAdd(e.x,e.z,v)}
+function xpSnd(v){const n=performance.now();XPH.push([n,v]);while(XPH.length&&n-XPH[0][0]>1000)XPH.shift();if(n-XPT<55)return;XPT=n;let s=0;for(const h of XPH)s+=h[1];const f=110*Math.pow(2,Math.min(s,40)/40*3);tone(f,.09,'sine',.07,f*1.15)}
 function gemUp(dt){if(!GMI){GMI=new T.InstancedMesh(new T.OctahedronGeometry(1,0),new T.MeshBasicMaterial({color:0xffffff}),GMX);GMI.frustumCulled=false;GMI.count=0;scene.add(GMI)}
   const R=5+(ARC.pr||0),R2=R*R;let got=0,dirty=GMI._n!==GM.length;
   for(let i=GM.length-1;i>=0;i--){const g=GM[i],dx=P.x-g.x,dz=P.z-g.z,d2=dx*dx+dz*dz;
@@ -4051,11 +4052,11 @@ function gemUp(dt){if(!GMI){GMI=new T.InstancedMesh(new T.OctahedronGeometry(1,0
       if(d<.9){got+=g.v;GM[i]=GM[GM.length-1];GM.pop();dirty=true}}}
   for(let i=0;i<GM.length;i++){const g=GM[i],s=Math.min(.55,.22+.06*Math.sqrt(g.v));GMO.position.set(g.x,.7+Math.sin(clock*4+g.t)*.15,g.z);GMO.rotation.y=g.t+clock*2;GMO.scale.set(s,s*1.3,s);GMO.updateMatrix();GMI.setMatrixAt(i,GMO.matrix);
     if(dirty||g.d){g.d=0;dirty=true;GMC.setHex(g.v<3?0x4da3ff:g.v<7?0x5fe08a:g.v<15?0xb46bff:0xffd166);GMI.setColorAt(i,GMC)}}
-  GMI.count=GM.length;GMI.instanceMatrix.needsUpdate=true;if(dirty&&GMI.instanceColor)GMI.instanceColor.needsUpdate=true;GMI._n=GM.length;if(got>0)gainXP(got)}
+  GMI.count=GM.length;GMI.instanceMatrix.needsUpdate=true;if(dirty&&GMI.instanceColor)GMI.instanceColor.needsUpdate=true;GMI._n=GM.length;if(got>0){gainXP(got);xpSnd(got)}}
 // ---- Habilidad al máximo = evolucionada: se lanza sola y con −50 % de reutilización ----
 function autoSk(dt){if(P.dead>0||ARC.pick)return;
-  for(const s of['s1','s2','s3']){if(SL[s]<MAXS[s])continue;if(!EV[s]){EV[s]=1;banner('¡'+EVN[s]+' evolucionada! Se lanza sola · −50% reutilización');emit(P.x,1.5,P.z,30,0xffd166,6,.8,3)}
-    EVT[s]-=dt;if(EVT[s]>0||cd[s]>0||rootT>0||dash||pStun>0||!nearest(18))continue;EVT[s]=.35;CHS[cur][s](aimDir({manual:false,k:s}))}}
+  for(const s of['s1','s2']){if(SL[s]<MAXS[s])continue;if(!EV[s]){EV[s]=1;banner('¡'+EVN[s]+' evolucionada! Se lanza sola · −50% reutilización');emit(P.x,1.5,P.z,30,0xffd166,6,.8,3)}
+    EVT[s]-=dt;if(EVT[s]>0||cd[s]>0||rootT>0||dash||pStun>0||!nearest(18))continue;EVT[s]=.35;const r0=rootT;CHS[cur][s](aimDir({manual:false,k:s}));if(rootT>r0&&!(pStun>0))rootT=r0}}
 // ---- Jefe: dash + cono frontal + círculo a su alrededor ----
 function bossAtk(e,dt,st){const m=e.bx;if(m)return bxTick(e,m,dt,st);if(bossCharge(e,dt,st))return true;if(P.dead||st||e.spawn>0)return false;
   e.bT=(e.bT==null?4:e.bT)-dt;if(e.bT>0)return false;
@@ -4076,9 +4077,9 @@ function rUlt(e,dt,st){let u=e.ub;
   if(u.t>=1){e.ub=null;e.ul=8+rnd()*4;return false}return true}
 function arX(dt){FRM++;if(!ARC.on)return;
   if(!arX._i){arX._i=1;try{SH_STAT.pr=['Alcance de recogida de XP','']}catch(_){}
-    const st=document.createElement('style');st.textContent='body.arn #shb{display:none!important}';document.head.appendChild(st);
-    setInterval(()=>document.body.classList.toggle('arn',!!(ARC.on&&running)),200);
-    for(const ch in CHS)for(const s of['s1','s2','s3']){const f=CHS[ch][s];CHS[ch][s]=function(d,a){const b=cd[s];f(d,a);if(ARC.on&&SL[s]>=MAXS[s]&&b<=0&&cd[s]>0)cd[s]*=.5}}}
+    const st=document.createElement('style');st.textContent='body.arn #shb{display:none!important}#s1.evo,#s2.evo,#s3.evo{border-color:#ffd166!important;background:radial-gradient(#7a5a12,#3b2a06)!important;box-shadow:0 0 calc(10*var(--u)) #ffc83d,inset 0 0 calc(8*var(--u)) rgba(255,200,61,.55)!important}';document.head.appendChild(st);
+    setInterval(()=>{document.body.classList.toggle('arn',!!(ARC.on&&running));for(const k of['s1','s2']){const b=$(k);if(b)b.classList.toggle('evo',!!(ARC.on&&running&&SL[k]>=MAXS[k]))}},200);
+    for(const ch in CHS)for(const s of['s1','s2']){const f=CHS[ch][s];CHS[ch][s]=function(d,a){const b=cd[s];f(d,a);if(ARC.on&&SL[s]>=MAXS[s]&&b<=0&&cd[s]>0)cd[s]*=.5}}}
   if(P.dead>0)SQ.length=0;else if(SQ.length){SQA+=dt*(12+wave);while(SQA>=1&&SQ.length){SQA--;mkEnemy(SQ.pop(),rnd()*6.283,29+rnd()*2)}}
   gemUp(dt);autoSk(dt)}
 
@@ -4113,7 +4114,7 @@ function arCardHtml(c){let t,sub,body,ic='';
     if(it.pas)body+=`<div class="arps"><b>${it.pas.n}:</b> ${it.pas.d}</div>`;
     if(it.act)body+=`<div class="arps"><b>Activa · ${it.act.n}:</b> ${it.act.d}</div>`;
     ic=`<div class="aric" style="background-image:${shImg(it.ic)}"></div>`}
-  else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]],a=SL[c.s],b=Math.min(MAXS[c.s],a+(c.lc?2:1));t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+a+' → '+b;body=(n&&n.n)||'';ic=`<div class="aric" style="background-image:${arIc(cur,{s1:1,s2:2,s3:3}[c.s])}"></div>`}
+  else if(c.k==='s'){const n=C.sk[{s1:1,s2:2,s3:3}[c.s]],a=SL[c.s],b=Math.min(MAXS[c.s],a+(c.lc?2:1));t='Mejorar '+(c.s==='s1'?'H1':c.s==='s2'?'H2':'Ulti');sub='Habilidad · nivel '+a+' → '+b;body=((n&&n.n)||'')+(c.s!=='s3'&&b>=MAXS[c.s]?'<br><b style="color:#ffd166">⚡ Nivel máximo: se lanzará automáticamente (−50% de reutilización)</b>':'');ic=`<div class="aric" style="background-image:${arIc(cur,{s1:1,s2:2,s3:3}[c.s])}"></div>`}
   else if(c.k==='t'){const d=ARAT[c.t];t=d.n;sub=c.t==='lk'?'Atributo · Suerte':'Atributo · mejora aleatoria';
     if(c.t==='lk')body=`<div class="arln">${arIco('lk')}<span>+${c.v} Suerte</span></div><div class="arps">Más Suerte = más objetos legendarios y activas, mejores bonos de atributo y más tarjetas afortunadas (×2).</div>`;
     else if(d.p)body=`<div class="arln">${arIco(c.t)}<span>+${c.v}% ${d.n}</span></div>`;
