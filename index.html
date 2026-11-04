@@ -3082,15 +3082,44 @@ function lnBushVis(){if(!LN.on||!NET.me)return;const me=NET.me,mt=me.team,mine=n
   for(const id in LN.ents){const q=LN.ents[id];if(q.team===mt)continue;if(q.vis!==false){const b=lnBushAt(q.e.x,q.e.z);if(b>=0&&!mine.has(b))q.vis=false}q.e.hid=q.vis===false}}
 // ---- Reborde del mapa: modelado simple y sin iluminación (colores por vértice + UV listos para ponerle textura de roca/árbol: LN.edge.material.map=tex) ----
 function lnMkEdge(g,L,W){let sd=11;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647,pos=[],uv=[],col=[],idx=[];
-  const PR=[[0,0,.42],[.35,1,.8],[2.4,.82,.7],[5,0,.38]];// [distancia hacia afuera, factor de altura, brillo]
+  const PR=[[0,0,.62],[.35,1,1],[2.4,.82,.9],[5,0,.55]];// [distancia hacia afuera, factor de altura, brillo]
   const side=(sx,sz,tx,tz,nx,nz,len)=>{const n=Math.max(1,Math.round(len/3.5)),b0=pos.length/3;let acc=0;
     for(let i=0;i<=n;i++){const a=len*i/n,h=1.9+rnd()*1.2,j1=(rnd()-.5)*.5,j2=(rnd()-.5)*.9;let dv=0;
       PR.forEach((p,j)=>{const d=p[0]+(j===2?j1:j===3?j2:0);if(j)dv+=Math.hypot(d-PR[j-1][0],(p[1]-PR[j-1][1])*h);
-        pos.push(sx+tx*a+nx*d,p[1]*h,sz+tz*a+nz*d);uv.push(a/6,dv/6);const c=p[2];col.push(c*.62,c*.65,c*.74)})}
+        pos.push(sx+tx*a+nx*d,p[1]*h,sz+tz*a+nz*d);uv.push(a/6,dv/6);const c=p[2];col.push(c,c,c)})}
     for(let i=0;i<n;i++)for(let j=0;j<3;j++){const A=b0+i*4+j,B=A+1,C=A+4,D=A+5;idx.push(A,C,B,B,C,D)}};
   const E=L+5;[-1,1].forEach(s=>{side(-E,s*W,1,0,0,s,2*E);side(s*L,-W,0,1,s,0,2*W)});
   const ge=new T.BufferGeometry();ge.setAttribute('position',new T.Float32BufferAttribute(pos,3));ge.setAttribute('uv',new T.Float32BufferAttribute(uv,2));ge.setAttribute('color',new T.Float32BufferAttribute(col,3));ge.setIndex(idx);
-  const m=new T.Mesh(ge,new T.MeshBasicMaterial({vertexColors:true,side:T.DoubleSide}));m.name='lane_edge';LN.edge=m;g.add(m)}
+  const m=new T.Mesh(ge,new T.MeshBasicMaterial({vertexColors:true,side:T.DoubleSide,map:lnRockTex()}));m.name='lane_edge';LN.edge=m;g.add(m)}
+// ---- Texturas pintadas por código con la paleta del suelo (piedra gris azulada, tierra y musgo) ----
+function lnCv(n){const c=document.createElement('canvas');c.width=c.height=n;return c}
+function lnTexOf(c,rx,ry){const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;if(rx)t.repeat.set(rx,ry);t.anisotropy=4;return t}
+function lnRockTex(){const n=512,c=lnCv(n),q=c.getContext('2d');let sd=3;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647,O=[-n,0,n];
+  q.fillStyle='#4a4f5c';q.fillRect(0,0,n,n);
+  for(let i=0;i<48;i++){const x=rnd()*n,y=rnd()*n,r=32+rnd()*44,k=7+Math.floor(rnd()*3),pts=[];
+    for(let j=0;j<k;j++){const a=j/k*6.283+rnd()*.5,rr=r*(.7+rnd()*.5);pts.push([Math.cos(a)*rr*1.25,Math.sin(a)*rr*.85])}
+    const col=['#6b7282','#5d6473','#7a8191','#555b69','#687080'][Math.floor(rnd()*5)];
+    for(const ox of O)for(const oy of O){q.beginPath();pts.forEach((p,j)=>j?q.lineTo(x+ox+p[0],y+oy+p[1]):q.moveTo(x+ox+p[0],y+oy+p[1]));q.closePath();q.fillStyle=col;q.fill();q.lineWidth=3;q.strokeStyle='#272a33';q.stroke();
+      q.beginPath();q.moveTo(x+ox+pts[k-1][0],y+oy+pts[k-1][1]);for(let j=0;j<3;j++)q.lineTo(x+ox+pts[j][0],y+oy+pts[j][1]);q.lineWidth=2;q.strokeStyle='rgba(255,255,255,.13)';q.stroke()}}
+  for(let i=0;i<2200;i++){q.fillStyle=rnd()<.5?'rgba(0,0,0,.09)':'rgba(255,255,255,.05)';q.fillRect(rnd()*n,rnd()*n,1+rnd()*2,1+rnd()*2)}
+  for(let i=0;i<26;i++){const x=rnd()*n,y=rnd()*n,r=8+rnd()*18;for(const ox of O)for(const oy of O){q.fillStyle='rgba(124,90,54,.30)';q.beginPath();q.ellipse(x+ox,y+oy,r*1.3,r*.8,0,0,7);q.fill()}}
+  for(let i=0;i<70;i++){const x=rnd()*n,y=rnd()*n,r=5+rnd()*15;for(const ox of O)for(const oy of O){q.fillStyle=rnd()<.5?'rgba(64,118,48,.55)':'rgba(88,146,60,.45)';q.beginPath();q.ellipse(x+ox,y+oy,r*1.2,r*.8,rnd()*3,0,7);q.fill()}}
+  return lnTexOf(c)}
+function lnGrassTex(rx,ry){const n=256,c=lnCv(n),q=c.getContext('2d');let sd=5;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647,O=[-n,0,n];
+  q.fillStyle='#2c5226';q.fillRect(0,0,n,n);
+  for(let i=0;i<420;i++){const x=rnd()*n,y=rnd()*n,r=4+rnd()*14,g=['#244a20','#35672c','#2a5524','#3f7a33','#1f4120'][Math.floor(rnd()*5)];for(const ox of O)for(const oy of O){q.globalAlpha=.55;q.fillStyle=g;q.beginPath();q.ellipse(x+ox,y+oy,r,r*.7,rnd()*3,0,7);q.fill()}}
+  q.globalAlpha=1;for(let i=0;i<5;i++){const x=rnd()*n,y=rnd()*n;q.fillStyle=rnd()<.6?'#e9eef2':'#8fb4e8';for(let j=0;j<4;j++){q.fillRect(x+rnd()*8-4,y+rnd()*8-4,2,2)}}
+  return lnTexOf(c,rx,ry)}
+// ---- Fondo del mapa: pasto exterior y bosque de árboles simples (instanciados y sin iluminación) ----
+function lnMkScenery(g,L,W){let sd=21;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  const gp=new T.Mesh(new T.PlaneGeometry(420,230).rotateX(-Math.PI/2),new T.MeshBasicMaterial({map:lnGrassTex(30,16)}));gp.position.y=-.03;g.add(gp);
+  const pts=[];for(let u=-L-38;u<=L+38;u+=4.2)for(let v=-W-36;v<=W+36;v+=4.2){const x=u+(rnd()-.5)*3.4,z=v+(rnd()-.5)*3.4;if(Math.abs(x)<L+7&&Math.abs(z)<W+7)continue;pts.push([x,z,.8+rnd()*.8,rnd()])}
+  const o=new T.Object3D(),mk=(geo,yb,hh,pal)=>{const m=new T.InstancedMesh(geo,new T.MeshBasicMaterial({color:0xffffff}),pts.length),c=new T.Color();
+    pts.forEach((p,i)=>{o.position.set(p[0],(yb+hh/2)*p[2],p[1]);o.rotation.set(0,p[3]*6.283,0);o.scale.setScalar(p[2]);o.updateMatrix();m.setMatrixAt(i,o.matrix);if(m.setColorAt){c.set(pal[Math.floor(p[3]*pal.length)%pal.length]);m.setColorAt(i,c)}});m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;m.frustumCulled=false;g.add(m)};
+  const GR=[0x1f4a26,0x275a2c,0x1a3f23,0x2d6a33,0x23512a];
+  mk(new T.CylinderGeometry(.35,.5,2,5),0,2,[0x4a3322,0x3e2b1d]);
+  mk(new T.ConeGeometry(2.4,4.2,7),1.2,4.2,GR);
+  mk(new T.ConeGeometry(1.7,3.4,7),3.6,3.4,GR)}
 function lnBuild(){if(LN.g&&LN.tm===(NET.me?NET.me.team:'A'))return;LN.tm=NET.me?NET.me.team:'A';const g=new T.Group();g.rotation.y=Math.PI/4;const L=LN.U+6,W=LN.W;
   const cv=document.createElement('canvas');cv.width=2048;cv.height=512;const c=cv.getContext('2d'),px=2048/(2*L),pz=512/(2*W);
   c.fillStyle='#3b3a41';c.fillRect(0,0,2048,512);
@@ -3100,7 +3129,7 @@ function lnBuild(){if(LN.g&&LN.tm===(NET.me?NET.me.team:'A'))return;LN.tm=NET.me
    [[ntCS('A'),-LN.U],[ntCS('B'),LN.U]].forEach(([col,u])=>{const x=(u+L)*px,gr=c.createRadialGradient(x,256,0,x,256,LN.R*pz);gr.addColorStop(0,col+'aa');gr.addColorStop(1,col+'00');c.fillStyle=gr;c.fillRect(x-LN.R*px,0,2*LN.R*px,512)});
   if(!lnTexOk()){c.strokeStyle='#ffb13b';c.lineWidth=5;c.setLineDash([40,30]);c.beginPath();c.moveTo(0,256);c.lineTo(2048,256);c.stroke();c.setLineDash([]);c.lineWidth=8;c.strokeRect(4,4,2040,504)}
   const tex=new T.CanvasTexture(cv),gm=new T.Mesh(new T.PlaneGeometry(2*L,2*W).rotateX(-Math.PI/2),new T.MeshStandardMaterial({map:tex,roughness:1}));gm.position.y=.02;g.add(gm);
-  lnMkEdge(g,L,W);
+  lnMkEdge(g,L,W);lnMkScenery(g,L,W);
   lnMkBushes(g);const mc=document.createElement('canvas');mc.width=mc.height=512;const q=mc.getContext('2d'),k=512/80;q.fillStyle='#14202b';q.fillRect(0,0,512,512);q.save();q.translate(256,256);q.rotate(-Math.PI/4);
   q.fillStyle='#3b3a41';q.fillRect(-L*k,-W*k,2*L*k,2*W*k);if(lnTexOk())lnTexDraw(q,2*L*k,2*W*k,-L*k,-W*k);q.strokeStyle='#26262c';q.lineWidth=3;q.strokeRect(-L*k,-W*k,2*L*k,2*W*k);
   [[-LN.U,ntCS('A')],[LN.U,ntCS('B')]].forEach(([u,col])=>{q.fillStyle=col+'55';q.beginPath();q.arc(u*k,0,LN.R*k,0,7);q.fill();q.strokeStyle=col;q.lineWidth=2;q.stroke()});
@@ -3113,7 +3142,7 @@ function lnMkNexus(team){const col=ntCH(team),n=new T.Group();n.position.set(tea
   const ring=new T.Mesh(new T.RingGeometry(LN.R-.5,LN.R,72),new T.MeshBasicMaterial({color:col,transparent:true,opacity:.6,side:T.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.06;
   const disc=new T.Mesh(new T.CircleGeometry(LN.R,48),new T.MeshBasicMaterial({color:col,transparent:true,opacity:.1,side:T.DoubleSide,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=.05;
   n.add(base,st,cr,ring,disc);LN.g.add(n);return{g:n,cr,cm}}
-function lnBegin(){lnBuild();LN.on=true;LN.saved={ARENA,obst:obst.splice(0)};ARENA=1e4;ARENA_OBJ.forEach(o=>o.visible=false);scene.add(LN.g);
+function lnBegin(){lnBuild();LN.on=true;LN.saved={ARENA,obst:obst.splice(0)};ARENA=1e4;ARENA_OBJ.forEach(o=>o.visible=false);scene.add(LN.g);LN.bgS={bg:scene.background,fog:scene.fog};scene.background=vivC(0x1d3a30);scene.fog=new T.Fog(0x1d3a30,48,125);
   LN.nx={};LN.mn=[];LN.ents={};LN.fx=[];LN.id=0;LN.wt=5;LN.wn=0;LN.tm=0;LN.dec=0;LN.sync=0;LN.zt=0;LN.zin=0;LN.hpS='';
   for(const t of['A','B']){const v=lnMkNexus(t),[x,z]=lnW(t==='A'?-LN.U:LN.U,0),hb=document.createElement('div');hb.className='hp';hb.innerHTML='<i></i>';hb.firstElementChild.style.background=ntCS(t);hb.style.width='170px';hb.style.height='8px';hb._h=85;document.body.appendChild(hb);
     const o={team:t,x,z,hp:LN.HP,max:LN.HP,v,bar:hb,flash:0};LN.nx[t]=o;obst.push({x,z,r:4.2});
@@ -3123,7 +3152,7 @@ function lnClear(){if(!LN.on)return;
   for(const id in LN.ents){const e=LN.ents[id].e;scene.remove(e.g);e.bar.remove();const i=en.indexOf(e);if(i>=0)en.splice(i,1)}LN.ents={};LN.mn=[];
   LN.fx.splice(0).forEach(f=>{scene.remove(f.m);f.m.material.dispose()});
   for(const t in LN.nx){const o=LN.nx[t];o.bar.remove();LN.g.remove(o.v.g);if(o.e){const i=en.indexOf(o.e);if(i>=0)en.splice(i,1)}}LN.nx={};
-  if(LN.saved){ARENA=LN.saved.ARENA;obst.splice(0);obst.push(...LN.saved.obst);LN.saved=null}ARENA_OBJ.forEach(o=>o.visible=true);scene.remove(LN.g);LN.on=false}
+  if(LN.saved){ARENA=LN.saved.ARENA;obst.splice(0);obst.push(...LN.saved.obst);LN.saved=null}ARENA_OBJ.forEach(o=>o.visible=true);scene.remove(LN.g);if(LN.bgS){scene.background=LN.bgS.bg;scene.fog=LN.bgS.fog;LN.bgS=null}LN.on=false}
 // ---- Minions (los simula el anfitrión; todos los demás solo los dibujan) ----
 function lnWave(){LN.wn++;for(const t of['A','B']){const s=t==='A'?-1:1;[[0,-2.5],[0,2.5],[1,-2.5],[1,2.5]].concat(LN.wn%3===0?[[2,0]]:[]).forEach(([r,v])=>{const[x,z]=lnW(s*(LN.U-(r?4:8)),v),mx=r===2?280:r?140:220;LN.mn.push({id:++LN.id,team:t,r,x,z,hp:mx,max:mx,a:t==='A'?2.356:-.785,at:-1,cd:0,hd:false,tg:null})})}
   const m={t:'wv',n:LN.wn,sp:LN.wn%3===0?1:0};ntBcast(m);ntHandle(m)}
@@ -3291,18 +3320,19 @@ function ntHostRecv(c,m){const id=c.peer;{const n=performance.now(),pv=NET.seen[
     case'sur':ntSurr(id);break;case'death':ntDeath(id,m.by);break;case'mdmg':if(NET.map==='lane'&&performance.now()>=(NET.lag[id]||0))lnHit(m.mid,m.n,id);break;case'agro':if(NET.map==='lane')lnAgro(m.a);break}}
 function ntClientRecv(m){switch(m.t){case'lobby':clearTimeout(NET._jt);NET.lobby=m.L;ntLobbyUI();break;case'full':ntLeave();ntShow(1);ntMsg('La sala está llena');break;case'badpw':ntLeave();ntShow(1);ntMsg('Contraseña incorrecta');break;case'start':ntStart(m.slots,m.map);break;default:ntHandle(m)}}
 function ntHandle(m){if(!NET.on)return;switch(m.t){case'snap':NET.ls=performance.now();for(const q of m.s)ntState(q);break;case'st':ntState(m);break;case'cast':ntCastFx(m);break;case'dmg':ntOnDmg(m);break;case'fx':ntOnFx(m);break;case'score':ntOnScore(m);break;case'end':ntEnd(m.w,m.nx,m.sr,m.by);break;case'left':ntOnLeft(m.id);break;case'ln':lnApply(m);break;case'lb':lnFxMake(m);break;case'wv':banner(m.sp?'¡Minion de asedio en camino!':'¡Oleada de minions en camino!');break;case'kst':NET.st=m.s;if(window.kstRefresh)kstRefresh();break;case'dec':banner('¡Los Nexos se debilitan! -1% de vida por segundo');break;case'xp':gainXP(m.n);if(m.g)addGold(m.g);if(m.c)KDA.m++;break;case'hp':hpNet(m);break}}
-function ntErr(e){const t=e&&e.type;ntLeave();ntShow(1);ntMsg(t==='peer-unavailable'?'No se encontró esa sala':t==='network'||t==='server-error'||t==='socket-error'?'No hay conexión con el servidor':'Error de conexión ('+(t||'?')+')')}
+function ntRecon(pe){try{if(pe&&pe.disconnected&&!pe.destroyed)pe.reconnect()}catch(_){}}
+function ntErr(e){const t=e&&e.type;if(NET.on){ntRecon(NET.peer);return}ntLeave();ntShow(1);ntMsg(t==='peer-unavailable'?'No se encontró esa sala':t==='network'||t==='server-error'||t==='socket-error'?'No hay conexión con el servidor':'Error de conexión ('+(t||'?')+')')}
 function ntCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 function ntHost(mode,map){if(typeof Peer==='undefined'){ntMsg('No se pudo cargar la red (¿sin internet?)');return}ntLeave();NET.host=true;NET.code=ntCode();NET.pw=$('ntHasPw').checked?($('ntPw').value||'').trim().slice(0,16):'';NET.pub=$('ntPub').checked;ntMsg('Creando sala…');
   const peer=new Peer('legends-arena-'+NET.code,NT_CFG);NET.peer=peer;
   NET._ht=setTimeout(()=>{if(!NET.lobby){ntLeave();ntShow(1);ntMsg('No hay conexión con el servidor de salas (¿bloqueado o sin internet?)')}},12000);
   peer.on('open',id=>{clearTimeout(NET._ht);NET.id=id;NET.lobby={mode,map:'lane',slots:[],started:false};ntSlotAdd(id,$('ntName').value,ntMyAv(),ntMyBest());ntLobbyUI()});
-  peer.on('connection',c=>{c.on('open',()=>{NET.conns[c.peer]=c});c.on('data',m=>ntHostRecv(c,m));c.on('close',()=>ntDrop(c.peer));c.on('error',()=>ntDrop(c.peer))});
-  peer.on('error',e=>{if(e&&e.type==='unavailable-id'){ntHost(mode,map)}else ntErr(e)})}
+  peer.on('connection',c=>{c.on('open',()=>{NET.conns[c.peer]=c});c.on('data',m=>ntHostRecv(c,m));c.on('close',()=>ntDrop(c.peer));c.on('error',()=>{if(!c.open)ntDrop(c.peer)})});
+  peer.on('error',e=>{if(e&&e.type==='unavailable-id'&&!NET.on){ntHost(mode,map)}else ntErr(e)});peer.on('disconnected',()=>ntRecon(peer))}
 function ntJoin(code){if(typeof Peer==='undefined'){ntMsg('No se pudo cargar la red (¿sin internet?)');return}code=ntEsc(code).toUpperCase();if(code.length!==5){ntMsg('El código tiene 5 caracteres');return}
   ntLeave();NET.host=false;NET.code=code;ntMsg('Conectando…');const peer=new Peer(undefined,NT_CFG);NET.peer=peer;
-  peer.on('open',id=>{NET.id=id;const c=peer.connect('legends-arena-'+code,{reliable:true});NET.hc=c;c.on('open',()=>c.send({t:'join',name:$('ntName').value,av:ntMyAv(),best:ntMyBest(),pw:($('ntPwJ').value||'').trim().slice(0,16)}));c.on('data',ntClientRecv);c.on('close',ntLost);c.on('error',ntLost)});
-  peer.on('error',ntErr);NET._jt=setTimeout(()=>{if(!NET.lobby){const m=!NET.id?'No hay conexión con el servidor de salas (¿bloqueado o sin internet?)':(NET.hc&&!NET.hc.open?'La sala existe pero no se pudo abrir la conexión directa (tu red la bloquea). Prueba con otra red o configura TURN':'No se encontró esa sala');ntLeave();ntShow(1);ntMsg(m)}},20000)}
+  peer.on('open',id=>{NET.id=id;const c=peer.connect('legends-arena-'+code,{reliable:true});NET.hc=c;c.on('open',()=>c.send({t:'join',name:$('ntName').value,av:ntMyAv(),best:ntMyBest(),pw:($('ntPwJ').value||'').trim().slice(0,16)}));c.on('data',ntClientRecv);c.on('close',ntLost);c.on('error',()=>{if(!c.open)ntLost()})});
+  peer.on('error',ntErr);peer.on('disconnected',()=>ntRecon(peer));NET._jt=setTimeout(()=>{if(!NET.lobby){const m=!NET.id?'No hay conexión con el servidor de salas (¿bloqueado o sin internet?)':(NET.hc&&!NET.hc.open?'La sala existe pero no se pudo abrir la conexión directa (tu red la bloquea). Prueba con otra red o configura TURN':'No se encontró esa sala');ntLeave();ntShow(1);ntMsg(m)}},20000)}
 function ntDrop(id){if(!NET.peer)return;delete NET.conns[id];delete NET.hs[id];delete NET.seen[id];if(NET.on){if(NET.lobby)NET.lobby.slots=NET.lobby.slots.filter(s=>s.id!==id);const m={t:'left',id};ntBcast(m);ntHandle(m)}else if(NET.lobby){NET.lobby.slots=NET.lobby.slots.filter(s=>s.id!==id);ntLobbySync()}}
 function ntLost(){if(!NET.peer)return;const was=NET.on;ntLeave();if(was){showMain()}else{$('ntPanel').style.display='flex';ntShow(1);ntMsg('Se perdió la conexión con la sala')}}
 function ntLeave(){clearTimeout(NET._jt);clearTimeout(NET._ht);lnClear();const pe=NET.peer,cs=NET.conns,hc=NET.hc;NET.peer=null;NET.conns={};NET.hc=null;
