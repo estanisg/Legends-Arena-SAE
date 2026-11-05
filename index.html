@@ -1528,7 +1528,7 @@ let DTN='p';const SO={cr:false,ty:'p',pn:0,pf:0};
 const ERES=e=>e.boss?[30,30]:(e.type==='r'||e.type==='f'||e.type==='h')?[0,18]:(e.nx||e.tw||e.type==='n'||e.type==='t')?[25,25]:[10,0]; // [armadura, res. mágica] de enemigos
 function statOf(k,L){const c=CHAR[k],t=STATS[k];return{ad:Math.round(c.ad[0]+c.ad[1]*L),ap:Math.round(t.ap[0]+t.ap[1]*L),hp:Math.round(c.hp+c.up[0]*L),as:Math.min(2.5,c.as*(1+t.asg*L)),
   arm:Math.round(t.arm[0]+t.arm[1]*L),mr:Math.round(t.mr[0]+t.mr[1]*L),apen:t.apen,mpen:t.mpen,ls:t.ls,crit:t.crit,cdmg:t.cdmg,ten:t.ten||0}}
-function stat(){const S=statOf(cur,P.lvl-1);S.ad+=IT.ad;S.ap+=IT.ap;S.arm+=IT.arm;S.mr+=IT.mr;S.apen=Math.min(100,S.apen+IT.apen);S.apenF=IT.apenF;S.mpen=Math.min(100,S.mpen+IT.mpen);S.mpenF=IT.mpenF;S.ls+=IT.ls;S.crit=Math.min(100,S.crit+IT.crit);S.cdmg+=IT.cdmg;S.ten+=IT.ten;S.hp=Math.round(P.max);S.as=asNow();if(PX.K.sabid)S.ap=Math.round(S.ap*1.35);if(PX.K.impcrit)S.cdmg+=65;return S}
+function stat(){const S=statOf(cur,P.lvl-1);S.ad+=IT.ad;S.ap+=IT.ap;S.arm+=IT.arm;S.mr+=IT.mr;S.apen=Math.min(100,S.apen+IT.apen);S.apenF=IT.apenF;S.mpen=Math.min(100,S.mpen+IT.mpen);S.mpenF=IT.mpenF;S.ls+=IT.ls;S.crit=Math.min(100,S.crit+IT.crit);S.cdmg+=IT.cdmg;S.ten+=IT.ten;S.hp=Math.round(P.max);S.as=asNow();if(PX.K.sabid)S.ap=Math.round(S.ap*1.35);if(PX.K.impcrit)S.cdmg+=65;PXst(S);return S}
 const mdmg=p=>{DTN='m';return Math.round((C.ad[0]+C.ad[1]*(P.lvl-1)+stat().ap)*p)};
 function sOut(e,n,dty){if(dty==='t'){SO.cr=false;SO.ty='t';SO.pn=0;SO.pf=0;return Math.max(1,Math.round(n))}const S=stat(),mg=dty==='m';let cr=false;
   if(BF&&!mg&&(FCRIT||(S.crit>0&&Math.random()*100<S.crit))){n*=S.cdmg/100;cr=true}
@@ -3768,9 +3768,46 @@ tapBtn(SHB,()=>shopToggle());tapBtn(STB,()=>stpToggle());tapBtn(STP,()=>stpToggl
 // objetos equipados dentro del panel de atributos
 {const base=stpRender;stpRender=function(){base();if(!C)return;const nb=INV.filter(x=>!isBoot(IT_BY[x])),bt=INV.find(x=>isBoot(IT_BY[x])),iv=x=>x?`<i style="background-image:${shImg(IT_BY[x].ic)}" title="${IT_BY[x].n}"></i>`:'<i class="em"></i>';
   STP.insertAdjacentHTML('beforeend',(PX.sh>0?`<div class="r"><span>Escudo</span><b>${Math.round(PX.sh)}</b></div>`:'')+'<div class="ivs">'+Array.from({length:4},(_,i)=>iv(nb[i])).join('')+iv(bt)+'</div>')}}
+// ================= Modo Arena: objetos con pasivas/activas propias (solo Arena) =================
+const ARIDS=new Set(['verdugo_carmesi','corazon_berserker','hacha_conquistador','espada_ruptura','arco_horizonte','arco_tormenta','mandoble_tirador','emblema_francotirador','grimorio_archimago','reloj_eternidad','orbe_eclipse','prisma_ruina','colmillos_vacio','sable_fantasma','baluarte_antiguos','corazon_montana','armadura_coloso','egida_solar','bastion','caliz','estandarte']);
+const arOn=()=>!LN.on&&!NET.on&&!TR.on&&!TR.mode;
+const P_=(k,n,d)=>({pas:{k,n,d,ok:true}});
+const ARX={
+verdugo_carmesi:P_('arExec','Ejecución','ejecutas a todos los enemigos con menos del 20% de vida.'),
+corazon_berserker:P_('arFuria','Furia','obtienes un 200% de daño de objetos durante 5 segundos. Enfriamiento: 15 s.'),
+hacha_conquistador:P_('arDom','Dominio','tras lanzar una habilidad, tu siguiente ataque básico hace un 250% de daño.'),
+espada_ruptura:P_('arDes','Desgarro','infliges sangrado a los enemigos (170% DF) a lo largo de 3 s. Enfriamiento: 6 s.'),
+arco_horizonte:P_('arFlecha','Flecha cargada','lanzas una flecha al enemigo más cercano (65% DF + 50% AP) de daño verdadero cada 2 s.'),
+arco_tormenta:P_('arCadena','Cadena eléctrica','cada 3 s electrificas a los 5 enemigos más cercanos.'),
+emblema_francotirador:P_('arMk','Marca mortal','marcas a un enemigo cercano; dañarlo detona la marca y hace (50% DF + 40% AP) de daño físico adicional. Enfriamiento: 2 s.'),
+prisma_ruina:P_('arMpen','Fractura mágica','obtienes un 30% de penetración mágica.'),
+colmillos_vacio:P_('arSed','Sed de sangre','con menos del 50% de vida obtienes un 35% de robo de vida.'),
+sable_fantasma:P_('arDesap','Desaparición','te vuelves invisible al matar.'),
+baluarte_antiguos:P_('arFort','Fortaleza ancestral','aumenta tu armadura y resistencia mágica un 15%.'),
+corazon_montana:P_('arInam','Inamovible','eres inmune al control de masas durante 3 s. Enfriamiento: 20 s.'),
+egida_solar:P_('arResp','Resplandor','en un rango de 10 haces (5% de tu vida máxima) de daño por segundo.'),
+bastion:P_('arUlt','Última defensa','obtienes un escudo de (15% de tu vida máxima) durante 2 s al bajar del 20% de vida. Enfriamiento: 30 s.'),
+caliz:P_('arMan','Manantial','creas una zona de curación de (60% AP) por segundo durante 5 s. Enfriamiento: 15 s.'),
+estandarte:{act:{k:'avance',n:'Avance',d:'aumentas tu velocidad de movimiento un 30% durante 5 s. Enfriamiento: 15 s.',cd:15,v:30,dur:5}}};
+SHOP_ITEMS.forEach(x=>{const A=ARX[x.id];if(!A)return;for(const f in A){const o=x[f];Object.defineProperty(x,f,{get(){return arOn()?A[f]:o},configurable:true,enumerable:true})}});
+function PXst(S){const K=PX.K;if(!K)return;
+  if(K.arFuria&&PX.buf.some(b=>b.k==='arfur'&&b.u>PX.t)){S.ad+=2*IT.ad;S.ap+=2*IT.ap}
+  if(K.arMpen)S.mpen=Math.min(100,S.mpen+30);
+  if(K.arSed&&P.hp<P.max*.5)S.ls+=35;
+  if(K.arFort){S.arm*=1.15;S.mr*=1.15}}
+function PXarTick(dt){try{const K=PX.K,t=PX.t;if(!running||P.dead>0||!K)return;
+  if(K.arExec&&t>=PX.exT){PX.exT=t+.2;for(const e of en.slice())if(e.hp>0&&e.max>0&&e.hp/e.max<.2)PXdeal(e,e.hp+1,'t')}
+  if(K.arFlecha&&t>=PX.flT){const o=PXnear(P,60);if(o){PX.flT=t+2;const S=stat();PXq(o,.65*S.ad+.5*S.ap,'t');emit(o.x,1.5,o.z,8,0xffe08a,4,.6)}}
+  if(K.arCadena&&t>=PX.tmT){const l=en.filter(e=>e.hp>0).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z)).slice(0,5);if(l.length){PX.tmT=t+3;for(const e of l){PXq(e,45,'m');emit(e.x,1.5,e.z,8,0x7fd4ff,4,.6)}}}
+  if(K.arMk){if(PX.mk&&!(PX.mk.hp>0))PX.mk=null;if(!PX.mk&&t>=PX.mkT){const o=PXnear(P,14);if(o){PX.mk=o;emit(o.x,2.6,o.z,6,0xff4d4d,4,.7)}}}
+  if(K.arInam){if(PX.imm>0){PX.imm-=dt;pStun=0}else if(pStun>0&&PXrdy('arinam',20)){PX.imm=3;pStun=0;PXfx('Inmune')}}
+  if(K.arResp&&t>=PX.rsT2){PX.rsT2=t+1;for(const e of en.slice())if(e.hp>0&&Math.hypot(e.x-P.x,e.z-P.z)<10)PXdeal(e,.05*P.max,'m')}
+  if(K.arMan){if(t>=PX.znT){PX.znT=t+15;PX.zn={x:P.x,z:P.z,u:t+5,nx:t}}
+    if(PX.zn){if(t>PX.zn.u)PX.zn=null;else if(t>=PX.zn.nx){PX.zn.nx+=1;emit(PX.zn.x,.4,PX.zn.z,14,0x7dff9a,4,.8);if(Math.hypot(P.x-PX.zn.x,P.z-PX.zn.z)<5)hpAdd(.6*stat().ap)}}}
+}catch(_){}}
 // ================= Pasivas y activas de los objetos =================
 var PX={K:{},t:0,cd:{},cnt:{},buf:[],q:[],dots:[],sh:0,shT:0,shl:[],lh:-99,stas:0,inv:0,fh:0,fortArm:0,resArm:0,resT:0,resCd:0,rsT:0,actCd:0,actId:null,ui:0},PXR=0,PXf=1;
-PX.reset=function(){try{PXghost(H.g,false,PX)}catch(_){}Object.assign(PX,{K:{},t:0,cd:{},cnt:{},buf:[],q:[],dots:[],sh:0,shT:0,shl:[],lh:-99,stas:0,inv:0,fh:0,fortArm:0,resArm:0,resT:0,resCd:0,rsT:0,actCd:0,actId:null,ui:0});PXiaUpd()};
+PX.reset=function(){try{PXghost(H.g,false,PX)}catch(_){}Object.assign(PX,{rsT2:0,zn:null,mk:null,dom:0,imm:0,exT:0,flT:0,tmT:0,znT:0,mkT:0,K:{},t:0,cd:{},cnt:{},buf:[],q:[],dots:[],sh:0,shT:0,shl:[],lh:-99,stas:0,inv:0,fh:0,fortArm:0,resArm:0,resT:0,resCd:0,rsT:0,actCd:0,actId:null,ui:0});PXiaUpd()};
 // efectos con el mismo nombre/clave no se acumulan: prevalece el valor más potente
 PX.rebuild=function(){const K={};let a=null;INV.forEach(id=>{const it=IT_BY[id];if(it.pas&&it.pas.k)K[it.pas.k]=Math.max(K[it.pas.k]||0,it.pas.v||1);if(it.act&&!a)a=id});PX.K=K;if(a!==PX.actId){PX.actId=a;PX.actCd=0}PXiaUpd()};
 function PXrdy(k,cd,e){const o=e?(e._pc||(e._pc={})):PX.cd;if((o[k]||0)>PX.t)return false;o[k]=PX.t+cd;return true}
@@ -3785,7 +3822,7 @@ function PXres(e,r,mg){const d=mg?e._mrd:e._ar;return d&&d.u>PX.t?r*(1-d.p/100):
 function PXfx(t){try{const[a,b]=scr(P.x,2.8,P.z),d=document.createElement('div');d.className='gp';d.textContent=t;d.style.left=a+'px';d.style.top=b+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1200)}catch(_){}}
 function PXq(e,n,ty){PX.q.push({e,n,ty})}
 function PXdot(e,total,dur,ty){PX.dots.push({e,per:total/(dur/.5),ty,u:PX.t+dur,nx:PX.t+.5})}
-function PXdeal(e,n,ty){if(!(e.hp>0)||!(e.rp||en.includes(e)))return;PXR=1;DTN=ty==='m'?'m':'p';try{hit(e,Math.max(1,Math.round(n)),false,null,1)}catch(_){}finally{PXR=0;DTN='p'}}
+function PXdeal(e,n,ty){if(!(e.hp>0)||!(e.rp||en.includes(e)))return;PXR=1;DTN=ty==='m'?'m':ty==='t'?'t':'p';try{hit(e,Math.max(1,Math.round(n)),false,null,1)}catch(_){}finally{PXR=0;DTN='p'}}
 function PXnear(e,r){let b=null,d=r;for(const o of en){if(o===e||!(o.hp>0))continue;const q=Math.hypot(o.x-e.x,o.z-e.z);if(q<d){d=q;b=o}}return b}
 function PXiso(e){ // héroe sin aliados cerca
   if(!NET.on)return!en.some(o=>o!==e&&o.hp>0&&Math.hypot(o.x-e.x,o.z-e.z)<10);
@@ -3794,7 +3831,7 @@ function PXiso(e){ // héroe sin aliados cerca
 function PXcount(){let c=0;for(const e of en)if(e.hp>0&&(NET.on?e.pid!==undefined:true)&&Math.hypot(e.x-P.x,e.z-P.z)<10)c++;return c}
 var SH_T=5; // todo escudo = vida gris que dura 5 s
 function PXshSum(){let t=0;for(const c of PX.shl)t+=c.v;return t}
-function PXshield(v,dur){PX.shl.push({v:v,u:PX.t+SH_T});PX.sh=PXshSum();PXfx('Escudo '+v)}
+function PXshield(v,dur,x){v=Math.round(v);PX.shl.push({v:v,u:PX.t+(x?dur:SH_T)});PX.sh=PXshSum();PXfx('Escudo '+v)}
 // ---- daño que infliges (se llama desde sOut, antes de las resistencias) ----
 function PXout(e,n,mg,S,cr){
   if(PXR)return n;if(PX.inv>0)PXinvEnd();
@@ -3832,6 +3869,10 @@ function PXout(e,n,mg,S,cr){
         if(K.quebr&&(PX.cnt.q=(PX.cnt.q||0)+1)%3===0)e._ar={p:8,u:t+3};
         if(K.fract){if(e._fr&&t-e._fr<3&&t-e._fr>.35){m*=1.10;e._fr=0}else if(!e._fr||t-e._fr>=3)e._fr=t}}
     }
+    if(K.arDom){if(!bas)PX.dom=1;else if(PX.dom){m*=2.5;PX.dom=0}}
+    if(K.arFuria&&PXrdy('arfur',15))PXbuf('arfur',{},5);
+    if(K.arDes&&PXrdy('ardes',6,e))PXdot(e,1.7*S.ad,3,'p');
+    if(K.arMk&&PX.mk===e){PX.mk=null;PX.mkT=t+2;PXq(e,.5*S.ad+.4*S.ap,'p')}
     if(hero)e._dt=t;
     return(n+ad)*m}catch(_){return n}}
 // ---- tras calcular el daño final ----
@@ -3849,12 +3890,13 @@ function PXinc(n,src,mg){
     const after=P.hp-n;
     if(K.ultrec&&after<P.max*.3&&PXrdy('ultrec',60))PXshield(150,2);
     if(K.ultdef&&after<P.max*.25&&PXrdy('ultdef',90))PXshield(200,3);
+    if(K.arUlt&&after<P.max*.2&&PXrdy('arult',30))PXshield(.15*P.max,2,1);
     if(K.repres&&!mg&&src&&en.includes(src)&&PXrdy('repres',2))PXq(src,15,'p');
     if(PX.sh>0&&n>0){const f=PXf>0?PXf:1;let raw=n/f;for(const c of PX.shl){if(raw<=0)break;const a=Math.min(c.v,raw);c.v-=a;raw-=a}PX.shl=PX.shl.filter(c=>c.v>1e-6);PX.sh=PXshSum();n=Math.max(0,raw)*f}
     return n}catch(_){return n}}
-function PXkill(){try{const K=PX.K;if(K.cazvel)PXbuf('cazvel',{as:20},3);if(K.desap)PXbuf('desap',{ms:25},2);if(K.acechoB&&PXrdy('acechoB',15))PXbuf('acechoB',{ms:15},2)}catch(_){}}
+function PXkill(){try{const K=PX.K;if(K.cazvel)PXbuf('cazvel',{as:20},3);if(K.desap)PXbuf('desap',{ms:25},2);if(K.acechoB&&PXrdy('acechoB',15))PXbuf('acechoB',{ms:15},2);if(K.arDesap){PX.inv=2;emit(P.x,1.2,P.z,26,0xb08cff,5,.8)}}catch(_){}}
 function PXtick(dt){try{
-  PX.t+=dt;if(PX.stas>0)PX.stas-=dt;if(PX.inv>0){PX.inv-=dt;if(PX.inv<=0){PX.inv=.0001;PXinvEnd()}}PXghost(H.g,invP(),PX);if(PX.actCd>0)PX.actCd-=dt;
+  PX.t+=dt;PXarTick(dt);if(PX.stas>0)PX.stas-=dt;if(PX.inv>0){PX.inv-=dt;if(PX.inv<=0){PX.inv=.0001;PXinvEnd()}}PXghost(H.g,invP(),PX);if(PX.actCd>0)PX.actCd-=dt;
   if(PX.shl.length){const k=PX.shl.length;PX.shl=PX.shl.filter(c=>c.v>1e-6&&c.u>PX.t);if(PX.shl.length!==k||PX.sh!==PXshSum())PX.sh=PXshSum()}
   if(PX.buf.length)PX.buf=PX.buf.filter(b=>b.u>PX.t);
   if(PX.q.length){const q=PX.q;PX.q=[];for(const o of q)PXdeal(o.e,o.n,o.ty)}
@@ -3874,7 +3916,7 @@ function PXiaUpd(){const id=PX.actId,inGame=!!C&&(running||$('pause').style.disp
 function PXuse(){const id=PX.actId;if(!id||PX.actCd>0||P.dead>0||!running)return;const a=IT_BY[id].act;PX.actCd=a.cd;
   if(a.k==='stasis'){PX.stas=1.5;rootT=Math.max(rootT,1.5);pStunT=Math.max(pStunT,1.5);if(NET.on)NET.inv=Math.max(NET.inv||0,1.5);emit(P.x,1.5,P.z,28,0xffe08a,5,.9);PXfx('Suspensión')}
   else if(a.k==='Invisb'){PX.inv=2;emit(P.x,1.2,P.z,26,0xb08cff,5,.8);PXfx('Invisibilidad')}
-  else if(a.k==='avance'){PXbuf('avance',{ms:15},3);emit(P.x,1.2,P.z,22,0x9dffc0,5,.7);PXfx('¡Avance!')}
+  else if(a.k==='avance'){PXbuf('avance',{ms:a.v||15},a.dur||3);emit(P.x,1.2,P.z,22,0x9dffc0,5,.7);PXfx('¡Avance!')}
   else if(a.k==='revel'){emit(P.x,1.2,P.z,40,0xfff0b0,8,.9);PXfx('Revelación')}
   PXiaUpd()}
 tapBtn(IA,()=>PXuse());
@@ -4153,7 +4195,7 @@ const ARAT={ad:{n:'Daño físico',m:3},ap:{n:'Poder de habilidad',m:3},hp:{n:'Vi
 function arAtV(k,lc,pc){let v;if(k==='lk')v=ARLK;else if(k==='pr')v=1;else{const p=(pc||5)*(1+.04*ARC.lk);if(ARAT[k].p)v=Math.round(p*10)/10;else{const cur=k==='hp'?P.max:stat()[k];v=Math.max(ARAT[k].m,Math.round(cur*p/100))}}return lc?v*2:v}
 // ---- Rareza de tarjetas: Común 45 % (gris) · Raro 30 % (azul) · Ultra raro 17 % (morado) · Épico 5 % (rojo) · Legendario 3 % (dorado). La Suerte favorece Épico y Legendario ----
 const ARR=[['Común','#9aa3ad',45],['Raro','#4da3ff',30],['Ultra raro','#b46bff',17],['Épico','#ff4d4d',5],['Legendario','#ffd166',3]];
-function arPool(r){const o=[],it=()=>{if(INV.length<10)for(const x of SHOP_ITEMS)if(x.t==='l'&&!(x.act&&x.act.k==='revel'))o.push({k:'i',id:x.id,r,w:1})};
+function arPool(r){const o=[],it=()=>{if(INV.length<10)for(const x of SHOP_ITEMS)if(ARIDS.has(x.id))o.push({k:'i',id:x.id,r,w:1})};
   if(r<=2)for(const k in ARAT)if(k!=='lk'&&k!=='pr')o.push({k:'t',t:k,pc:[5,12,24][r],r,w:1});
   if(r===1){o.push({k:'t',t:'pr',r,w:2});for(const s of['s1','s2'])if(SL[s]<MAXS[s]&&SL[s]+1<5)o.push({k:'s',s,r,w:4})}
   if(r===2){o.push({k:'t',t:'lk',r,w:2});if(SL.s3<MAXS.s3)o.push({k:'s',s:'s3',r,w:5})}
