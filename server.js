@@ -141,10 +141,11 @@ function send(res, code, obj) {
   });
   res.end(body);
 }
-function readBody(req) {
+function readBody(req, max) {
+  max = max || 4096;
   return new Promise((resolve, reject) => {
     let n = 0; const chunks = [];
-    req.on('data', c => { n += c.length; if (n > 4096) { reject(new Error('big')); req.destroy(); } else chunks.push(c); });
+    req.on('data', c => { n += c.length; if (n > max) { reject(new Error('big')); req.destroy(); } else chunks.push(c); });
     req.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString() || '{}')); } catch (e) { reject(e); } });
     req.on('error', reject);
   });
@@ -286,6 +287,21 @@ async function friendsApi(req, res, url) {
 async function api(req, res, url) {
   const route = url.pathname;
   if (req.method === 'OPTIONS') return send(res, 204, {});
+
+  // Novedades de cada versión + texto de versión: lo lee cualquiera, solo "Estanis" puede guardarlo
+  if (route === '/api/news' && req.method === 'GET') return send(res, 200, { news: db.news || null });
+  if (route === '/api/news' && req.method === 'POST') {
+    const a = authUser(req);
+    if (!a) return send(res, 401, { error: 'Sesión caducada' });
+    if (a.key !== VIP_NAME) return send(res, 403, { error: 'Solo Estanis puede editar las novedades' });
+    let b; try { b = await readBody(req, 131072); } catch (_) { return send(res, 400, { error: 'Solicitud inválida' }); }
+    const n = b && b.news; if (!n || typeof n !== 'object') return send(res, 400, { error: 'Datos inválidos' });
+    const S = (v, m) => String(v == null ? '' : v).slice(0, m), F = o => ({ c: /^#[0-9a-f]{6}$/i.test((o && o.c) || '') ? o.c : '', b: o && o.b ? 1 : 0, i: o && o.i ? 1 : 0 });
+    const v = n.ver || {};
+    db.news = { ver: { x: S(v.x, 60), ...F(v) }, items: (Array.isArray(n.items) ? n.items : []).slice(0, 40).map(i => ({ t: S(i && i.t, 40), x: S(i && i.x, 1500), ...F(i) })) };
+    save(500);
+    return send(res, 200, { ok: true, news: db.news });
+  }
 
   if (route === '/api/health') return send(res, 200, { ok: true });
 
