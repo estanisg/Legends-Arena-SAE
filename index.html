@@ -854,6 +854,33 @@ html body #frb .frDot{right:calc(1*var(--u));top:calc(1*var(--u));width:calc(12*
 <button id="fs" aria-label="Ajustes"><i class="ic ic-gear"></i></button><button id="frb" aria-label="Chat de amigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 3h14a3 3 0 013 3v9a3 3 0 01-3 3h-7.2L7 21.5V18H5a3 3 0 01-3-3V6a3 3 0 013-3z"/><circle cx="7.8" cy="10.5" r="1.5" fill="#0a1220"/><circle cx="12" cy="10.5" r="1.5" fill="#0a1220"/><circle cx="16.2" cy="10.5" r="1.5" fill="#0a1220"/></svg><span class="frDot" id="frDotG"></span></button>
 <div id="hint"><i class="ic ic-joy"></i> Joystick: mover · <i class="ic ic-sword"></i> ataque · habilidades: toca = auto, mantén = apuntar</div>
 
+<style>
+.ntMap{display:flex;flex-direction:column;align-items:flex-start;gap:calc(2*var(--u));text-align:left;padding:calc(12*var(--u)) calc(14*var(--u))}
+#ntMaps{display:flex;flex-direction:column;gap:calc(8*var(--u))}.ntMap small{opacity:.85}.ntMap.on{outline:calc(2*var(--u)) solid #fff}.ntMap:disabled{opacity:.55}
+#csOv{position:fixed;inset:0;z-index:150;display:none;flex-direction:column;background:radial-gradient(ellipse at 50% 20%,#17375c 0,#0a1424 60%,#04070d 100%);color:#e8f1f5}
+#csTop{display:flex;justify-content:center;align-items:center;gap:calc(16*var(--u));padding:calc(8*var(--u));border-bottom:calc(2*var(--u)) solid #c99a3f;background:rgba(0,0,0,.4)}
+#csPh{font-size:calc(20*var(--u));letter-spacing:.18em;color:#ffd166;font-weight:800}
+#csTm{font-size:calc(34*var(--u));font-weight:900;min-width:calc(56*var(--u));text-align:center}#csTm.low{color:#ff5a5f}
+#csBody{flex:1;display:grid;grid-template-columns:calc(180*var(--u)) 1fr calc(180*var(--u));gap:calc(10*var(--u));min-height:0;padding:calc(10*var(--u))}
+.csSide{display:flex;flex-direction:column;gap:calc(6*var(--u));overflow:auto;min-height:0}
+.csTh{font-weight:800;letter-spacing:.12em;font-size:calc(12*var(--u))}
+.csPl{display:flex;align-items:center;gap:calc(8*var(--u));padding:calc(6*var(--u));border-radius:calc(8*var(--u));background:rgba(255,255,255,.06);border-left:calc(4*var(--u)) solid var(--tc)}
+.csPl.me{background:rgba(255,177,59,.2)}.csPl i{width:calc(42*var(--u));height:calc(42*var(--u));flex:none;border-radius:50%;border:calc(2*var(--u)) solid #c99a3f;background:#0c141c center 20%/cover;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800}
+.csPl div{min-width:0;display:flex;flex-direction:column}.csPl b,.csPl small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(12*var(--u))}.csPl small{opacity:.8}
+#csMid{display:flex;flex-direction:column;gap:calc(8*var(--u));min-height:0;min-width:0}
+#csPrev{flex:0 0 36%;position:relative;border-radius:calc(12*var(--u));border:calc(2*var(--u)) solid #c99a3f;background:#0a1018 center 22%/cover no-repeat}
+#csPrevN{position:absolute;left:calc(12*var(--u));bottom:calc(8*var(--u));font-size:calc(26*var(--u));font-weight:900;letter-spacing:.06em;text-shadow:0 calc(2*var(--u)) calc(6*var(--u)) #000}
+#csGrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(74*var(--u)),1fr));gap:calc(6*var(--u));align-content:start;min-height:0}
+.csC{aspect-ratio:1;position:relative;border:calc(2*var(--u)) solid #2a4560;border-radius:calc(8*var(--u));background:#0c141c center 20%/cover no-repeat;padding:0;color:#fff;overflow:hidden}
+.csC span{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.68);font-size:calc(10*var(--u));padding:calc(2*var(--u));text-align:center}
+.csC.sel{border-color:#ffd166;box-shadow:0 0 calc(12*var(--u)) #ffd166}.csC:disabled{filter:grayscale(1) brightness(.5)}.csC.sel:disabled{filter:none}
+#csPrep{display:none;overflow:auto;min-height:0}
+#csBot{display:flex;justify-content:center;gap:calc(10*var(--u));padding:calc(8*var(--u));border-top:calc(2*var(--u)) solid #c99a3f;background:rgba(0,0,0,.4)}
+#csBot .mb{width:auto;min-width:calc(220*var(--u))}
+</style>
+<div id="csOv"><div id="csTop"><div id="csPh">ELIGE TU CAMPEÓN</div><div id="csTm">15</div></div>
+<div id="csBody"><div class="csSide" id="csA"></div><div id="csMid"><div id="csPrev"><div id="csPrevN"></div></div><div id="csGrid"></div><div id="csPrep"><div id="ntHp"></div></div></div><div class="csSide" id="csB"></div></div>
+<div id="csBot"><button class="mb" id="csLock">BLOQUEAR</button><button class="mb" id="csRdy" style="display:none">¡LISTO!</button></div></div>
 <div id="ntPanel"><button class="homeBtn" id="ntHome" aria-label="Volver al inicio"></button><button class="mb sec" id="ntFr" style="display:none">Amigos<span class="frDot" id="frDotL"></span></button><div class="ntBox ntWide"><h2>Arena Multijugador</h2>
 <style>
 #ntPanel .ntBox.ntWide{width:min(calc(920*var(--u)),100%)!important}
@@ -897,8 +924,7 @@ html body #frb .frDot{right:calc(1*var(--u));top:calc(1*var(--u));width:calc(12*
 <div class="ntCol"><b>Salas disponibles</b><div id="ntRooms"><div class="ntM">Buscando salas…</div></div>
 <div class="ntRow ntJoinRow"><input id="ntCode" maxlength="5" placeholder="CÓDIGO" style="text-transform:uppercase"><input id="ntPwJ" maxlength="16" placeholder="Contraseña"><button class="mb sec" id="ntJoin">Unirse</button></div></div>
 <div class="ntCol"><b>Crear sala</b>
-<div class="ntRow" id="ntModeSel"><button class="mb on" data-m="1">1v1</button><button class="mb sec" data-m="2">2v2</button><button class="mb sec" data-m="4">4v4</button></div>
-<div class="ntM">Mapa: Línea (Nexos)</div>
+
 <label class="ntPubL"><input type="checkbox" id="ntPub" checked> Pública</label>
 <label class="ntPubL"><input type="checkbox" id="ntHasPw"> Con contraseña</label>
 <input id="ntPw" maxlength="16" placeholder="Contraseña de la sala">
@@ -907,9 +933,9 @@ html body #frb .frDot{right:calc(1*var(--u));top:calc(1*var(--u));width:calc(12*
 <div id="ntMsg" class="ntM"></div><button class="mb sec" id="ntBack" style="display:none">‹ Volver</button></div>
 <div id="ntV2" class="ntV" style="display:none"><div class="ntCodeTag ntM">Sala <b id="ntC"></b> · <span id="ntModeT"></span></div>
 <div class="ntRoomG"><div id="ntList"></div>
-<div class="ntRR"><div>Elige tu personaje (no se repite en tu equipo)</div><div id="ntChars"></div>
-<div id="ntHp"></div>
-<div class="ntRRb"><div id="ntWait" class="ntM"></div><button class="mb" id="ntStart">Iniciar partida</button></div></div></div>
+<div class="ntRR"><div>Elige el mapa para empezar</div><div id="ntMaps"><button class="mb ntMap" data-map="lane"><b>Línea de nexos</b><small>1v1 · 2v2</small></button><button class="mb ntMap" data-map="m4"><b>Mapa batalla</b><small>4v4</small></button></div><div id="ntChars" style="display:none"></div>
+
+<div class="ntRRb"><div id="ntWait" class="ntM"></div><button class="mb" id="ntStart" style="display:none">Iniciar partida</button></div></div></div>
 <div id="ntMsg2" class="ntM"></div><button class="mb sec" id="ntLeave" style="display:none">Salir de la sala</button></div></div></div>
 <style id="frCss">
 .frDot{display:none;position:absolute;right:calc(6*var(--u));top:calc(6*var(--u));width:calc(11*var(--u));height:calc(11*var(--u));border-radius:50%;background:#ffd84a;border:calc(1.5*var(--u)) solid #000;box-shadow:0 0 calc(6*var(--u)) #ffd84a;pointer-events:none;z-index:9}
@@ -3422,7 +3448,7 @@ const NT_TC={A:0x4da3ff,B:0xff5a5f},ntMine=t=>!NET.me||NET.me.team===t,ntCH=t=>n
 // ---- Sala (reglas, las valida el anfitrión) ----
 const ntMyAv=()=>window.LAAV?window.LAAV.av:-1,ntMyBest=()=>window.LAA?(+window.LAA.best||0):0,
  ntRk=b=>RANKS.filter(r=>(+b||0)>=r[0]).pop()||RANKS[0],
- ntReady=L=>{if(L.mode===4)return L.slots.length>0&&L.slots.every(q=>q.ch);const n=t=>L.slots.filter(q=>q.team===t).length;return L.slots.length===L.mode*2&&n('A')===L.mode&&n('B')===L.mode&&L.slots.every(q=>q.ch)};
+ ntReady=L=>L.slots.length>0;
 function ntSlotAdd(id,name,av,best){const L=NET.lobby;if(L.slots.length>=ntCap())return null;const cnt=t=>L.slots.filter(s=>s.team===t).length,team=cnt('A')<=cnt('B')?'A':'B';
   av=Number.isInteger(av)&&av>=0&&av<5?av:-1;best=Math.max(0,Math.min(2e6,Math.floor(+best)||0));
   const s={id,name:ntEsc(name||'Jugador').slice(0,12)||'Jugador',team,ch:'',av,best};L.slots.push(s);return s}
@@ -3445,7 +3471,7 @@ function ntOkDmg(id,m){if(NET.over||performance.now()<(NET.lag[id]||0))return fa
 const DIR_ID='legends-arena-dir1',DIR={srv:null,cli:null,cc:null,ct:0,rooms:{}};
 function ntRoomInfo(){const L=NET.lobby,s=L.slots[0];return{code:NET.code,name:(s&&s.name)||'Sala',mode:L.mode,map:L.map,n:L.slots.length,cap:ntCap(),pw:!!NET.pw,pub:!!NET.pub}}
 function ntDirList(){const t=Date.now();return Object.values(DIR.rooms).filter(r=>r.pub&&t-r.ts<15000).map(r=>({code:r.code,name:r.name,mode:r.mode,map:r.map,n:r.n,cap:r.cap,pw:r.pw}))}
-function ntDirRender(L){const b=$('ntRooms');if(!b)return;b.innerHTML=L.length?L.map(r=>`<button class="mb sec ntRm" data-c="${ntEsc(r.code)}" data-p="${r.pw?1:0}"><b>${r.pw?'🔒 ':''}${ntEsc(r.name)}</b> · ${({1:'1v1',2:'2v2',4:'4v4'})[+r.mode]||'2v2'} · ${+r.n||0}/${+r.cap||0}</button>`).join(''):'<div class="ntM">No hay salas públicas ahora mismo. ¡Crea una!</div>'}
+function ntDirRender(L){const b=$('ntRooms');if(!b)return;b.innerHTML=L.length?L.map(r=>`<button class="mb sec ntRm" data-c="${ntEsc(r.code)}" data-p="${r.pw?1:0}"><b>${r.pw?'🔒 ':''}${ntEsc(r.name)}</b> · ${+r.n||0}/${+r.cap||0}</button>`).join(''):'<div class="ntM">No hay salas públicas ahora mismo. ¡Crea una!</div>'}
 function ntDirRecv(m){if(m&&m.t==='rooms'&&Array.isArray(m.L))ntDirRender(m.L)}
 function ntDirServe(){if(DIR.srv||typeof Peer==='undefined')return;const p=DIR.srv=new Peer(DIR_ID,NT_CFG);p.on('open',ntDirTick);
   p.on('connection',c=>{c.on('data',m=>{if(!m)return;if(m.t==='reg'&&m.r&&m.r.code)DIR.rooms[m.r.code]={...m.r,ts:Date.now(),c};else if(m.t==='list'){if(c.open)c.send({t:'rooms',L:ntDirList()})}else if(m.t==='unreg')delete DIR.rooms[m.code]});c.on('close',()=>{for(const k in DIR.rooms)if(DIR.rooms[k].c===c)delete DIR.rooms[k]})});
@@ -3466,8 +3492,8 @@ function ntWake(){for(const p of[NET.peer,DIR.cli,DIR.srv])ntRecon(p)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntWake()});addEventListener('pageshow',ntWake);addEventListener('online',ntWake);
 function ntHostRecv(c,m){const id=c.peer;{const n=performance.now(),pv=NET.seen[id]||n;NET.seen[id]=n;if(n-pv>600)NET.lag[id]=n+700}
   switch(m.t){
-    case'join':if(NET.pw&&m.pw!==NET.pw){c.send({t:'badpw'});setTimeout(()=>c.close(),300);return}NET.conns[id]=c;if(NET.lobby.started||!ntSlotAdd(id,m.name,m.av,m.best)){c.send({t:'full'});setTimeout(()=>c.close(),300);return}ntLobbySync();break;
-    case'pick':ntPick(id,m.ch,m.skn);ntLobbySync();break;
+    case'join':if(NET.pw&&m.pw!==NET.pw){c.send({t:'badpw'});setTimeout(()=>c.close(),300);return}NET.conns[id]=c;if(NET.lobby.started||NET.lobby.phase||!ntSlotAdd(id,m.name,m.av,m.best)){c.send({t:'full'});setTimeout(()=>c.close(),300);return}ntLobbySync();break;
+    case'pick':if(NET.lobby.phase==='pick'){ntPick(id,m.ch,m.skn);ntLobbySync()}break;case'rdy':{const q=NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase==='prep'){q.rdy=1;ntLobbySync()}break}
     case'team':ntTeamSet(id,m.team);ntLobbySync();break;
     case'st':m.id=id;NET.hs[id]=m;ntHandle(m);break;case'cast':m.id=id;ntBcast(m,id);ntHandle(m);break;case'hp':m.id=id;ntBcast(m,id);ntHandle(m);break;
     case'dmg':case'fx':m.from=id;if(m.t==='dmg'&&!ntOkDmg(id,m))break;ntRoute(m);break;
@@ -3499,19 +3525,19 @@ function ntToLobby(){if(!NET.peer||!NET.lobby){ntLeave();showMain();return}lnCle
   NET.pr.splice(0).forEach(b=>{scene.remove(b.m);if(b.m.userData.dis)b.m.userData.dis()});NET.gt.splice(0);miGl.slice().forEach(c=>miKill(c));
   NET.fx.splice(0).forEach(f=>{scene.remove(f.m);f.m.material.dispose();f.m.geometry.dispose()});
   ntStallUI(false);Object.assign(NET,{on:false,players:[],me:null,over:false,map:'arena',goal:20,hs:{},seen:{},lag:{},ls:0,stall:false});running=false;clearField();
-  ['ntScore','ntRes','ntEnd','pause','end','menu','main'].forEach(i=>$(i).style.display='none');$('ntPanel').style.display='flex';ntLobbyUI()}
+  ['ntScore','ntRes','ntEnd','pause','end','menu','main'].forEach(i=>$(i).style.display='none');$('ntPanel').style.display='flex';if(NET.lobby){NET.lobby.phase=null;if(NET.host)NET.lobby.started=false}ntLobbyUI()}
 // ---- Interfaz de la sala ----
 function ntShow(v){$('ntV1').style.display=v===1?'flex':'none';$('ntV2').style.display=v===2?'flex':'none'}
 function ntMsg(t){$('ntMsg').textContent=t||'';$('ntMsg2').textContent=t||''}
-function ntLobbyUI(){const L=NET.lobby;if(!L)return;ntShow(2);ntMsg('');$('ntC').textContent=NET.code;$('ntModeT').textContent=(({1:'1v1',2:'2v2',4:'4v4'})[L.mode]||'2v2')+(L.mode===4?' · Mapa 4v4':' · Nexos')+(NET.host?(NET.pw?' · 🔒':'')+(NET.pub?' · Pública':' · Privada'):'');const me=L.slots.find(s=>s.id===NET.id);
+function ntLobbyUI(){const L=NET.lobby;if(!L)return;if(csSync(L))return;ntShow(2);ntMsg('');$('ntC').textContent=NET.code;$('ntModeT').textContent='Multijugador'+(NET.host?(NET.pw?' · 🔒':'')+(NET.pub?' · Pública':' · Privada'):'');const me=L.slots.find(s=>s.id===NET.id);
   const AVS=window.LAAV?window.LAAV.AV:[];
   const row=s=>{const rk=ntRk(s.best),im=s.av>=0&&AVS[s.av]?`style="background-image:url(${AVS[s.av]})"`:'';
     return`<div class="ntP${s.id===NET.id?' me':''}" data-n="${ntEsc(s.name)}"><div class="ntPa" ${im}>${im?'':ntEsc(s.name).charAt(0).toUpperCase()}</div><div class="ntPr"><img src="${rk[3]}"><small style="color:${rk[2]}">${rk[1]}</small></div><div class="ntPn">${ntEsc(s.name)}${s.id===NET.id?' (tú)':''}</div><div class="ntPc">${s.ch?`<i style="background-image:url(${ASSET[s.ch].splash})"></i><span>${CHAR[s.ch].n}</span>`:'<span>—</span>'}</div></div>`};
   $('ntList').innerHTML=['A','B'].map(t=>{const col=NT_TC[t].toString(16).padStart(6,'0'),ps=L.slots.filter(s=>s.team===t),empty=Math.max(0,L.mode-ps.length);
     return`<div class="ntT" style="border-color:#${col}"><div class="ntTh"><b style="color:#${col}">${t==='A'?'Equipo azul':'Equipo rojo'} · ${ps.length}/${L.mode}</b>${me&&me.team===t?'':`<button class="mb sec" data-team="${t}">Unirme</button>`}</div>${ps.map(row).join('')}${'<div class="ntP ntE">Libre</div>'.repeat(empty)}</div>`}).join('');
   $('ntChars').innerHTML=Object.keys(CHAR).map(k=>{const taken=me&&L.slots.some(s=>s!==me&&s.team===me.team&&s.ch===k);return`<button class="ntCh${me&&me.ch===k?' on':''}" data-k="${k}" ${taken?'disabled':''} style="background-image:url(${ASSET[k].splash})"><span>${CHAR[k].n}</span></button>`}).join('');
-  const cap=ntCap(),n=t=>L.slots.filter(s=>s.team===t).length,ready=ntReady(L);$('ntStart').style.display=NET.host?'block':'none';$('ntStart').disabled=!ready;
-  $('ntWait').textContent=L.mode===4&&ready?'Modo de prueba: puedes iniciar aunque estés solo':L.slots.length<cap?`Esperando jugadores (${L.slots.length}/${cap})`:(n('A')!==L.mode?`Equipos desparejos: deben quedar ${L.mode} vs ${L.mode}`:(!L.slots.every(s=>s.ch)?'Falta que todos elijan personaje':(NET.host?'Todo listo':'Esperando al anfitrión')))}
+  const cap=ntCap(),n=t=>L.slots.filter(s=>s.team===t).length,ready=ntReady(L);$('ntStart').style.display='none';$('ntStart').disabled=!ready;
+  $('ntWait').textContent=L.phase?'Partida en preparación…':NET.host?'Elige un mapa para empezar · puedes jugar aunque estés solo':'Esperando a que el anfitrión elija el mapa…';ntMapUI(L)}
 function ntDoPick(ch){if(window.LOCK&&LOCK.c(ch)){LOCK.toast('Personaje bloqueado: desbloquéalo en Leyendas');return}const skn=SKS.get(ch);if(NET.host){ntPick(NET.id,ch,skn);ntLobbySync()}else if(NET.hc&&NET.hc.open)NET.hc.send({t:'pick',ch,skn})}
 function ntDoTeam(t){if(NET.host){ntTeamSet(NET.id,t);ntLobbySync()}else if(NET.hc&&NET.hc.open)NET.hc.send({t:'team',team:t})}
 function ntHostStart(){const L=NET.lobby;if(!NET.host||!L||!ntReady(L))return;L.started=true;const m={t:'start',slots:L.slots,map:L.map};ntBcast(m);ntStart(m.slots,m.map)}
@@ -3520,7 +3546,7 @@ function ntBase(p){const tm=NET.players.filter(q=>q.team===p.team),i=tm.indexOf(
 function ntEnt(p){const e={rp:1,pid:p.id,type:'p',boss:false,at:-1,hit:false,mv:false,chT:0,x:p.x,z:p.z,hp:p.hp,max:p.max,spd:0,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:0,g:p.sk.g,bar:p.bar,weakT:0,_st:0,_sl:0,mat:{emissive:{setHex(){}},emissiveIntensity:0}};
   Object.defineProperty(e,'stun',{get(){return this._st},set(v){this._st=v;const rt=this.stRoot;this.stRoot=0;if(v>0)ntSendTo(this.pid,rt?{t:'fx',rt:v}:{t:'fx',st:v})}});
   Object.defineProperty(e,'slowT',{get(){return this._sl},set(v){this._sl=v;if(v>0)setTimeout(()=>ntSendTo(this.pid,{t:'fx',sl:{t:this._sl,f:this.slowF||.5}}),0)}});return e}
-function ntStart(slots,map){kdaReset();NET.st={};NET.dl={};NET.hs={};NET.seen={};NET.lag={};NET.ls=performance.now();NET.stall=false;NET.m4=map==='m4';NET.map=(map==='lane'||map==='m4')?'lane':'arena';NET.goal=NET.m4?40:NET.map==='lane'?(slots.length>2?15:10):20;NET.players=slots.map(s=>({...s}));NET.me=NET.players.find(p=>p.id===NET.id);if(!NET.me)return;NET.score={A:0,B:0};NET.over=false;NET.on=true;NET.inv=0;NET.lastBy=null;NET.lastPBy=null;NET.lastPT=0;ntSlowT=0;pStunT=0;
+function ntStart(slots,map){if(NET.lobby)NET.lobby.phase=null;$('csOv').style.display='none';kdaReset();NET.st={};NET.dl={};NET.hs={};NET.seen={};NET.lag={};NET.ls=performance.now();NET.stall=false;NET.m4=map==='m4';NET.map=(map==='lane'||map==='m4')?'lane':'arena';NET.goal=NET.m4?40:NET.map==='lane'?(slots.length>2?15:10):20;NET.players=slots.map(s=>({...s}));NET.me=NET.players.find(p=>p.id===NET.id);if(!NET.me)return;NET.score={A:0,B:0};NET.over=false;NET.on=true;NET.inv=0;NET.lastBy=null;NET.lastPBy=null;NET.lastPT=0;ntSlowT=0;pStunT=0;
   $('ntPanel').style.display='none';$('main').style.display='none';sel=NET.me.ch;startGame(NET.me.ch);
   const myT=NET.me.team;
   for(const p of NET.players){const b=ntBase(p);p.bx=b.x;p.bz=b.z;if(p===NET.me)continue;
@@ -3580,13 +3606,53 @@ $('bMulti').onclick=()=>{TR.mode=false;$('main').style.display='none';$('ntPanel
 $('ntBack').onclick=()=>{$('ntPanel').style.display='none';$('main').style.display='flex'};
 let ntMk=1;
 $('ntV1').onclick=e=>{const m=e.target.closest('[data-m]');if(m){ntMk=+m.dataset.m;$('ntModeSel').querySelectorAll('[data-m]').forEach(b=>{const on=+b.dataset.m===ntMk;b.classList.toggle('sec',!on);b.classList.toggle('on',on)});return}
-  if(e.target.closest('#ntCreate')){if($('ntHasPw').checked&&!$('ntPw').value.trim()){ntMsg('Escribe la contraseña de tu sala');return}ntHost(ntMk,ntMk===4?'m4':'lane')}};
+  if(e.target.closest('#ntCreate')){if($('ntHasPw').checked&&!$('ntPw').value.trim()){ntMsg('Escribe la contraseña de tu sala');return}ntHost(4,'lane')}};
 $('ntHasPw').onchange=()=>{$('ntPw').style.display=$('ntHasPw').checked?'block':'none'};
 $('ntJoin').onclick=()=>ntJoin($('ntCode').value.trim());
 $('ntChars').onclick=e=>{const b=e.target.closest('.ntCh');if(b&&!b.disabled)ntDoPick(b.dataset.k)};
 $('ntList').onclick=e=>{const b=e.target.closest('[data-team]');if(b)ntDoTeam(b.dataset.team)};
 $('ntStart').onclick=ntHostStart;
 $('ntLeave').onclick=()=>{ntLeave();$('ntPanel').style.display='none';$('main').style.display='flex'};
+// ================= Selección de campeón (estilo LoL): 15 s para elegir + 10 s para prepararte =================
+const cs={pt:-1,end:0,sel:'',al:0,iv:null};
+function ntMapUI(L){document.querySelectorAll('.ntMap').forEach(b=>{b.classList.toggle('on',b.dataset.map===L.map&&!!L.phase);b.disabled=!NET.host||!!L.phase})}
+function csPickMap(map){const L=NET.lobby;if(!NET.host||!L||L.phase)return;
+  if(map==='lane'){if(L.slots.length>4){ntMsg('La Línea de nexos admite hasta 4 jugadores (2v2)');return}
+    for(const t of['A','B']){const ps=L.slots.filter(s=>s.team===t);while(ps.length>2){const x=ps.pop();x.team=t==='A'?'B':'A'}}}
+  L.map=map;L.slots.forEach(s=>{s.ch='';s.skn='';s.rdy=0});L.phase='pick';L.pt=(L.pt|0)+1;L.dur=15;ntLobbySync()}
+function csSync(L){const ov=$('csOv');
+  if(!L||!L.phase){ov.style.display='none';cs.pt=-1;cs.sel='';cs.al=0;return false}
+  const me=L.slots.find(s=>s.id===NET.id);
+  if(!me||(L.phase==='prep'&&!me.ch)){ov.style.display='none';return false}
+  if(L.pt!==cs.pt){cs.pt=L.pt;cs.end=performance.now()+(L.dur||15)*1000;cs.al=0;if(L.phase==='pick')cs.sel=me.ch||''}
+  ov.style.display='flex';csRender(L,me);if(!cs.iv)cs.iv=setInterval(csTick,200);return true}
+function csRender(L,me){const pick=L.phase==='pick',my=me.team,rv=my==='A'?'B':'A',T=t=>L.slots.filter(s=>s.team===t);
+  const pl=s=>{const ch=s.ch&&CHAR[s.ch]?s.ch:'';return`<div class="csPl${s.id===NET.id?' me':''}" style="--tc:#${NT_TC[s.team].toString(16).padStart(6,'0')}"><i ${ch?`style="background-image:url(${ASSET[ch].splash})"`:''}>${ch?'':'?'}</i><div><b>${ntEsc(s.name)}${s.id===NET.id?' (tú)':''}</b><small>${ch?CHAR[ch].n:(pick?'Eligiendo…':'Sin personaje')}${!pick&&s.rdy?' ✔':''}</small></div></div>`};
+  $('csPh').textContent=pick?'ELIGE TU CAMPEÓN':'PREPÁRATE PARA LA BATALLA';
+  $('csA').innerHTML='<div class="csTh" style="color:#4da3ff">TU EQUIPO</div>'+T(my).map(pl).join('');
+  $('csB').innerHTML='<div class="csTh" style="color:#ff5a5f">EQUIPO ENEMIGO</div>'+(T(rv).map(pl).join('')||'<div class="ntM">Sin rivales</div>');
+  const lk=!!me.ch,pv=lk?me.ch:cs.sel;
+  $('csPrev').style.backgroundImage=pv&&ASSET[pv]?`url(${ASSET[pv].splash})`:'none';$('csPrevN').textContent=pv&&CHAR[pv]?CHAR[pv].n:(pick?'Elige un campeón':'');
+  const gr=$('csGrid'),st=gr.scrollTop;gr.style.display=pick?'grid':'none';$('csPrep').style.display=pick?'none':'block';
+  if(pick){gr.innerHTML=Object.keys(CHAR).map(k=>{const taken=L.slots.some(s=>s!==me&&s.team===my&&s.ch===k),lock=!!(window.LOCK&&LOCK.c(k));return`<button class="csC${cs.sel===k||me.ch===k?' sel':''}" data-k="${k}" ${taken||lock||lk?'disabled':''} style="background-image:url(${ASSET[k].splash})"><span>${lock?'🔒 ':''}${CHAR[k].n}</span></button>`}).join('');gr.scrollTop=st}
+  $('csLock').style.display=pick?'block':'none';$('csLock').disabled=!cs.sel||lk;$('csLock').textContent=lk?'BLOQUEADO ✔':'BLOQUEAR';
+  $('csRdy').style.display=pick?'none':'block';$('csRdy').disabled=!!me.rdy;$('csRdy').textContent=me.rdy?'LISTO ✔':'¡LISTO!';csTick()}
+function csTick(){const L=NET.lobby;if(!L||!L.phase||$('csOv').style.display==='none'){clearInterval(cs.iv);cs.iv=null;return}
+  const left=cs.end-performance.now(),t=$('csTm');t.textContent=Math.max(0,Math.ceil(left/1000));t.classList.toggle('low',left<4000);
+  const me=L.slots.find(s=>s.id===NET.id);
+  if(L.phase==='pick'&&left<=300&&me&&!me.ch&&cs.sel&&!cs.al){cs.al=1;ntDoPick(cs.sel)}
+  if(!NET.host)return;
+  if(L.phase==='pick'&&(left<=-900||L.slots.every(s=>s.ch)))csEndPick();
+  else if(L.phase==='prep'&&(left<=0||L.slots.filter(s=>s.ch).every(s=>s.rdy)))csGo()}
+function csEndPick(){const L=NET.lobby,me=L.slots.find(s=>s.id===NET.id);
+  if(!me||!me.ch){L.phase=null;ntLobbySync();ntMsg('No elegiste personaje: volviste a la sala');return}
+  L.phase='prep';L.pt=(L.pt|0)+1;L.dur=10;L.slots.forEach(s=>s.rdy=0);ntLobbySync()}
+function csGo(){const L=NET.lobby;if(!NET.host||!L||L.phase!=='prep')return;const slots=L.slots.filter(s=>s.ch);L.phase=null;L.started=true;$('csOv').style.display='none';const m={t:'start',slots,map:L.map};ntBcast(m);ntStart(slots,L.map)}
+$('ntMaps').onclick=e=>{const b=e.target.closest('.ntMap');if(b&&!b.disabled)csPickMap(b.dataset.map)};
+$('csGrid').onclick=e=>{const b=e.target.closest('.csC');if(!b||b.disabled)return;cs.sel=b.dataset.k;const L=NET.lobby,me=L&&L.slots.find(s=>s.id===NET.id);if(me)csRender(L,me)};
+$('csLock').onclick=()=>{if(cs.sel)ntDoPick(cs.sel)};
+$('csRdy').onclick=()=>{const L=NET.lobby;if(!L)return;if(NET.host){const q=L.slots.find(z=>z.id===NET.id);if(q){q.rdy=1;ntLobbySync()}}else if(NET.hc&&NET.hc.open)NET.hc.send({t:'rdy'})};
+
 $('ntEndB').onclick=ntToLobby;$('ntEndH').onclick=()=>{ntLeave();showMain()};
 // ================= Efectos reales de las habilidades de los demás jugadores (solo visual, sin daño) =================
 function mhImpactG(x,z,r){mhDust(x,.4,z,4,3);mhChips(x,.8,z,6,5,6);aurRing(x,z,r,.3,0xd9b27a)}
