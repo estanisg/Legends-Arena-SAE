@@ -936,8 +936,16 @@ html body #frb .frDot{right:calc(1*var(--u));top:calc(1*var(--u));width:calc(12*
 .csSo small{font-size:clamp(6px,1.2vw,8.5px)!important;opacity:.8;text-align:center;line-height:1.15}
 .csSo.on{border-color:#ffb13b}
 .csSo.used:not(.on){opacity:.55}
+/* ===== v37: fondo completo (resto difuminado a azul oscuro) · retratos 9:16 que caben en pantalla ===== */
+#csBody{grid-template-rows:minmax(0,1fr)}
+#csBg{background:none!important}
+#csBgB,#csBgF{position:absolute;pointer-events:none;background-repeat:no-repeat}
+#csBgB{left:-6%;top:-6%;width:112%;height:112%;background-size:cover;background-position:center;filter:blur(24px) saturate(.9) brightness(.62);transform:translateZ(0)}
+#csBgB::after{content:"";position:absolute;inset:0;background:rgba(5,14,42,.5)}
+#csBgF{background-size:100% 100%;background-position:0 0}
+#csGrid{grid-template-columns:repeat(5,var(--cw,minmax(0,1fr)))!important;justify-content:center;align-content:start}
 </style>
-<div id="csOv"><div id="csBg"></div><div id="csTop"><div id="csPh">ELIGE TU CAMPEÓN</div><div id="csTm">15</div></div>
+<div id="csOv"><div id="csBg"><div id="csBgB"></div><div id="csBgF"></div></div><div id="csTop"><div id="csPh">ELIGE TU CAMPEÓN</div><div id="csTm">15</div></div>
 <div id="csBody"><div class="csSide" id="csA"></div><div id="csMid"><div id="csGrid"></div><div id="csBig"><div class="liTx"><div id="csBigN"></div><div id="csBigC"></div></div></div></div><div class="csSide" id="csB"></div></div>
 <div id="csBot"><div id="csSp"></div><button class="mb" id="csLock">BLOQUEAR</button><button class="mb" id="csRdy" style="display:none">¡LISTO!</button></div></div>
 <div id="ntPanel"><button class="homeBtn" id="ntHome" aria-label="Volver al inicio"></button><button class="mb sec" id="ntFr" style="display:none">Amigos<span class="frDot" id="frDotL"></span></button><div class="ntBox ntWide"><h2>Arena Multijugador</h2>
@@ -3686,6 +3694,28 @@ function csSync(L){const ov=$('csOv');
   if(L.pt!==cs.pt){cs.pt=L.pt;cs.end=performance.now()+(L.dur||15)*1000;cs.al=0;if(L.phase==='pick')cs.sel=me.ch||''}
   ov.style.display='flex';csRender(L,me);if(!cs.iv)cs.iv=setInterval(csTick,200);return true}
 function csBgSet(el,k){if(window.cropFit)cropFit(el,k,el.id==='csBig'?'panel':'card');else{el.style.backgroundImage=`url(${ASSET[k].splash})`;el.style.backgroundSize='cover';el.style.backgroundPosition='center 20%'}}
+function csBgLayout(){const bg=$('csBg'),k=bg.dataset.k,F=$('csBgF');if(!k||!ASSET[k])return;
+  const W=bg.clientWidth,H=bg.clientHeight,img=faceImg(k);if(!W||!H)return;
+  const a=img.naturalWidth?img.naturalWidth/img.naturalHeight:16/9;
+  let iw,ih;if(W/H>a){ih=H;iw=H*a}else{iw=W;ih=W/a}
+  F.style.left=((W-iw)/2)+'px';F.style.top=((H-ih)/2)+'px';F.style.width=iw+'px';F.style.height=ih+'px';
+  const f=Math.round(Math.max(16,Math.min(72,Math.min(iw,ih)*.07))),m=[];
+  if(W-iw>2)m.push(`linear-gradient(90deg,transparent,#000 ${f}px,#000 calc(100% - ${f}px),transparent)`);
+  if(H-ih>2)m.push(`linear-gradient(180deg,transparent,#000 ${f}px,#000 calc(100% - ${f}px),transparent)`);
+  const v=m.join(',')||'none';F.style.webkitMaskImage=v;F.style.maskImage=v;F.style.webkitMaskComposite='source-in';F.style.maskComposite='intersect';
+  if(!img.naturalWidth&&!img._cs){img._cs=1;img.addEventListener('load',()=>{if($('csBg').dataset.k===k)csBgLayout()},{once:true})}}
+function csBgFull(k){const bg=$('csBg'),B=$('csBgB'),F=$('csBgF');
+  if(!k||!ASSET[k]){bg.dataset.k='';B.style.backgroundImage=F.style.backgroundImage='none';return}
+  if(bg.dataset.k!==k){bg.dataset.k=k;const u=`url(${ASSET[k].splash})`;B.style.backgroundImage=u;F.style.backgroundImage=u}
+  csBgLayout()}
+function csGridFit(){const gr=$('csGrid'),n=gr.children.length;if(!n||gr.style.display==='none')return;
+  const c=getComputedStyle(gr),g=parseFloat(c.columnGap)||6,px=v=>parseFloat(v)||0,
+  W=gr.clientWidth-px(c.paddingLeft)-px(c.paddingRight),H=gr.clientHeight-px(c.paddingTop)-px(c.paddingBottom);
+  if(W<=0||H<=0)return;
+  const cols=5,rows=Math.ceil(n/cols),wc=(W-(cols-1)*g)/cols,wr=((H-(rows-1)*g)/rows)*9/16;
+  const w=Math.floor(Math.max(Math.min(wc,wr),Math.min(wc,52)));
+  gr.style.setProperty('--cw',w+'px');
+  gr.style.alignContent=(rows*w*16/9+(rows-1)*g<=H)?'center':'start'}
 function csRender(L,me){const pick=L.phase==='pick',lk=!!me.ch,my=me.team,rv=my==='A'?'B':'A',T=t=>L.slots.filter(s=>s.team===t);
   const pl=s=>{const ch=s.ch&&CHAR[s.ch]?s.ch:'';return`<div class="csPl${s.id===NET.id?' me':''}" style="--tc:#${NT_TC[s.team].toString(16).padStart(6,'0')}"><i ${ch?`style="background-image:url(${ASSET[ch].splash})"`:''}>${ch?'':'?'}</i><div><b>${ntEsc(s.name)}${s.id===NET.id?' (tú)':''}</b><small>${ch?CHAR[ch].n:(pick?'Eligiendo…':'Sin personaje')}${!pick&&s.rdy?' ✔':''}</small></div></div>`};
   $('csPh').textContent=pick?(lk?'Campeón bloqueado':'Elige tu campeón'):'Prepárate para la batalla';
@@ -3693,11 +3723,10 @@ function csRender(L,me){const pick=L.phase==='pick',lk=!!me.ch,my=me.team,rv=my=
   $('csB').innerHTML='<div class="csTh">Equipo enemigo</div>'+(T(rv).map(pl).join('')||'<div class="csTh">Sin rivales</div>');
   $('csOv').classList.toggle('prep',!pick);
   const dk=pick&&!lk&&cs.sel&&ASSET[cs.sel],bg=$('csBg'),pk=!pick&&me.ch&&ASSET[me.ch];
-  if(pk&&window.cropFit)cropFit(bg,me.ch,'art');
-  else{bg.style.backgroundSize='';bg.style.backgroundPosition='';bg.style.backgroundImage=dk?`url(${ASSET[cs.sel].splash})`:pk?`url(${ASSET[me.ch].splash})`:'none'}
+  csBgFull(dk?cs.sel:pk?me.ch:'');
   bg.classList.toggle('on',!!(dk||pk));
   const gr=$('csGrid'),st=gr.scrollTop,big=$('csBig');gr.style.display=pick&&!lk?'grid':'none';big.style.display=lk?'block':'none';
-  if(pick&&!lk){gr.innerHTML=Object.keys(CHAR).map(k=>{const taken=L.slots.some(s=>s!==me&&s.team===my&&s.ch===k),lock=!!(window.LOCK&&LOCK.c(k)),lg=window.csLegInfo&&csLegInfo(k);return`<button class="lgc${cs.sel===k?' on':''}${lock?' lk':''}" data-k="${k}" ${taken||lock?'disabled':''}><b>${CHAR[k].n}</b>${lg?`<small><i class="ci ci-${lg.c}"></i>${lg.n}</small>`:''}</button>`}).join('');gr.scrollTop=st;gr.querySelectorAll('.lgc').forEach(b=>csBgSet(b,b.dataset.k))}
+  if(pick&&!lk){gr.innerHTML=Object.keys(CHAR).map(k=>{const taken=L.slots.some(s=>s!==me&&s.team===my&&s.ch===k),lock=!!(window.LOCK&&LOCK.c(k)),lg=window.csLegInfo&&csLegInfo(k);return`<button class="lgc${cs.sel===k?' on':''}${lock?' lk':''}" data-k="${k}" ${taken||lock?'disabled':''}><b>${CHAR[k].n}</b>${lg?`<small><i class="ci ci-${lg.c}"></i>${lg.n}</small>`:''}</button>`}).join('');gr.scrollTop=st;csGridFit();gr.querySelectorAll('.lgc').forEach(b=>csBgSet(b,b.dataset.k))}
   if(lk){$('csBigN').textContent=CHAR[me.ch].n;const lg=window.csLegInfo&&csLegInfo(me.ch);$('csBigC').innerHTML=lg?`<i class="ci ci-${lg.c}"></i>${lg.n}`:'';if(pick)csBgSet(big,me.ch);else big.style.backgroundImage='none'}
   $('csLock').style.display=pick?'block':'none';$('csLock').disabled=!cs.sel||lk;$('csLock').textContent=lk?'Bloqueado ✔':'Bloquear';
   $('csRdy').style.display=pick?'none':'block';$('csRdy').disabled=!!me.rdy;$('csRdy').textContent=me.rdy?'Listo ✔':'¡Listo!';if(window.csHpRender)csHpRender();csTick()}
