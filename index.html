@@ -3341,11 +3341,14 @@ function m4Comps(t){const h=new Map(t.map(p=>[(p[0]-.5)+','+(p[1]-.5),p])),seen=
 // paredes: cada grupo de casillas unidas es UN solo modelo suave y de pocos polígonos (1 vértice por casilla, normales suaves, sin textura por ahora)
 function m4Solid(tiles,H,col,name){const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5)));let c0=1e9,c1=-1e9,r0=1e9,r1=-1e9;
   for(const k of set){const[c,r]=k.split(',').map(Number);c0=Math.min(c0,c);c1=Math.max(c1,c);r0=Math.min(r0,r);r1=Math.max(r1,r)}
-  c0-=2;c1+=2;r0-=2;r1+=2;const NW=c1-c0+1,NH=r1-r0+1,hs=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s)},sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t),ind=(c,r)=>set.has(c+','+r)?1:0;
+  c0-=1;r0-=1;c1+=2;r1+=2;const NW=(c1-c0)*2+1,NH=(r1-r0)*2+1,E=.8,R=2.4,hs=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s)},sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t),
+  rd=(c,r,x,y)=>Math.hypot(Math.max(c-x,0,x-c-1),Math.max(r-y,0,y-r-1))*M4K;
   const hh=new Float32Array(NW*NH),pos=new Float32Array(NW*NH*3),cols=new Float32Array(NW*NH*3),cc=new T.Color(col);
-  for(let j=0;j<NH;j++)for(let i=0;i<NW;i++){const c=c0+i,r=r0+j;let s=0;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy)s+=ind(c+dx,r+dy);
-    const d=.55*ind(c,r)+.45*s/8,h=H*sm((d-.12)/.5)*(.88+.24*hs(c+3,r+9)),o=(j*NW+i)*3,sh=.6+.5*h/H;hh[j*NW+i]=h;
-    pos[o]=M4U(c+.5)+(hs(c,r)-.5)*1.2;pos[o+1]=h-.3;pos[o+2]=M4V(r+.5)+(hs(r+7,c+3)-.5)*1.2;cols[o]=cc.r*sh;cols[o+1]=cc.g*sh;cols[o+2]=cc.b*sh}
+  for(let j=0;j<NH;j++)for(let i=0;i<NW;i++){const x=c0+i*.5,y=r0+j*.5,fc=Math.floor(x),fr=Math.floor(y),ins=set.has(fc+','+fr);let best=9e9;
+    for(let c=fc-3;c<=fc+3;c++)for(let r=fr-3;r<=fr+3;r++){if(set.has(c+','+r)===ins)continue;const d=rd(c,r,x,y);if(d<best)best=d}
+    const s=ins?best:-best,h=H*sm((s+E)/(R+E))*(.9+.2*hs(x*2,y*2)),o=(j*NW+i)*3,sh=.6+.5*h/H;hh[j*NW+i]=h;
+    pos[o]=M4U(x);pos[o+1]=h-.3;pos[o+2]=M4V(y);cols[o]=cc.r*sh;cols[o+1]=cc.g*sh;cols[o+2]=cc.b*sh}
+  // la silueta de la pared queda dentro de las casillas (+0.8), sin invadir donde se puede caminar
   const idx=[];for(let j=0;j<NH-1;j++)for(let i=0;i<NW-1;i++){const a=j*NW+i,b=a+1,d=a+NW,c=d+1;if(hh[a]>0||hh[b]>0||hh[c]>0||hh[d]>0)idx.push(a,d,c,a,c,b)}
   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.setAttribute('color',new T.BufferAttribute(cols,3));geo.setIndex(idx);geo.computeVertexNormals();
   const m=new T.Mesh(geo,new T.MeshLambertMaterial({vertexColors:true,side:T.DoubleSide}));m.name=name;return m}
