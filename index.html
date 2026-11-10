@@ -3233,7 +3233,7 @@ function lnBushAssets(){if(BUSHG)return;const f=b=>{const bin=atob(b),u=new Uint
 const LNB=[0,1].map(i=>{const sv=i?1:-1;return{r:[0,sv*7.7,9,3.4]}}); // rectángulo: [centro u, centro v, mitad del largo, mitad del ancho]
 function lnBushAt(x,z){const uv=lnUV(x,z);for(let i=0;i<LNB.length;i++){const r=LNB[i].r;if(Math.abs(uv[0]-r[0])<=r[2]&&Math.abs(uv[1]-r[1])<=r[3])return LNB[i].l!==undefined?LNB[i].l:i}return -1}
 // Arbustos (Bush_Common y Bush_Common_Flowers): matas que rellenan cada zona de sigilo; su material (hojas + flores) se vuelve translúcido al entrar
-function lnMkBushes(g){LN.bm=[];const rnd=lnRnd(31);
+function lnMkBushes(g){LN.bm=[];if(LN.m4){m4Bushes(g);return}lnBushRects(g);return;const rnd=lnRnd(31);
   LNB.forEach((b,bi)=>{const[cu,cv,hl,hd]=b.r,mats={l:new T.MeshLambertMaterial({map:lnLeafTex(1),vertexColors:true,alphaTest:.4,transparent:true,opacity:1,side:T.DoubleSide}),o:new T.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:1,side:T.DoubleSide})},ov=kd=>mats[kd];
     if(b.l===undefined||b.l===bi)LN.bm[bi]=[mats.l,mats.o];else{mats.l=LN.bm[b.l][0];mats.o=LN.bm[b.l][1]}
     const nx=Math.max(1,Math.round(hl/1.25)),nz=Math.max(1,Math.round(hd/1.25)),P=[[],[]];
@@ -3297,11 +3297,20 @@ function lnInst(k,pts,ov){const grp=new T.Group(),o=new T.Object3D(),CS=48,ch=ne
       m.instanceMatrix.needsUpdate=true;m.userData.noOl=1;grp.add(m)})});return grp}
 function lnRnd(s){let sd=s;return()=>(sd=(sd*16807)%2147483647)/2147483647}
 // Muro: tres hileras de rocas (Rock1-3) pegadas al borde del mapa
-function lnMkEdge(g,L,W){const rnd=lnRnd(11),E=L+5,P=[[],[],[]],G=new T.Group();
-  const side=(sx,sz,tx,tz,nx,nz,len)=>{[[.9,2.6,3.4,4.4],[3.2,3,3.8,5],[5.6,4,2,3]].forEach(([d,st,s0,s1],r)=>{for(let a=rnd()*st;a<=len;a+=st*(.75+rnd()*.5)){const dd=d+(rnd()-.5)*1.2,s=s0+rnd()*(s1-s0),i=Math.floor(rnd()*3);
-    P[i].push([sx+tx*a+nx*dd,-.12*s,sz+tz*a+nz*dd,rnd()*6.283,s,s*(.85+rnd()*.5)])}})};
+// Muro del mapa 1v1: loma musgosa continua + piedras apiladas + matas de hojas (mismo estilo que el 4v4)
+function lnMkEdge(g,L,W){const rnd=lnRnd(11),E=L+5,G=new T.Group(),R=[],RC=[],S=[],SC=[],B=[],BC=[],prof=[[-.6,0],[.6,1.6],[2.2,2.8],[4.8,2.8],[6.4,1.8],[7.8,0]];
+  const side=(sx,sz,tx,tz,nx,nz,len)=>{const yaw=Math.atan2(tz,tx),segs=Math.max(1,Math.round(len/3)),rows=[];
+    for(let i=0;i<=segs;i++){const a=len*i/segs,k=(rnd()-.5)*.7;rows.push(prof.map(([d,h],j)=>[sx+tx*a+nx*d,Math.max(0,h+(j>0&&j<5?k:0)),sz+tz*a+nz*d]))}
+    const col=h=>[.17+.1*h/2.8,.27+.14*h/2.8,.15+.08*h/2.8];
+    for(let i=0;i<segs;i++)for(let j=0;j<5;j++){const a=rows[i][j],b=rows[i][j+1],c=rows[i+1][j+1],d=rows[i+1][j];m4Tri(R,RC,a,b,c,col(a[1]),col(b[1]),col(c[1]));m4Tri(R,RC,a,c,d,col(a[1]),col(c[1]),col(d[1]))}
+    for(const[dd,hh,w,dp]of[[2.1,3.6,2.5,1.8],[4.6,3.2,2.4,1.7]])for(let a=rnd()*1.5;a<=len;a+=w*.92){const jx=(rnd()-.5)*.25;m4Rock(S,SC,sx+tx*a+nx*(dd+jx),sz+tz*a+nz*(dd+jx),-.25,w+rnd()*.3,dp+rnd()*.2,hh*(.85+rnd()*.3),yaw+(rnd()-.5)*.06,rnd,true)}
+    for(let a=2+rnd()*2;a<=len-1;a+=4.5+rnd()*2)m4Clump(B,BC,sx+tx*a+nx*.8,sz+tz*a+nz*.8,1+rnd()*.2,rnd,true,true,1.3)};
   [-1,1].forEach(s=>{side(-E,s*W,1,0,0,s,2*E);side(s*L,-W,0,1,s,0,2*W)});
-  P.forEach((p,i)=>G.add(lnInst('rock'+(i+1),p)));G.name='lane_edge';LN.edge=G;g.add(G)}
+  G.add(new T.Mesh(m4Geo(R,RC),m4Mat()),new T.Mesh(m4Geo(S,SC),m4Mat()),new T.Mesh(m4Geo(B,BC),m4Mat()));G.name='lane_edge';LN.edge=G;g.add(G)}
+// Arbustos del mapa 1v1: cada rectángulo es un solo modelo (base redondeada + matas), translúcido al entrar
+function lnBushRects(g){const rnd=lnRnd(31);LNB.forEach((b,bi)=>{const[cu,cv,hl,hd]=b.r,P=[],C=[],nx=Math.max(1,Math.round(hl/2)),nz=Math.max(1,Math.round(hd/2));
+  for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const x=cu-hl+(i+.5)*2*hl/nx+(rnd()-.5)*.8,z=cv-hd+(j+.5)*2*hd/nz+(rnd()-.5)*.8;m4Dome(P,C,x,z,2.1,1.5,0);m4Clump(P,C,x-.9,z-.7,.95+rnd()*.15,rnd,false,true,.2);m4Clump(P,C,x+.9,z+.8,.9+rnd()*.15,rnd,false,true,.2)}
+  const mat=new T.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:1,side:T.DoubleSide}),m=new T.Mesh(m4Geo(P,C),mat);m.name='lane_arbusto'+bi;LN.bm[bi]=[mat];g.add(m)})}
 // Fondo: pasto exterior, bosque (CommonTree 1-5), matas de pasto y tréboles
 function lnMkScenery(g,L,W){const rnd=lnRnd(21);
   const gp=new T.Mesh(new T.PlaneGeometry(420,230).rotateX(-Math.PI/2),new T.MeshBasicMaterial({map:lnGrassTex(30,16)}));gp.position.y=-.03;g.add(gp);
@@ -3352,7 +3361,57 @@ function m4Solid(tiles,H,col,name){const set=new Set(tiles.map(([x,y])=>(x-.5)+'
   const idx=[];for(let j=0;j<NH-1;j++)for(let i=0;i<NW-1;i++){const a=j*NW+i,b=a+1,d=a+NW,c=d+1;if(hh[a]>0||hh[b]>0||hh[c]>0||hh[d]>0)idx.push(a,d,c,a,c,b)}
   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.setAttribute('color',new T.BufferAttribute(cols,3));geo.setIndex(idx);geo.computeVertexNormals();
   const m=new T.Mesh(geo,new T.MeshLambertMaterial({vertexColors:true,side:T.DoubleSide}));m.name=name;return m}
-function m4Walls(g){const G=new T.Group();G.name='m4_walls';m4Comps(M4WL).forEach((t,i)=>G.add(m4Solid(t,4.2,0x7a808c,'m4_pared'+i)));m4Comps(M4BD).forEach((t,i)=>G.add(m4Solid(t,6.5,0x4f5766,'m4_borde'+i)));g.add(G)}
+// ===== modelos de piedra y arbustos (estilo de la imagen de referencia) =====
+const m4Geo=(P,C)=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('color',new T.Float32BufferAttribute(C,3));g.computeVertexNormals();return g},
+m4Tri=(P,C,a,b,c,ca,cb,cc)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);C.push(ca[0],ca[1],ca[2],cb[0],cb[1],cb[2],cc[0],cc[1],cc[2])},
+m4Mat=()=>new T.MeshLambertMaterial({vertexColors:true,side:T.DoubleSide});
+// altura de la masa de pared en un punto (en casillas): 0 fuera, sube hacia el interior
+function m4Hf(set,H){const E=.8,R=2.4,sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+  return(x,y)=>{const fc=Math.floor(x),fr=Math.floor(y),ins=set.has(fc+','+fr);let best=9e9;
+    for(let c=fc-3;c<=fc+3;c++)for(let r=fr-3;r<=fr+3;r++){if(set.has(c+','+r)===ins)continue;const d=Math.hypot(Math.max(c-x,0,x-c-1),Math.max(r-y,0,y-r-1))*M4K;if(d<best)best=d}
+    return H*sm(((ins?best:-best)+E)/(R+E))}}
+// dirección en la que corre la pared en esa casilla
+function m4Axis(set,c,r,rnd){let sx=0,sy=0;for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++){if(!dx&&!dy)continue;if(!set.has((c+dx)+','+(r+dy)))continue;const a=Math.atan2(dy,dx),w=1/Math.hypot(dx,dy);sx+=Math.cos(2*a)*w;sy+=Math.sin(2*a)*w}
+  return(Math.abs(sx)+Math.abs(sy)<.01)?rnd()*3.14:.5*Math.atan2(sy,sx)}
+// piedra: bloque con bordes biselados y cara superior ligeramente inclinada, base musgosa
+function m4Rock(P,C,u,v,y0,w,d,h,yaw,rnd,moss){const ca=Math.cos(yaw),sa=Math.sin(yaw),J=()=>(rnd()-.5)*.1,pt=(x,z,y)=>[u+x*ca-z*sa,y,v+x*sa+z*ca],hw=w/2,hd=d/2,g=.34+rnd()*.16,wm=rnd()*.06,tl=(rnd()-.5)*.12,
+  bc=[g*.5+(moss?.1:0),g*.55+(moss?.18:0),g*.5],sc=[g*(.85+wm),g*.9,g*(.95-wm)],tc=[g*1.2,g*1.22,g*1.25],
+  ring=(k,y,f)=>[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b],i)=>pt(a*hw*k+J(),b*hd*k+J(),y+(f?h*tl*(i<2?1:-1)*.2:0)));
+  const b=ring(1,y0,0),m=ring(.94,y0+h*.8,0),t=ring(.74,y0+h,1);
+  for(let i=0;i<4;i++){const j=(i+1)%4;m4Tri(P,C,b[i],b[j],m[j],bc,bc,sc);m4Tri(P,C,b[i],m[j],m[i],bc,sc,sc);m4Tri(P,C,m[i],m[j],t[j],sc,sc,tc);m4Tri(P,C,m[i],t[j],t[i],sc,tc,tc)}
+  m4Tri(P,C,t[0],t[1],t[2],tc,tc,tc);m4Tri(P,C,t[0],t[2],t[3],tc,tc,tc)}
+// base redondeada del arbusto (rellena los huecos entre las hojas)
+function m4Dome(P,C,u,v,R,Hh,yo){const cd=[.1,.3,.1],cu=[.22,.48,.17],p=(r,a,y)=>[u+Math.sin(a)*r,y+(yo||0),v+Math.cos(a)*r];
+  for(let i=0;i<8;i++){const a0=i/8*6.283,a1=(i+1)/8*6.283,b0=p(R,a0,0),b1=p(R,a1,0),m0=p(R*.78,a0,.7*Hh),m1=p(R*.78,a1,.7*Hh),tp=p(0,0,Hh);m4Tri(P,C,b0,b1,m1,cd,cd,cu);m4Tri(P,C,b0,m1,m0,cd,cu,cu);m4Tri(P,C,m0,m1,tp,cu,cu,cu)}}
+// mata de hojas puntiagudas (verde oscuro en la base, claro en las puntas)
+function m4Clump(P,C,u,v,sz,rnd,dark,lite,yo){const L=lite?[[8,1.05,2.4,1.1,.1],[5,.55,2.9,1,.45]]:[[9,1.05,2.5,1.15,.1],[7,.7,3,1.1,.5],[4,.28,2.4,.9,.9]],k=dark?.72:1;
+  L.forEach(([n,tl,len,wid,y0],li)=>{for(let i=0;i<n;i++){const a=i/n*6.283+rnd()*.6+li*.5,ln=len*sz*(.85+rnd()*.3),w=wid*sz*(.9+rnd()*.2),dx=Math.sin(a),dz=Math.cos(a),px=-dz,pz=dx,bx=u+dx*.3*sz,bz=v+dz*.3*sz,by=y0*sz*.6+(yo||0),out=Math.sin(tl)*ln,up=Math.cos(tl)*ln,
+      mx=bx+dx*out*.55,mz=bz+dz*out*.55,my=by+up*.62,bL=[bx-px*w*.2,by,bz-pz*w*.2],bR=[bx+px*w*.2,by,bz+pz*w*.2],mL=[mx-px*w*.5,my,mz-pz*w*.5],mR=[mx+px*w*.5,my,mz+pz*w*.5],tip=[bx+dx*out,by+up*.95-ln*.1,bz+dz*out],
+      tn=.85+rnd()*.3,cb=[.12*k*tn,.32*k*tn,.12*k*tn],cm=[.26*k*tn,.58*k*tn,.18*k*tn],ct=[.5*k*tn,.82*k*tn,.26*k*tn];
+    m4Tri(P,C,bL,bR,mR,cb,cb,cm);m4Tri(P,C,bL,mR,mL,cb,cm,cm);m4Tri(P,C,mL,mR,tip,cm,cm,ct)}})}
+// pared de la jungla: masa de roca + piedras apiladas siguiendo la dirección de la pared (un solo modelo)
+function m4Wall(tiles,name){const G=new T.Group();G.name=name;const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5))),rnd=lnRnd(tiles.length*7+3),hf=m4Hf(set,4.6),P=[],C=[];
+  G.add(m4Solid(tiles,2.4,0x4b5249,name+'_base'));
+  for(const[x,y]of tiles){const c=x-.5,r=y-.5,an=m4Axis(set,c,r,rnd),ca=Math.cos(an),sa=Math.sin(an),u0=M4U(x),v0=M4V(y),rows=[[-.9,0],[.9,1]];
+    let full=1;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(!set.has((c+dx)+','+(r+dy)))full=0;if(full)rows.push([0,.45]);
+    for(const[ro,sh]of rows)for(const co of[-1.1,1.1]){const o=co+sh,su=u0+ca*o-sa*ro+(rnd()-.5)*.12,sv=v0+sa*o+ca*ro+(rnd()-.5)*.12,h0=hf(su/M4K+M4CX,sv/M4K+M4CY);
+      if(h0<.5){if(rnd()<.5)continue;m4Rock(P,C,su,sv,-.2,1+rnd()*.5,.9+rnd()*.4,.5+rnd()*.7,an+rnd()*.6,rnd,true);continue}
+      m4Rock(P,C,su,sv,-.25,2.5+rnd()*.3,1.75+rnd()*.15,Math.min(h0,4.4)*(.94+rnd()*.12)+.3,an+(rnd()-.5)*.06,rnd,h0<1.5)}}
+  G.add(new T.Mesh(m4Geo(P,C),m4Mat()));return G}
+// borde del mapa: loma cubierta de musgo con matas y rocas
+function m4Border(tiles){const G=new T.Group();G.name='m4_borde';const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5))),rnd=lnRnd(99),P=[],C=[],Q=[],D=[];
+  G.add(m4Solid(tiles,4.5,0x3d4f37,'m4_borde_base'));let n=0;
+  for(const[x,y]of tiles){const c=x-.5,r=y-.5;let dx=0,dz=0;for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]])if(M4Q(c+a,r+b)!==' '&&!set.has((c+a)+','+(r+b))){dx+=a;dz+=b}
+    if(!dx&&!dz)continue;const l=Math.hypot(dx,dz),u=M4U(x)+dx/l*1.4,v=M4V(y)+dz/l*1.4;n++;
+    m4Clump(P,C,u+(rnd()-.5)*1.2,v+(rnd()-.5)*1.2,1.05+rnd()*.25,rnd,true,true,1.2);
+    if(n%4===0)m4Rock(Q,D,u+dx/l*.8,v+dz/l*.8,.6,2.2+rnd()*.6,1.8,2.2+rnd()*1.2,Math.atan2(dz,dx)+1.57+rnd()*.3,rnd,true)}
+  G.add(new T.Mesh(m4Geo(P,C),m4Mat()));G.add(new T.Mesh(m4Geo(Q,D),m4Mat()));return G}
+function m4Walls(g){const G=new T.Group();G.name='m4_walls';m4Comps(M4WL).forEach((t,i)=>G.add(m4Wall(t,'m4_pared'+i)));m4Comps(M4BD).forEach(t=>G.add(m4Border(t)));g.add(G)}
+// arbustos: una mata por casilla; cada arbusto (grupo de casillas unidas) es un modelo y se vuelve translúcido al entrar
+function m4Bushes(g){const rnd=lnRnd(31),grp={};
+  M4LB.forEach((b,i)=>{const l=b.l!==undefined?b.l:i,[cu,cv,hl]=b.r,n=Math.round(hl*2/M4K);for(let k=0;k<n;k++)(grp[l]=grp[l]||[]).push([cu-hl+M4K*(k+.5),cv])});
+  for(const l in grp){const P=[],C=[];grp[l].forEach(([u,v])=>{const cx=u+(rnd()-.5)*.8,cz=v+(rnd()-.5)*.8;m4Dome(P,C,cx,cz,2.1,1.5,0);m4Clump(P,C,cx-.9,cz-.7,.95+rnd()*.15,rnd,false,true,.2);m4Clump(P,C,cx+.9,cz+.8,.9+rnd()*.15,rnd,false,true,.2)});
+    const mat=new T.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:1,side:T.DoubleSide}),m=new T.Mesh(m4Geo(P,C),mat);m.name='m4_arbusto'+l;LN.bm[+l]=[mat];g.add(m)}}
 // torre de línea: tq 1 = primera (alcance 14) · tq 2 = torre de nexo (alcance 13)
 const m4Tf=o=>LN.tw&&LN.tw.find(q=>q.team===o.team&&q.tq===1&&q.ln===o.ln&&q.hp>0),m4TwImm=o=>o.tq===2&&!!m4Tf(o),m4NxImm=t=>!!LN.tw&&!LN.tw.some(q=>q.team===t&&q.tq===2&&q.hp<=0);
 const m4In=(x,z)=>{const[u,v]=lnUV(x,z);return M4Q(Math.floor(u/M4K+M4CX),Math.floor(v/M4K+M4CY))!==' '};
