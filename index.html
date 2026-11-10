@@ -3298,15 +3298,12 @@ function lnInst(k,pts,ov){const grp=new T.Group(),o=new T.Object3D(),CS=48,ch=ne
 function lnRnd(s){let sd=s;return()=>(sd=(sd*16807)%2147483647)/2147483647}
 // Muro: tres hileras de rocas (Rock1-3) pegadas al borde del mapa
 // Muro del mapa 1v1: loma musgosa continua + piedras apiladas + matas de hojas (mismo estilo que el 4v4)
-function lnMkEdge(g,L,W){const rnd=lnRnd(11),E=L+5,G=new T.Group(),R=[],RC=[],S=[],SC=[],B=[],BC=[],prof=[[-.6,0],[.6,1.6],[2.2,2.8],[4.8,2.8],[6.4,1.8],[7.8,0]];
-  const side=(sx,sz,tx,tz,nx,nz,len)=>{const yaw=Math.atan2(tz,tx),segs=Math.max(1,Math.round(len/3)),rows=[];
-    for(let i=0;i<=segs;i++){const a=len*i/segs,k=(rnd()-.5)*.7;rows.push(prof.map(([d,h],j)=>[sx+tx*a+nx*d,Math.max(0,h+(j>0&&j<5?k:0)),sz+tz*a+nz*d]))}
-    const col=h=>[.17+.1*h/2.8,.27+.14*h/2.8,.15+.08*h/2.8];
-    for(let i=0;i<segs;i++)for(let j=0;j<5;j++){const a=rows[i][j],b=rows[i][j+1],c=rows[i+1][j+1],d=rows[i+1][j];m4Tri(R,RC,a,b,c,col(a[1]),col(b[1]),col(c[1]));m4Tri(R,RC,a,c,d,col(a[1]),col(c[1]),col(d[1]))}
-    for(const[dd,hh,w,dp]of[[2.1,3.6,2.5,1.8],[4.6,3.2,2.4,1.7]])for(let a=rnd()*1.5;a<=len;a+=w*.92){const jx=(rnd()-.5)*.25;m4Rock(S,SC,sx+tx*a+nx*(dd+jx),sz+tz*a+nz*(dd+jx),-.25,w+rnd()*.3,dp+rnd()*.2,hh*(.85+rnd()*.3),yaw+(rnd()-.5)*.06,rnd,true)}
-    for(let a=2+rnd()*2;a<=len-1;a+=4.5+rnd()*2)m4Clump(B,BC,sx+tx*a+nx*.8,sz+tz*a+nz*.8,1+rnd()*.2,rnd,true,true,1.3)};
-  [-1,1].forEach(s=>{side(-E,s*W,1,0,0,s,2*E);side(s*L,-W,0,1,s,0,2*W)});
-  G.add(new T.Mesh(m4Geo(R,RC),m4Mat()),new T.Mesh(m4Geo(S,SC),m4Mat()),new T.Mesh(m4Geo(B,BC),m4Mat()));G.name='lane_edge';LN.edge=G;g.add(G)}
+function lnMkEdge(g,L,W){const rnd=lnRnd(11),E=L+5,G=new T.Group(),B=[],BC=[],sm=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+  const side=(sx,sz,tx,tz,nx,nz,len,seed)=>{const ax=[sx+tx*-1+nx*-1.6,sx+tx*(len+1)+nx*9.2],az=[sz+tz*-1+nz*-1.6,sz+tz*(len+1)+nz*9.2],x0=Math.min(ax[0],ax[1]),x1=Math.max(ax[0],ax[1]),z0=Math.min(az[0],az[1]),z1=Math.max(az[0],az[1]);
+    G.add(m4Mass('lane_muro'+seed,x0,z0,x1,z1,2,(u,v)=>{const d=(u-sx)*nx+(v-sz)*nz,a=(u-sx)*tx+(v-sz)*tz;return 4.8*sm((d+.8)/2.6)*sm((8.4-d)/2.6)*(.82+.36*m4Nz(a*.18,d*.18))},[.36,.37,.39],seed));
+    for(let a=2+rnd()*2;a<=len-1;a+=4.5+rnd()*2)m4Clump(B,BC,sx+tx*a+nx*.8,sz+tz*a+nz*.8,1+rnd()*.2,rnd,true,true,1.5)};
+  let k=1;[-1,1].forEach(s=>{side(-E,s*W,1,0,0,s,2*E,k++);side(s*L,-W,0,1,s,0,2*W,k++)});
+  G.add(new T.Mesh(m4Geo(B,BC),m4Mat()));G.name='lane_edge';LN.edge=G;g.add(G)}
 // Arbustos del mapa 1v1: cada rectángulo es un solo modelo (base redondeada + matas), translúcido al entrar
 function lnBushRects(g){const rnd=lnRnd(31);LNB.forEach((b,bi)=>{const[cu,cv,hl,hd]=b.r,P=[],C=[],nx=Math.max(1,Math.round(hl/2)),nz=Math.max(1,Math.round(hd/2));
   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const x=cu-hl+(i+.5)*2*hl/nx+(rnd()-.5)*.8,z=cv-hd+(j+.5)*2*hd/nz+(rnd()-.5)*.8;m4Dome(P,C,x,z,2.1,1.5,0);m4Clump(P,C,x-.9,z-.7,.95+rnd()*.15,rnd,false,true,.2);m4Clump(P,C,x+.9,z+.8,.9+rnd()*.15,rnd,false,true,.2)}
@@ -3381,31 +3378,40 @@ function m4Rock(P,C,u,v,y0,w,d,h,yaw,rnd,moss){const ca=Math.cos(yaw),sa=Math.si
   for(let i=0;i<4;i++){const j=(i+1)%4;m4Tri(P,C,b[i],b[j],m[j],bc,bc,sc);m4Tri(P,C,b[i],m[j],m[i],bc,sc,sc);m4Tri(P,C,m[i],m[j],t[j],sc,sc,tc);m4Tri(P,C,m[i],t[j],t[i],sc,tc,tc)}
   m4Tri(P,C,t[0],t[1],t[2],tc,tc,tc);m4Tri(P,C,t[0],t[2],t[3],tc,tc,tc)}
 // base redondeada del arbusto (rellena los huecos entre las hojas)
-function m4Dome(P,C,u,v,R,Hh,yo){const cd=[.1,.3,.1],cu=[.22,.48,.17],p=(r,a,y)=>[u+Math.sin(a)*r,y+(yo||0),v+Math.cos(a)*r];
+function m4Dome(P,C,u,v,R,Hh,yo){const cd=[.09,.2,.09],cu=[.16,.33,.13],p=(r,a,y)=>[u+Math.sin(a)*r,y+(yo||0),v+Math.cos(a)*r];
   for(let i=0;i<8;i++){const a0=i/8*6.283,a1=(i+1)/8*6.283,b0=p(R,a0,0),b1=p(R,a1,0),m0=p(R*.78,a0,.7*Hh),m1=p(R*.78,a1,.7*Hh),tp=p(0,0,Hh);m4Tri(P,C,b0,b1,m1,cd,cd,cu);m4Tri(P,C,b0,m1,m0,cd,cu,cu);m4Tri(P,C,m0,m1,tp,cu,cu,cu)}}
 // mata de hojas puntiagudas (verde oscuro en la base, claro en las puntas)
 function m4Clump(P,C,u,v,sz,rnd,dark,lite,yo){const L=lite?[[8,1.05,2.4,1.1,.1],[5,.55,2.9,1,.45]]:[[9,1.05,2.5,1.15,.1],[7,.7,3,1.1,.5],[4,.28,2.4,.9,.9]],k=dark?.72:1;
   L.forEach(([n,tl,len,wid,y0],li)=>{for(let i=0;i<n;i++){const a=i/n*6.283+rnd()*.6+li*.5,ln=len*sz*(.85+rnd()*.3),w=wid*sz*(.9+rnd()*.2),dx=Math.sin(a),dz=Math.cos(a),px=-dz,pz=dx,bx=u+dx*.3*sz,bz=v+dz*.3*sz,by=y0*sz*.6+(yo||0),out=Math.sin(tl)*ln,up=Math.cos(tl)*ln,
       mx=bx+dx*out*.55,mz=bz+dz*out*.55,my=by+up*.62,bL=[bx-px*w*.2,by,bz-pz*w*.2],bR=[bx+px*w*.2,by,bz+pz*w*.2],mL=[mx-px*w*.5,my,mz-pz*w*.5],mR=[mx+px*w*.5,my,mz+pz*w*.5],tip=[bx+dx*out,by+up*.95-ln*.1,bz+dz*out],
-      tn=.85+rnd()*.3,cb=[.12*k*tn,.32*k*tn,.12*k*tn],cm=[.26*k*tn,.58*k*tn,.18*k*tn],ct=[.5*k*tn,.82*k*tn,.26*k*tn];
+      tn=.85+rnd()*.3,cb=[.11*k*tn,.25*k*tn,.11*k*tn],cm=[.2*k*tn,.4*k*tn,.16*k*tn],ct=[.34*k*tn,.55*k*tn,.23*k*tn];
     m4Tri(P,C,bL,bR,mR,cb,cb,cm);m4Tri(P,C,bL,mR,mL,cb,cm,cm);m4Tri(P,C,mL,mR,tip,cm,cm,ct)}})}
-// pared de la jungla: masa de roca + piedras apiladas siguiendo la dirección de la pared (un solo modelo)
-function m4Wall(tiles,name){const G=new T.Group();G.name=name;const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5))),rnd=lnRnd(tiles.length*7+3),hf=m4Hf(set,4.6),P=[],C=[];
-  G.add(m4Solid(tiles,2.4,0x4b5249,name+'_base'));
-  for(const[x,y]of tiles){const c=x-.5,r=y-.5,an=m4Axis(set,c,r,rnd),ca=Math.cos(an),sa=Math.sin(an),u0=M4U(x),v0=M4V(y),rows=[[-.9,0],[.9,1]];
-    let full=1;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(!set.has((c+dx)+','+(r+dy)))full=0;if(full)rows.push([0,.45]);
-    for(const[ro,sh]of rows)for(const co of[-1.1,1.1]){const o=co+sh,su=u0+ca*o-sa*ro+(rnd()-.5)*.12,sv=v0+sa*o+ca*ro+(rnd()-.5)*.12,h0=hf(su/M4K+M4CX,sv/M4K+M4CY);
-      if(h0<.5){if(rnd()<.5)continue;m4Rock(P,C,su,sv,-.2,1+rnd()*.5,.9+rnd()*.4,.5+rnd()*.7,an+rnd()*.6,rnd,true);continue}
-      m4Rock(P,C,su,sv,-.25,2.5+rnd()*.3,1.75+rnd()*.15,Math.min(h0,4.4)*(.94+rnd()*.12)+.3,an+(rnd()-.5)*.06,rnd,h0<1.5)}}
-  G.add(new T.Mesh(m4Geo(P,C),m4Mat()));return G}
-// borde del mapa: loma cubierta de musgo con matas y rocas
-function m4Border(tiles){const G=new T.Group();G.name='m4_borde';const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5))),rnd=lnRnd(99),P=[],C=[],Q=[],D=[];
-  G.add(m4Solid(tiles,4.5,0x3d4f37,'m4_borde_base'));let n=0;
+// ruido suave (para variar alturas) y masa de roca: UN solo modelo con terrazas (estratos), caras planas y color por cara
+const m4Hh=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s)},
+m4Nz=(x,y)=>{const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=m4Hh(ix,iy),b=m4Hh(ix+1,iy),c=m4Hh(ix,iy+1),d=m4Hh(ix+1,iy+1);return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy};
+function m4Mass(name,x0,z0,x1,z1,res,hfun,col,seed){const rnd=lnRnd(seed),nx=Math.ceil((x1-x0)/res),nz=Math.ceil((z1-z0)/res),V=[],ST=1.25,sm=x=>x<=0?0:x>=1?1:x*x*(3-2*x),P=[],C=[],moss=[.27,.31,.24];
+  for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const u=x0+i*res,v=z0+j*res,h0=hfun(u,v);let h=0;
+    if(h0>.12){const t=h0/ST,fl=Math.floor(t);h=Math.max(.05,(fl+sm((t-fl-.3)/.4))*ST+(rnd()-.5)*.5)}
+    V.push([u+(h>0?(rnd()-.5)*res*.5:0),h-.25,v+(h>0?(rnd()-.5)*res*.5:0),h])}
+  const tri=(a,b,c)=>{const e1=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],e2=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],nn=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],l=Math.hypot(nn[0],nn[1],nn[2])||1,ny=Math.abs(nn[1]/l),ya=(a[1]+b[1]+c[1])/3+.25,
+    sh=(.78+.42*ny)*(.88+.24*rnd())*(.95+.05*(Math.floor(ya/ST)%2)),mo=Math.max(0,Math.min(1,1-ya/1.1))*.35,cc=[0,1,2].map(k=>(col[k]*(1-mo)+moss[k]*mo)*sh);
+    for(const q of[a,b,c]){P.push(q[0],q[1],q[2]);C.push(cc[0],cc[1],cc[2])}};
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=V[j*(nx+1)+i],b=V[j*(nx+1)+i+1],d=V[(j+1)*(nx+1)+i],c=V[(j+1)*(nx+1)+i+1];if(Math.max(a[3],b[3],c[3],d[3])<=0)continue;
+    if((i+j)%2){tri(a,d,c);tri(a,c,b)}else{tri(a,d,b);tri(b,d,c)}}
+  const m=new T.Mesh(m4Geo(P,C),m4Mat());m.name=name;return m}
+// pared de la jungla: una sola masa de roca por cada grupo de casillas unidas
+function m4Wall(tiles,name){const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5)));let c0=1e9,c1=-1e9,r0=1e9,r1=-1e9;
+  for(const k of set){const[c,r]=k.split(',').map(Number);c0=Math.min(c0,c);c1=Math.max(c1,c);r0=Math.min(r0,r);r1=Math.max(r1,r)}
+  const hf=m4Hf(set,4.6);
+  return m4Mass(name,M4U(c0-1),M4V(r0-1),M4U(c1+2),M4V(r1+2),2,(u,v)=>hf(u/M4K+M4CX,v/M4K+M4CY)*(.82+.36*m4Nz(u*.2,v*.2)),[.36,.37,.39],tiles.length*13+5)}
+// borde del mapa: una sola loma de roca con musgo y matas de hojas
+function m4Border(tiles){const G=new T.Group();G.name='m4_borde';const set=new Set(tiles.map(([x,y])=>(x-.5)+','+(y-.5))),rnd=lnRnd(99),P=[],C=[];let c0=1e9,c1=-1e9,r0=1e9,r1=-1e9;
+  for(const k of set){const[c,r]=k.split(',').map(Number);c0=Math.min(c0,c);c1=Math.max(c1,c);r0=Math.min(r0,r);r1=Math.max(r1,r)}
+  const hf=m4Hf(set,5);G.add(m4Mass('m4_borde_roca',M4U(c0-1),M4V(r0-1),M4U(c1+2),M4V(r1+2),2,(u,v)=>hf(u/M4K+M4CX,v/M4K+M4CY)*(.82+.36*m4Nz(u*.2,v*.2)),[.34,.37,.33],77));
   for(const[x,y]of tiles){const c=x-.5,r=y-.5;let dx=0,dz=0;for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]])if(M4Q(c+a,r+b)!==' '&&!set.has((c+a)+','+(r+b))){dx+=a;dz+=b}
-    if(!dx&&!dz)continue;const l=Math.hypot(dx,dz),u=M4U(x)+dx/l*1.4,v=M4V(y)+dz/l*1.4;n++;
-    m4Clump(P,C,u+(rnd()-.5)*1.2,v+(rnd()-.5)*1.2,1.05+rnd()*.25,rnd,true,true,1.2);
-    if(n%4===0)m4Rock(Q,D,u+dx/l*.8,v+dz/l*.8,.6,2.2+rnd()*.6,1.8,2.2+rnd()*1.2,Math.atan2(dz,dx)+1.57+rnd()*.3,rnd,true)}
-  G.add(new T.Mesh(m4Geo(P,C),m4Mat()));G.add(new T.Mesh(m4Geo(Q,D),m4Mat()));return G}
+    if(!dx&&!dz)continue;const l=Math.hypot(dx,dz),u=M4U(x)+dx/l*1.4,v=M4V(y)+dz/l*1.4;
+    m4Clump(P,C,u+(rnd()-.5)*1.2,v+(rnd()-.5)*1.2,1.05+rnd()*.25,rnd,true,true,1.6)}
+  G.add(new T.Mesh(m4Geo(P,C),m4Mat()));return G}
 function m4Walls(g){const G=new T.Group();G.name='m4_walls';m4Comps(M4WL).forEach((t,i)=>G.add(m4Wall(t,'m4_pared'+i)));m4Comps(M4BD).forEach(t=>G.add(m4Border(t)));g.add(G)}
 // arbustos: una mata por casilla; cada arbusto (grupo de casillas unidas) es un modelo y se vuelve translúcido al entrar
 function m4Bushes(g){const rnd=lnRnd(31),grp={};
