@@ -3530,7 +3530,7 @@ function m4Begin(){LN.tw=[];LN.cb={A:0,B:0};LN.cc={A:0,B:0};LN.q=[];LN.ct=240;LN
 function m4Post(){if(LN.tw){LN.tw.forEach(o=>{o.bar.remove();if(o.e){const i=en.indexOf(o.e);if(i>=0)en.splice(i,1)}});LN.tw=null}LN.cb=null;LN.m4=false;LN.U=44;if(LN.l0){LNB.length=0;LNB.push(...LN.l0)}}
 const M4LEASH=5,M4REGEN=.05;
 function m4Mob(k,px,py,hp){const[x,z]=M4W(px,py),o={id:++LN.id,team:'N',r:k==='C'?4:3,kind:k,x,z,hx:x,hz:z,px,py,hp,max:hp,a:0,at:-1,cd:0,hd:false,tg:null};LN.mn.push(o);return o}
-const m4CampHp=w=>{const f=w-1;return 2*(2*(350+70*f)+2*(300+40*f)+(w%3===0?3*(300+40*f):0))},m4CampDm=w=>Math.round(1.5*(35+5*(w-1)));
+const m4CampHp=w=>1000+900*Math.min(10,Math.floor((LN.gt||0)/120)),m4CampDm=w=>Math.round(1.5*(35+5*(w-1)));
 function m4Camp(k,px,py,w){const m=m4Mob(k,px,py,m4CampHp(w));m.dm=m4CampDm(w);m.lw=w;return m}
 const m4Gr=(k,t)=>k==='Y'?1000+250*Math.max(0,Math.floor((t-120)/60)):5000+1000*Math.max(0,Math.floor((t-240)/120));
 function m4Mobs(dt){const now=LN.gt||0;
@@ -3563,7 +3563,7 @@ function m4Kill(m,by){const kp=NET.players.find(q=>q.id===by);if(!kp)return;cons
   else{LN.cc[tm]++;LN.cb[tm]=180;m4M({k:'co',tm});if(LN.cc[tm]>=2)m4Push(tm)}}
 function m4Host(dt){
   LN.gt=(LN.gt||0)+dt;if(LN.yt>0){LN.yt-=dt;if(LN.yt<=0){LN.yt=0;for(const[yx,yy]of M4Y)m4Mob('Y',yx,yy,m4Gr('Y',LN.gt));m4M({k:'ys'})}}
-  for(const m of LN.mn){if(m.team!=='N'||m.hp<=0||(m.kind!=='Y'&&m.kind!=='C'))continue;const g=m4Gr(m.kind,LN.gt);if(g>m.max){m.hp+=g-m.max;m.max=g}}
+  for(const m of LN.mn){if(m.team!=='N'||m.hp<=0)continue;const g=(m.kind==='Y'||m.kind==='C')?m4Gr(m.kind,LN.gt):(m.kind==='R'||m.kind==='B')?m4CampHp():0;if(g>m.max){m.hp+=g-m.max;m.max=g}}
   LN.ct-=dt;if(LN.ct<=0){LN.ct=180;if(!LN.mn.some(m=>m.kind==='C'&&m.team==='N'&&m.hp>0)){m4Mob('C',M4CO[0],M4CO[1],m4Gr('C',LN.gt||0));m4M({k:'sp'})}}
   LN.q=LN.q.filter(r=>{r.t-=dt;if(r.t<=0){m4Mob(r.k,r.x,r.y,r.hp);return false}return true});
   for(const t of['A','B'])if(LN.cb[t]>0)LN.cb[t]-=dt;
@@ -3653,7 +3653,7 @@ function lnHit(mid,n,by){if(NET.over||!NET.host)return;n=Math.max(0,+n||0);const
 function lnStrike(m){const t=m.tg;if(!t)return;if(t.k!=='h'&&m.r===2){m.sc=0;m.sp=null}const dm=m.col?200:m.dm||(m.r===2?45:m.r?15:12);
   if(t.k==='m'){if(t.o.hp>0){lnFxEv(m,t.o.x,t.o.z);lnHitM(t.o,dm,null)}}
   else if(t.k==='n'){lnFxEv(m,t.x,t.z);lnHitN(t.t,dm)}else if(t.k==='w'){lnFxEv(m,t.x,t.z);m4HitT(t.o,dm,null)}
-  else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);const dd={n:dm,by:'t'+m.team};if(m.r===2){m.sc=(m.sp===p.id?m.sc:0)+1;m.sp=p.id;if(m.sc>=3){m.sc=0;dd.st=1.5}}if(me)ntOnDmg(dd);else{dd.t='dmg';ntSendTo(p.id,dd)}}}
+  else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);const dd={n:dm,by:'t'+m.team};if(me)ntOnDmg(dd);else{dd.t='dmg';ntSendTo(p.id,dd)}}}
 function lnMinionXP(m,by){if(m.team==='N'){m4Kill(m,by);return}if(by&&NET.players.some(q=>q.id===by&&q.team!==m.team)){ntS(by).m++;ntStSend()}for(const p of NET.players){if(p.team===m.team)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(dead&&!k)continue;
     const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,xp=k?(sp?100:50):(sp?50:25),gd=k?(sp?(LN.m4?120:150):80):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
 // ---- Ataque del Nexo: 50 de daño por segundo, fija al jugador que ataca a otro bajo su Nexo ----
@@ -5164,8 +5164,8 @@ body.ln #hpBox{right:calc(calc(276*var(--u)) + var(--ox) + var(--sr));bottom:cal
 .hpb{position:relative;width:calc(46*var(--u));height:calc(46*var(--u));padding:0;border-radius:50%;border:calc(2*var(--u)) solid #d9e6f2;background:#101c2b center/cover no-repeat;touch-action:none;overflow:hidden;color:#fff}
 .hpb::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(5,10,16,.88) var(--cd,0deg),rgba(5,10,16,0) 0);pointer-events:none}
 .hpb.on{border-color:#ffd84a;box-shadow:0 0 calc(10*var(--u)) rgba(255,216,74,.95)}
-#rcBtn{position:fixed;z-index:5;display:none;left:calc(190*var(--u));bottom:calc(30*var(--u) + var(--sb));width:calc(46*var(--u));height:calc(46*var(--u));padding:0;border-radius:50%;border:calc(2*var(--u)) solid #d9e6f2;background:#101c2b center/cover no-repeat;touch-action:none;overflow:hidden}
-body.ln #rcBtn{bottom:calc(30*var(--u) + var(--oy) + var(--sb))}
+#rcBtn{position:fixed;z-index:5;display:none;left:calc(calc(276*var(--u)) + var(--sl,0px));bottom:calc(calc(30*var(--u)) + var(--sb));width:calc(46*var(--u));height:calc(46*var(--u));padding:0;border-radius:50%;border:calc(2*var(--u)) solid #d9e6f2;background:#101c2b center/cover no-repeat;touch-action:none;overflow:hidden}
+body.ln #rcBtn{left:calc(calc(276*var(--u)) + var(--ox) + var(--sl,0px));bottom:calc(calc(30*var(--u)) + var(--oy) + var(--sb))}
 #rcBtn.on{border-color:#59c8ff;box-shadow:0 0 calc(12*var(--u)) rgba(80,200,255,.95)}
 #rcBar{display:none;width:calc(76*var(--u));height:calc(7*var(--u))}
 .hp.jg{overflow:visible}.hp.jg i{border-radius:calc(2*var(--u))}
@@ -5195,7 +5195,7 @@ const HPD={
   fuego:{n:'Fuego',cd:30,ic:IC.fue,s:'Daño Verdadero',d:['Quema al enemigo más cercano en un alcance de 9 (prioriza héroes) durante 5 s.','Daño Verdadero total: de 40 (nivel 1) hasta 320 (nivel máximo). Ignora la armadura y la resistencia mágica del enemigo y sus números son blancos.']},
   curacion:{n:'Curación',cd:40,ic:IC.cur,s:'Soporte',d:['Te curas a ti y a tus aliados en un alcance de 10.','Cura de 90 (nivel 1) hasta 420 (nivel máximo).']},
   rafaga:{n:'Ráfaga',cd:45,ic:IC.raf,s:'Mejora de combate',d:['Ganas velocidad de ataque durante 4 s.','De 25% (nivel 1) hasta 50% (nivel máximo).']},
-  herir:{n:'Herir',cd:60,ic:IC.her,s:'Daño Verdadero',d:['Inflige daño verdadero al monstruo de la jungla más cercano (alcance 7): 300 de daño.','Pasa a 500 de daño tras matar 3 monstruos de la jungla y a 1000 tras matar 12.','En la barra de vida de los monstruos aparece una línea roja donde los matarías solo con Herir; si su vida llega ahí y Herir está listo, la barra se vuelve roja oscura.']}
+  herir:{n:'Herir',cd:60,ic:IC.her,s:'Daño Verdadero',d:['Inflige daño verdadero al monstruo de la jungla más cercano (alcance 7): 300 de daño.','Pasa a 500 de daño tras matar 3 monstruos de la jungla y a 1000 tras matar 12.','Al usarlo te curas el 35% de tu vida máxima.','En la barra de vida de los monstruos aparece una línea roja donde los matarías solo con Herir; si su vida llega ahí y Herir está listo, la barra se vuelve roja oscura.']}
 };
 const HPREG={n:'Regreso',ic:IC.reg};
 const HPK=['dash','velocidad','fuego','curacion','rafaga','herir'];
@@ -5239,7 +5239,7 @@ window.hpHerirDmg=()=>{try{return cfg(typeof cur==='string'?cur:'aurelio').hp.in
 window.hpHerirReady=()=>HPS.cd.herir<=0&&!(P.dead>0);
 function hpHerir(){let b=null,bd=7;for(const e of en){if(!e.jg||!(e.hp>0))continue;const d=Math.hypot(e.x-P.x,e.z-P.z)-(e.kind==='C'?2:0);if(d<bd){bd=d;b=e}}
   if(!b){banner('Herir: sin monstruo de la jungla cerca');return false}
-  DTN='t';hit(b,hrD(),false,null,false);hpRing(b.x,b.z,3.2,0xff8a1a,.5);hpRing(b.x,b.z,1.6,0xfff0b0,.35);emit(b.x,1.5,b.z,24,0xffb040,6,.6,2);emit(b.x,1.6,b.z,10,0xffffff,4,.4,1);
+  DTN='t';hit(b,hrD(),false,null,false);hpAdd(Math.round(P.max*.35));hpRing(P.x,P.z,3,0x5dff7a,.6);emit(P.x,1.2,P.z,14,0x7dff7a,3,.8,2);hpRing(b.x,b.z,3.2,0xff8a1a,.5);hpRing(b.x,b.z,1.6,0xfff0b0,.35);emit(b.x,1.5,b.z,24,0xffb040,6,.6,2);emit(b.x,1.6,b.z,10,0xffffff,4,.4,1);
   if(NET.on)ntSend({t:'hp',k:'her',x:+b.x.toFixed(1),z:+b.z.toFixed(1)});return true}
 // Regreso: botón propio (no es un hechizo). Carga 5 s quieto y te lleva a la base; moverte o recibir daño la interrumpe
 const rcB=document.createElement('button');rcB.id='rcBtn';rcB.setAttribute('aria-label','Regreso');rcB.style.backgroundImage='url('+IC.reg+')';document.body.appendChild(rcB);
