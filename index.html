@@ -20,7 +20,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ground);color:va
 #base.on{opacity:.95}
 #knob{width:calc(54*var(--u));height:calc(54*var(--u));margin:calc(-27*var(--u)) 0 0 calc(-27*var(--u));background:#848282;border:calc(3*var(--u)) solid #292828;box-shadow:0 calc(2*var(--u)) calc(10*var(--u)) rgba(0,0,0,.45);opacity:.8}
 #base.on+#knob{opacity:1}
-#mm{position:fixed;left:calc(calc(12*var(--u)) + env(safe-area-inset-left,0px));top:calc(calc(10*var(--u)) + env(safe-area-inset-top,0px));width:calc(208*var(--u));height:calc(208*var(--u));border-radius:calc(12*var(--u));border:calc(2*var(--u)) solid var(--line);pointer-events:auto;touch-action:none;background:#0c141c}
+#mm{position:fixed;left:calc(calc(12*var(--u)) + env(safe-area-inset-left,0px));top:calc(calc(10*var(--u)) + env(safe-area-inset-top,0px));width:calc(208*var(--u));height:calc(208*var(--u));border-radius:calc(12*var(--u));border:calc(2*var(--u)) solid var(--line);pointer-events:auto;touch-action:none;background:#0c141c;opacity:.65}
 .btn{position:fixed;border-radius:50%;border:calc(3*var(--u)) solid rgba(232,241,245,.55);background:radial-gradient(#223750,#122032);display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;color:var(--ink);padding:0}
 .btn:active{transform:scale(.94)}
 .btn::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(5,10,16,.75) var(--cd,0deg),transparent 0);pointer-events:none}
@@ -3561,7 +3561,7 @@ function m4Rings(g){}
 function m4M(m){m.t='m4t';ntBcast(m);ntHandle(m)}
 function m4Msg(m){const my=NET.me&&NET.me.team===m.tm,l=m.ln?'inferior':'superior';banner(m.k==='tw'?(my?'¡Perdiste una torreta!':'¡Torreta enemiga destruida!'):m.k==='co'?(my?'¡Tu equipo derrotó al Coloso! Más daño por 3 min':'¡El enemigo derrotó al Coloso!'):m.k==='cp'?(my?'¡Tu Coloso avanza por el carril '+l+'!':'¡Un Coloso enemigo avanza por el carril '+l+'!'):m.k==='ys'?'¡Han aparecido los campamentos de velocidad!':'¡Ha aparecido el Coloso!')}
 function m4Buff(m){const k=m.k;if(k==='R')P.m4r=m.d;else if(k==='B')P.m4m=m.d;else if(k==='Y')P.m4y=m.d;banner(k==='R'?'Regeneración de vida':k==='B'?'Regeneración de maná':'Velocidad de movimiento')}
-function m4Wave(){for(const t of['A','B'])for(let ln=0;ln<2;ln++){const p=M4P(ln,t),[x0,z0]=p[0];[[0,-1.5],[0,1.5],[1,-1.5],[1,1.5]].concat(LN.wn%3===0?[[2,0]]:[]).forEach(([r,o])=>{const f=m4Mul(LN.wn),mx=r===2?500:r?200:300,dm=r===2?100:r?45:35,xp=Math.round((r===2?50:25)*f),gd=r===2?200:100;LN.mn.push({id:++LN.id,team:t,r,dm,xp,gd,x:x0+o*.7-(r?1:0),z:z0+o*.7,hp:mx,max:mx,a:0,at:-1,cd:0,hd:false,tg:null,p,i:1})})}}
+function m4Wave(){for(const t of['A','B'])for(let ln=0;ln<2;ln++){const p=M4P(ln,t),[x0,z0]=p[0];[[0,-1.5],[0,1.5],[1,-1.5],[1,1.5]].concat(LN.wn%3===0?[[2,0]]:[]).forEach(([r,o])=>{const f=m4Mul(LN.wn),mx=r===2?500:r?200:300,dm=r===2?100:r?45:35,xp=Math.round((r===2?20:10)*Math.pow((r===2?89:45)/(r===2?20:10),(Math.min(13,Math.max(1,LN.wn))-1)/12)),gd=r===2?200:100;LN.mn.push({id:++LN.id,team:t,r,dm,xp,gd,x:x0+o*.7-(r?1:0),z:z0+o*.7,hp:mx,max:mx,a:0,at:-1,cd:0,hd:false,tg:null,p,i:1})})}}
 function m4TwNear(m,ot,reach){let b=null,bd=1e9;for(const o of LN.tw){if(o.team!==ot||o.hp<=0||m4TwImm(o))continue;const d=Math.hypot(o.x-m.x,o.z-m.z);if(d<=reach+2.6&&d<bd){bd=d;b={k:'w',o,x:o.x,z:o.z,d,rad:2.6}}}return b}
 function m4HitT(o,n,p){if(!o||o.hp<=0||NET.over)return;if(p&&p.team===o.team)return;if(m4TwImm(o))return;if(p&&LN.cb&&LN.cb[p.team]>0)n*=1.25;if((LN.gt||0)<120)n*=.25;o.hp=Math.max(0,o.hp-n);o.flash=.25;if(o.hp<=0)m4M({k:'tw',tm:o.team})}
 function m4Push(tm){const et=tm==='A'?'B':'A',lost=[0,0];for(const o of LN.tw)if(o.team===et)lost[M4T[o.i][2]<M4CY?0:1]+=o.max-o.hp;const ln=lost[0]===lost[1]?(Math.random()<.5?0:1):lost[1]>lost[0]?1:0,p=M4P(ln,tm),[x,z]=p[0];
@@ -3750,7 +3750,7 @@ function lnStrike(m){const t=m.tg;if(!t)return;if(t.k!=='h'&&m.r===2){m.sc=0;m.s
   else if(t.k==='n'){lnFxEv(m,t.x,t.z);lnHitN(t.t,dm)}else if(t.k==='w'){lnFxEv(m,t.x,t.z);m4HitT(t.o,dm,null)}
   else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);const dd={n:dm,by:'t'+m.team};if(me)ntOnDmg(dd);else{dd.t='dmg';ntSendTo(p.id,dd)}}}
 function lnMinionXP(m,by){if(m.team==='N'){m4Kill(m,by);return}if(by&&NET.players.some(q=>q.id===by&&q.team!==m.team)){ntS(by).m++;ntStSend()}for(const p of NET.players){if(p.team===m.team)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(dead&&!k)continue;
-    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,bx=Math.round((m.xp||(sp?50:25))*.4),xp=k?bx*2:bx,gd=k?(m.gd||(sp?150:80)):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
+    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,bx=m.xp||(m.col?20:(sp?10:5)),xp=k?bx*2:bx,gd=k?(m.gd||(sp?150:80)):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
 // ---- Ataque del Nexo: 50 de daño por segundo, fija al jugador que ataca a otro bajo su Nexo ----
 function lnAgro(aid){const p=NET.players.find(q=>q.id===aid);if(!p)return;const o=LN.nx[p.team==='A'?'B':'A'];if(o&&o.hp>0)o.fix=aid}
 function lnNexusAI(dt){for(const t of['A','B']){const o=LN.nx[t];if(!o||o.hp<=0)continue;const et=t==='A'?'B':'A';o.cd=Math.max(0,(o.cd||0)-dt);o.seen=o.seen||{};
@@ -4461,10 +4461,13 @@ const RECB=document.createElement('div');RECB.id='rec';document.body.appendChild
 // Orden de compra: 1) objeto inicial, 2) Botas de Aventurero y sus botas mejoradas, 3) cada objeto del armado comprando antes sus piezas.
 // Recomienda siempre el siguiente paso; si no te alcanza el oro espera, y si no cabe en el inventario salta a la pieza siguiente (que consume las anteriores).
 function recCand(){if(ARC.on)return[];const k=cur,bl=REC_BUILDS[k]||[],pool=INV.slice(),cand=[],st=REC_START[k];
-  if(st&&IT_BY[st]&&!RECBUY.has(st)&&!INV.includes(st))cand.push(st);
-  const need=id=>{const i=pool.indexOf(id);if(i>=0){pool.splice(i,1);return}const it=IT_BY[id];if(!it)return;it.fr.forEach(need);cand.push(id)};
-  const bt=bl.find(id=>IT_BY[id]&&isBoot(IT_BY[id]));if(bt)need(bt);bl.forEach(id=>{if(id!==bt)need(id)});
-  for(const id of cand){const it=IT_BY[id],pc=priceOf(id);if(it.t==='l'&&INV.includes(id))continue;if(slotFull(it,pc.rest))continue;if(P.gold<pc.price)return[];return[id]}
+  if(st&&IT_BY[st]&&!RECBUY.has(st)&&!INV.includes(st))cand.push({id:st,an:[]});
+  const need=(id,an)=>{const i=pool.indexOf(id);if(i>=0){pool.splice(i,1);return}const it=IT_BY[id];if(!it)return;const na=an.concat(id);it.fr.forEach(f=>need(f,na));cand.push({id,an})};
+  const bt=bl.find(id=>IT_BY[id]&&isBoot(IT_BY[id]));if(bt)need(bt,[]);bl.forEach(id=>{if(id!==bt)need(id,[])});
+  for(const c of cand){const id=c.id,it=IT_BY[id],pc=priceOf(id);if(it.t==='l'&&INV.includes(id))continue;if(slotFull(it,pc.rest))continue;
+    // si el oro alcanza para el objeto completo (legendario, botas mejoradas, etc.) se recomienda directo, sin ir pieza por pieza
+    for(const a of c.an){const ia=IT_BY[a],pa=priceOf(a);if(ia.t==='l'&&INV.includes(a))continue;if(!slotFull(ia,pa.rest)&&P.gold>=pa.price)return[a]}
+    if(P.gold<pc.price)return[];return[id]}
   return[]}
 function recUpdate(){const inGame=!!C&&(running||$('pause').style.display==='flex'),ids=inGame&&!shOpen?recCand():[],far=!shopAllowed(),sig=(far?'f':'n')+'#'+ids.map(id=>id+':'+priceOf(id).price).join('|');
   if(sig===recSig)return;recSig=sig;
