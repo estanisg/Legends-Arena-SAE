@@ -3548,6 +3548,7 @@ function m4MobsRaw(dt){const now=LN.gt||0;
       
       if(d<bd){bd=d;tg={p,x,z,d}}}
     if(C){if(tg){m.a=Math.atan2(tg.x-m.x,tg.z-m.z);if(m.cd<=0){m.at=0;m.hd=false;m.tg=tg.p}}continue}
+    if(m.kind==='Y'){tg=null;if(m.hp<m.max&&Object.values(m.ea||{}).every(t=>now-t>=6))m.hp=Math.min(m.max,m.hp+m.max*M4REGEN*dt)}
     if(!tg){m.ag=0;const dx=m.hx-m.x,dz=m.hz-m.z,d=Math.hypot(dx,dz);if(m.rs){m.hp=Math.min(m.max,m.hp+m.max*M4REGEN*dt);if(m.hp>=m.max-.5)m.rs=0}if(d>.5){m.x+=dx/d*LN.SP*1.4*dt;m.z+=dz/d*LN.SP*1.4*dt;m.a=Math.atan2(dx,dz)}else{
       if(m.pend&&m.hp>=m.max-.5){const w=m.pend;m.pend=0;m.max=m4CampHp(w);m.hp=m.max;m.dm=m4CampDm(w);m.lw=w}}continue}
     const dx=tg.x-m.x,dz=tg.z-m.z;m.a=Math.atan2(dx,dz);if(tg.d<=2.8){if(m.cd<=0){m.at=0;m.hd=false;m.tg=tg.p}}else{m.x+=dx/tg.d*LN.SP*dt;m.z+=dz/tg.d*LN.SP*dt}}}
@@ -3566,9 +3567,10 @@ function m4TwNear(m,ot,reach){let b=null,bd=1e9;for(const o of LN.tw){if(o.team!
 function m4HitT(o,n,p){if(!o||o.hp<=0||NET.over)return;if(p&&p.team===o.team)return;if(m4TwImm(o))return;if(p&&LN.cb&&LN.cb[p.team]>0)n*=1.25;if((LN.gt||0)<120)n*=.25;o.hp=Math.max(0,o.hp-n);o.flash=.25;if(o.hp<=0)m4M({k:'tw',tm:o.team})}
 function m4Push(tm){const et=tm==='A'?'B':'A',lost=[0,0];for(const o of LN.tw)if(o.team===et)lost[M4T[o.i][2]<M4CY?0:1]+=o.max-o.hp;const ln=lost[0]===lost[1]?(Math.random()<.5?0:1):lost[1]>lost[0]?1:0,p=M4P(ln,tm),[x,z]=p[0];
   LN.mn.push({id:++LN.id,team:tm,r:2,col:1,kind:'C',x,z,hp:4000,max:4000,a:0,at:-1,cd:0,hd:false,tg:null,p,i:1});m4M({k:'cp',tm,ln})}
-function m4Kill(m,by){const kp=NET.players.find(q=>q.id===by);if(!kp)return;const tm=kp.team,co=m.kind==='C';
+function hasHr(p){if(p===NET.me){try{return !!(window.hpHasHerir&&hpHasHerir())}catch(_){return false}}return !!p.hr}
+function m4Kill(m,by){const kp=NET.players.find(q=>q.id===by);if(!kp)return;const tm=kp.team,co=m.kind==='C',hrT=NET.players.some(q=>q.team===tm&&hasHr(q));
   for(const p of NET.players){if(p.team!==tm)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(!co&&dead&&!k)continue;const x=me?P.x:p.x,z=me?P.z:p.z;if(!co&&!k&&Math.hypot(x-m.x,z-m.z)>20)continue;
-    const bx=co?(m.xp||50):Math.round((m.xp||50)*.5),xp=co?bx:(k?bx*2:bx),gd=co?(m.gd||0):(k?(m.gd||200):0);if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k){KDA.m++;if(window.HPS)HPS.jk++}}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0,j:1});
+    const bx=co?(m.xp||50):Math.round((m.xp||50)*.5),xp=co?bx:(k?bx*2:bx),gd=co?(m.gd||0):(k?Math.round((m.gd||200)*(hrT?1:.5)):0);if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k){KDA.m++;if(window.HPS)HPS.jk++}}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0,j:1});
     if(k&&!co&&m.kind!=='L'){const bm={t:'m4b',k:m.kind,d:15};if(me)m4Buff(bm);else ntSendTo(p.id,bm)}}
   if(!co)LN.q.push({k:m.kind,x:m.px,y:m.py,t:M4SP[m.kind].rs,lv:Math.min(13,(m.lv||1)+1)});
   else{LN.cc[tm]++;LN.cb[tm]=180;m4M({k:'co',tm});if(LN.cc[tm]>=2)m4Push(tm)}}
@@ -3750,7 +3752,7 @@ function lnStrike(m){const t=m.tg;if(!t)return;if(t.k!=='h'&&m.r===2){m.sc=0;m.s
   else if(t.k==='n'){lnFxEv(m,t.x,t.z);lnHitN(t.t,dm)}else if(t.k==='w'){lnFxEv(m,t.x,t.z);m4HitT(t.o,dm,null)}
   else{const p=t.p,me=p===NET.me;if(me?P.dead>0:p.dead)return;{const bb=lnBushAt(me?P.x:p.x,me?P.z:p.z);if(bb>=0&&bb!==lnBushAt(m.x,m.z))return}lnFxEv(m,me?P.x:p.x,me?P.z:p.z);const dd={n:dm,by:'t'+m.team};if(me)ntOnDmg(dd);else{dd.t='dmg';ntSendTo(p.id,dd)}}}
 function lnMinionXP(m,by){if(m.team==='N'){m4Kill(m,by);return}if(by&&NET.players.some(q=>q.id===by&&q.team!==m.team)){ntS(by).m++;ntStSend()}for(const p of NET.players){if(p.team===m.team)continue;const me=p===NET.me,dead=me?P.dead>0:p.dead,k=p.id===by;if(dead&&!k)continue;
-    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,bx=m.xp||(m.col?20:(sp?10:5)),xp=k?bx*2:bx,gd=k?(m.gd||(sp?150:80)):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
+    const x=me?P.x:p.x,z=me?P.z:p.z;if(!k&&Math.hypot(x-m.x,z-m.z)>14)continue;const sp=m.r===2,bx=m.xp||(m.col?20:(sp?10:5)),xp=k?bx*2:bx,gd=k?Math.round((m.gd||(sp?150:80))*(hasHr(p)?.3:1)):0;if(me){gainXP(xp);if(gd)addGold(gd,m.x,m.z);if(k)KDA.m++}else ntSendTo(p.id,{t:'xp',n:xp,g:gd,c:k?1:0})}}
 // ---- Ataque del Nexo: 50 de daño por segundo, fija al jugador que ataca a otro bajo su Nexo ----
 function lnAgro(aid){const p=NET.players.find(q=>q.id===aid);if(!p)return;const o=LN.nx[p.team==='A'?'B':'A'];if(o&&o.hp>0)o.fix=aid}
 function lnNexusAI(dt){for(const t of['A','B']){const o=LN.nx[t];if(!o||o.hp<=0)continue;const et=t==='A'?'B':'A';o.cd=Math.max(0,(o.cd||0)-dt);o.seen=o.seen||{};
@@ -4087,7 +4089,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntWake()})
 function ntHostRecv(c,m){const id=c.peer;{const n=performance.now(),pv=NET.seen[id]||n;NET.seen[id]=n;if(n-pv>600)NET.lag[id]=n+700}
   switch(m.t){
     case'join':if(NET.pw&&m.pw!==NET.pw){c.send({t:'badpw'});setTimeout(()=>c.close(),300);return}NET.conns[id]=c;if(NET.lobby.started||NET.lobby.phase||!ntSlotAdd(id,m.name,m.av,m.best)){c.send({t:'full'});setTimeout(()=>c.close(),300);return}ntLobbySync();break;
-    case'pick':if(NET.lobby.phase==='pick'){ntPick(id,m.ch,m.skn);ntLobbySync()}break;case'rdy':{const q=NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase==='prep'){q.rdy=1;ntLobbySync()}break}
+    case'pick':if(NET.lobby.phase==='pick'){ntPick(id,m.ch,m.skn);ntLobbySync()}break;case'hr':{const q=NET.players&&NET.players.find(z=>z.id===id);if(q)q.hr=m.v?1:0;break}case'rdy':{const q=NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase==='prep'){q.rdy=1;ntLobbySync()}break}
     case'team':ntTeamSet(id,m.team);ntLobbySync();break;
     case'st':m.id=id;NET.hs[id]=m;ntHandle(m);break;case'cast':m.id=id;ntBcast(m,id);ntHandle(m);break;case'hp':m.id=id;ntBcast(m,id);ntHandle(m);break;
     case'dmg':case'fx':m.from=id;if(m.t==='dmg'&&!ntOkDmg(id,m))break;ntRoute(m);break;
@@ -4147,7 +4149,7 @@ function ntStart(slots,map){if(NET.lobby)NET.lobby.phase=null;$('csOv').style.di
     p.sk=mkSkin(p.ch,p.skn);p.sk.ring.material.color.setHex(ntCH(p.team));if(p.ch==='mikela')ntgHands(p);p.sk.g.visible=true;p.x=p.tx=b.x;p.z=p.tz=b.z;p.a=p.ta=ntFace(p.team);p.hp=p.max=CHAR[p.ch].hp;p.dead=0;p.mv=0;p.at=0;p.ad=1;p.ak='a';p.dt=0;
     p.bar=ntMkHud(p,myT);
     if(p.team!==myT){p.ent=ntEnt(p);en.push(p.ent)}}
-  P.x=NET.me.bx;P.z=NET.me.bz;P.ang=ntFace(myT);focus.set(P.x,0,P.z);ntScoreUI();$('ntScore').style.display='block';banner('¡A por '+NET.goal+' kills!');if(NET.map==='lane')lnBegin()}
+  P.x=NET.me.bx;P.z=NET.me.bz;P.ang=ntFace(myT);focus.set(P.x,0,P.z);ntScoreUI();$('ntScore').style.display='block';banner('¡A por '+NET.goal+' kills!');if(!NET.host&&NET.hc&&NET.hc.open)try{NET.hc.send({t:'hr',v:window.hpHasHerir&&hpHasHerir()?1:0})}catch(_){}if(NET.map==='lane')lnBegin()}
 function ntScoreUI(){const mt=NET.me?NET.me.team:'A',et=mt==='A'?'B':'A',a=$('tbS1'),b=$('tbS2');if(a)a.textContent=NET.score[mt];if(b)b.textContent=NET.score[et];$('ntScore').innerHTML=`<small>${NET.map==='lane'?'Tu Nexo '+lnPct(mt)+'% · Nexo enemigo '+lnPct(et)+'% · ':''}Primero a ${NET.goal} kills</small>`}
 function ntState(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me||!p.sk)return;if(p.ent)p.ent.rst={u:m.su,sl:m.ss};p.sl=m.ss?1:0;if(m.cc){const o=p.cc;if(!o||o[0]!==m.cc[0]||o[1]!==m.cc[1]||o[2]!==m.cc[2]){p.cc=m.cc;p.ccT=performance.now()}}
   p.tx=m.x;p.tz=m.z;p.ta=m.a;p.hp=m.hp;p.max=m.mx;p.sh=m.sh>0?m.sh:0;p.ak=m.ak;p.at=m.at;p.ad=m.ad||1;p.mv=m.mv;p.lv=m.lv||1;p.xf=m.xf||0;p.mp=m.mp;p.mm=m.mm;p.iv=m.iv?1:0;p.rs=m.rs|0;
@@ -5616,6 +5618,7 @@ function hpRaf(){HPS.rf=4;HPS.rfv=Math.round(lvF(25,50));hpRing(P.x,P.z,3,0xffd3
 // Herir: monstruos y minions (300, 500 tras 3 muertes, 1000 tras 12) · héroes enemigos 50-100 y ralentiza 10% 1 s · solo cura al golpear monstruos de la jungla
 const hrD=()=>HPS.jk>=12?1000:HPS.jk>=3?500:300;
 window.hpHerirDmg=()=>{try{return cfg(typeof cur==='string'?cur:'aurelio').hp.includes('herir')?hrD():0}catch(_){return 0}};
+window.hpHasHerir=()=>{try{return cfg(typeof cur==='string'?cur:'aurelio').hp.includes('herir')}catch(_){return false}};
 window.hpHerirReady=()=>HPS.cd.herir<=0&&!(P.dead>0);
 function hpHerir(a){const e=hpHerirTgt(a);if(!e){banner('Herir: sin objetivo cerca');return false}
   const hero=hpIsHero(e);DTN='t';
