@@ -640,6 +640,11 @@ letter-spacing:calc(1*var(--u))!important;text-transform:uppercase!important;col
 #pkTags{display:flex;flex-wrap:wrap;gap:calc(5*var(--u))}
 #pkStats .lst{margin:calc(4*var(--u)) 0}
 #pkPlay{margin-top:auto}
+/* ===== Leyendas / Selección: retratos más pequeños, panel derecho más ancho con el splash completo (16:9) ===== */
+html body #legInfo,html body #pkInfo{width:calc(340*var(--u));overflow-x:hidden;overflow-y:auto}
+html body #legList,html body #pkList{right:calc(356*var(--u) + env(safe-area-inset-right,0px))}
+html body #legGrid,html body #pkGrid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+html body #liSplash,html body #pkSplash{flex:none;width:100%;height:auto;min-height:0;aspect-ratio:16/9}
 /* Ajustes de rendimiento: la calidad elegida pasa a botón naranja (sin contorno) */
 #cfg .mb.on{outline:0!important;--bl:var(--bo-l);--br:var(--bo-r);--bm:var(--bo-m);text-shadow:0 calc(1*var(--u)) calc(3*var(--u)) rgba(90,35,0,.95)}
 
