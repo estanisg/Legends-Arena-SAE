@@ -5105,6 +5105,71 @@ async function boot(){
   pfUI();$('perf').style.display='flex';
   const L=$('load');L.classList.add('out');setTimeout(()=>{L.style.display='none'},500)}
 boot();
+
+// ===================== Barra de efectos (buffs y debuffs de tu jugador) · abajo en el centro =====================
+;(function(){try{
+const FXI=window.FX_ICONS=window.FX_ICONS||{}; // para poner iconos propios: FX_ICONS.aturdimiento='data:image/png;base64,...'
+// id:[nombre, emoji, tipo] · tipo 0 = buff, 1 = debuff, 2 = marca
+const DEF={
+ aturdimiento:['Aturdimiento','💫',1],inmovilizado:['Inmovilizado','⛓️',1],ralentizacion:['Ralentización','🐌',1],quemadura:['Quemadura','🔥',1],
+ velocidad:['Velocidad','💨',0],rafaga:['Ráfaga','⚡',0],
+ campVida:['Regeneración de vida','💚',0],campMana:['Regeneración de maná','💧',0],campVel:['Velocidad de movimiento','👟',0],
+ impulso:['Impulso de velocidad','🏃',0],ataqueAturdidor:['Ataque aturdidor','⚔️',0],reflejo:['Reflejo','🔁',0],golpePotenciado:['Golpe potenciado','💥',0],
+ cargasZeta:['Cargas de Zeta','🔋',0],velocidadAz:['Velocidad de Az','🌀',0],
+ marcaAz:['Marca de Az','🎯',2],marcaHaspen:['Marca de Haspen','🌺',2],
+ proteccion:['Protección de reaparición','🔰',0],estasis:['Estasis','⏳',0],invisible:['Invisible','👻',0],inmunidad:['Inmunidad','✨',0],escudo:['Escudo','🛡️',0]
+};
+const mx={};let last='';
+const bar=document.createElement('div');bar.id='fxBar';document.body.appendChild(bar);
+const st=document.createElement('style');st.textContent=
+'#fxBar{position:fixed;left:50%;bottom:calc(14*var(--u) + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:calc(4*var(--u));max-width:70vw;z-index:7;pointer-events:none}'+
+'#fxBar .fx{position:relative;width:calc(34*var(--u));height:calc(34*var(--u));box-sizing:border-box;border-radius:calc(5*var(--u));background:rgba(8,14,28,.82);border:calc(1.5*var(--u)) solid #5fe27a;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:calc(20*var(--u));line-height:1}'+
+'#fxBar .fx.bad{border-color:#ff5a62}#fxBar .fx.mk{border-color:#ffd34a}'+
+'#fxBar .fx i{position:absolute;left:0;top:0;right:0;bottom:0;background:center/cover no-repeat}'+
+'#fxBar .fx s{position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,.55)}'+
+'#fxBar .fx b,#fxBar .fx em{position:absolute;font-style:normal;font-size:calc(10.5*var(--u));font-weight:800;line-height:1;color:#fff;text-shadow:0 0 calc(2*var(--u)) #000,0 0 calc(2*var(--u)) #000,0 0 calc(3*var(--u)) #000}'+
+'#fxBar .fx b{right:calc(2*var(--u));bottom:calc(1*var(--u))}#fxBar .fx em{left:calc(2*var(--u));top:calc(1*var(--u));color:#ffd34a}';
+document.head.appendChild(st);
+const g=f=>{try{return f()||0}catch(_){return 0}};
+function itOf(k){try{for(const id of INV){const it=IT_BY[id];if(it&&((it.pas&&it.pas.k===k)||(it.act&&(it.act.k===k||it.act.id===k))))return it}}catch(_){}return null}
+function collect(){const L=[];if(typeof P==='undefined'||P.dead>0||!g(()=>running))return L;
+ const add=(id,t,o)=>{if(t>.02)L.push(Object.assign({id,t},o||{}))};
+ // debuffs
+ add('aturdimiento',Math.max(g(()=>pStunT),g(()=>pStun)));
+ add('inmovilizado',g(()=>dbRootT));
+ {const t=g(()=>ntSlowT),f=g(()=>ntSlowF);add('ralentizacion',t,{lab:f&&f<1?Math.round((1-f)*100)+'%':''})}
+ add('quemadura',g(()=>pBurn));
+ // hechizos
+ add('velocidad',g(()=>window.HPS.vel));
+ add('rafaga',g(()=>window.HPS.rf),{lab:g(()=>window.HPS.rfv)?g(()=>window.HPS.rfv)+'%':''});
+ // buffs de campamento
+ add('campVida',g(()=>P.m4r));add('campMana',g(()=>P.m4m));add('campVel',g(()=>P.m4y));
+ // habilidades de héroes
+ add('impulso',g(()=>spdT));
+ if(cur==='aurelio'&&g(()=>buff))add('ataqueAturdidor',g(()=>buffT));
+ if(cur==='goran'){add('reflejo',g(()=>refl));add('golpePotenciado',g(()=>pasT))}
+ if(cur==='zeta'&&g(()=>zst)>0)add('cargasZeta',g(()=>zstT),{n:zst});
+ if(cur==='az')add('velocidadAz',g(()=>AZ.spd));
+ // marcas puestas en enemigos
+ if(cur==='az'||cur==='haspen'){const key=cur==='az'?'azM':'hsM';let t=0,n=0;for(const e of en){if(e&&e[key]>0){n++;t=Math.max(t,e[key])}}add(cur==='az'?'marcaAz':'marcaHaspen',t,{n})}
+ // estados
+ {const stas=g(()=>PX.stas),inv=g(()=>NET.on?NET.inv:0);if(stas>0)add('estasis',stas);else add('proteccion',inv)}
+ add('invisible',g(()=>PX.inv>.001?PX.inv:0));
+ add('inmunidad',g(()=>PX.imm));
+ {const sh=g(()=>PX.sh);if(sh>0){let t=0;for(const c of PX.shl)if(c.v>0&&c.u>PX.t)t=Math.max(t,c.u-PX.t);add('escudo',t||99,{lab:Math.round(sh)})}}
+ // pasivas de objetos con duración (muestran el icono del objeto)
+ {const grp={};for(const b of PX.buf)if(b.u>PX.t){const o=grp[b.k]||(grp[b.k]={n:0,t:0});o.n++;o.t=Math.max(o.t,b.u-PX.t)}
+  for(const k in grp){const it=itOf(k);add('obj:'+k,grp[k].t,{n:grp[k].n,name:it?it.n:'Pasiva de objeto',ic:it?shImg(it.ic):null,tipo:0})}}
+ return L}
+function render(){const L=collect(),seen={};for(const e of L){seen[e.id]=1;mx[e.id]=Math.max(mx[e.id]||0,e.t)}for(const k in mx)if(!seen[k])delete mx[k];
+ const html=L.map(e=>{const d=DEF[e.id]||[e.name||'Efecto','🔶',e.tipo||0],cls='fx'+(d[2]===1?' bad':d[2]===2?' mk':''),
+  ic=e.ic?'<i style="background-image:'+e.ic+'"></i>':(FXI[e.id]?'<i style="background-image:url('+FXI[e.id]+')"></i>':d[1]),
+  pc=Math.max(0,Math.min(100,(1-e.t/mx[e.id])*100)),sec=e.t<90?'<b>'+Math.ceil(e.t)+'</b>':'',top=e.lab||(e.n>1?e.n:'');
+  return '<div class="'+cls+'">'+ic+'<s style="height:'+pc.toFixed(0)+'%"></s>'+sec+(top?'<em>'+top+'</em>':'')+'</div>'}).join('');
+ if(html!==last){bar.innerHTML=html;last=html}
+ const arc=document.getElementById('arc');bar.style.bottom=(arc&&arc.style.display!=='none')?'calc(46*var(--u) + env(safe-area-inset-bottom,0px))':''}
+setInterval(render,100);
+}catch(err){console.error('fxBar',err)}})();
 </script>
 <script>
 (function(){const $=id=>document.getElementById(id);
