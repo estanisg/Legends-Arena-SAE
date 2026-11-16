@@ -3019,7 +3019,13 @@ function elTag(kind,pos,n,life,key){
     add(ring(.7,.78,4,0xff6a4a),(m,q,k,o)=>{m.position.set(q[0],.3,q[1]);m.rotation.z=o.t*2.4;m.material.opacity=.85*fd(k)});
     add(new T.Mesh(new T.ConeGeometry(.32,.8,4).rotateX(Math.PI),elAdd(0xff2a2a)),(m,q,k,o)=>{m.position.set(q[0],3.1+.25*Math.sin(o.t*5),q[1]);m.rotation.y=o.t*3;m.material.opacity=.95*fd(k)});
     add(new T.Mesh(new T.CylinderGeometry(1.1,1.1,2.4,20,1,true).translate(0,1.2,0),elAdd(0xff2a2a)),(m,q,k,o)=>{m.position.set(q[0],0,q[1]);m.material.opacity=(.16+.08*Math.sin(o.t*8))*fd(k)})}
+  else if(kind==='x'){
+    add(ring(1.5,1.58,48,0xff2a55),(m,q,k,o)=>{m.position.set(q[0],.3,q[1]);m.scale.setScalar(1+.04*Math.sin(o.t*14));m.material.opacity=.9*fd(k)});
+    add(ring(2.3,2.36,4,0xff6a9a),(m,q,k,o)=>{m.position.set(q[0],.31,q[1]);m.rotation.z=o.t*.9+.785;m.material.opacity=.8*fd(k)});
+    for(const a of[0,1.5708])add(new T.Mesh(new T.PlaneGeometry(.06,3.6).rotateX(-Math.PI/2),elAdd(0xff2a55)),(m,q,k,o)=>{m.position.set(q[0],.32,q[1]);m.rotation.y=o.t*.6+a;m.material.opacity=.8*fd(k)});
+    add(new T.Mesh(new T.ConeGeometry(.3,.75,4).rotateX(Math.PI),elAdd(0xff2a55)),(m,q,k,o)=>{m.position.set(q[0],3.1+.2*Math.sin(o.t*6),q[1]);m.rotation.y=o.t*3;m.material.opacity=.95*fd(k)})}
   else if(kind==='g'){
+    add(ring(1.15,1.2,4,0xff6a9a),(m,q,k,o)=>{m.position.set(q[0],.3,q[1]);m.rotation.z=-o.t*1.6+.785;m.material.opacity=.7*fd(k)});
     add(ring(.9,1,40,0xff6a9a),(m,q,k,o)=>{m.position.set(q[0],.28,q[1]);m.scale.setScalar(1+.05*Math.sin(o.t*12));m.material.opacity=.7*fd(k)});
     add(new T.Mesh(new T.OctahedronGeometry(.26),elAdd(0xff6a9a)),(m,q,k,o)=>{m.position.set(q[0],3+.12*Math.sin(o.t*5),q[1]);m.rotation.y=o.t*4;m.material.opacity=.95*fd(k)})}
   else{
@@ -3191,30 +3197,70 @@ function gnRifle(){const g=new T.Group(),dk=new T.MeshStandardMaterial({color:0x
 function gnNear(r){let b=null,bs=1e9;for(const e of en){if(e.hid||e.hp<=0)continue;const l=Math.hypot(e.x-P.x,e.z-P.z)-(e.nx?2:0);if(l>r)continue;const s=l-(e.type==='p'?1000:0);if(s<bs){bs=s;b=e}}return b}
 function gnMark(e){e.gnM=4;elTag('g',elPosE(e),0,4,e);if(NET.on&&e.pid)ntSend({t:'cast',k:'gm',dx:0,dz:1,x:+e.x.toFixed(1),z:+e.z.toFixed(1),pid:e.pid})}
 function gnTrue(e,n){if(!en.includes(e))return;DTN='t';hit(e,n,false,'#ff7aa8',true)}
-function gnTracer(x0,z0,x1,z1){const L=Math.hypot(x1-x0,z1-z0)||1,ux=(x1-x0)/L,uz=(z1-z0)/L,sx=x0+ux*1.2,sz=z0+uz*1.2;
-  elStreak(sx,sz,x1,z1,.3,0xff6a9a,.16,1.6);elStreak(sx,sz,x1,z1,.1,0xffffff,.12,1.62);emit(sx,1.6,sz,5,0xffd9e4,4,.2,.5);emit(x1,1.6,z1,4,0xff9ab8,4,.25)}
-function gnTrail(x0,z0,x1,z1,T0){elStreak(x0,z0,x1,z1,1.6,0xff3b6a,.45);elStreak(x0,z0,x1,z1,.6,0xffd9e4,.3,.34);elRing(x0,z0,2.2,0xff9ab8,.28);
-  for(let i=0;i<5;i++){const k=i/5,ax=x0+(x1-x0)*k,az=z0+(z1-z0)*k;later(()=>elAfter(ax,az,0xff6a9a,.36),k*T0)}
-  later(()=>{elRing(x1,z1,2.4,0xff3b6a,.32);for(let q=0;q<8;q++)emit(x1,.8,z1,1,q%2?0xffd9e4:0xff3b6a,4,.4,1)},T0)}
+const gnPk=0xff6a9a,gnPk2=0xff3b6a,gnWh=0xffd9e4,gnRd=0xff2a55;
+// anillo hexagonal que se expande en el suelo
+function gnHex(x,z,R,life,col){const m=new T.Mesh(new T.RingGeometry(.9,1,6),elAdd(col||gnPk));m.rotation.x=-Math.PI/2;m.position.set(x,.3,z);
+  elFx(m,life,(o,k)=>{m.scale.setScalar(R*(.3+.7*elEo(k*1.6)));m.rotation.z=k*1.2;m.material.opacity=.85*(1-k)})}
+// tajo en X de impacto
+function gnCross(x,z,s,col){for(const q of[-1,1]){const m=new T.Mesh(new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),elAdd(col||gnWh));m.position.set(x,1.3,z);m.rotation.y=q*.7854;
+  elFx(m,.26,(o,k)=>{const e=elEo(k*3);m.scale.set(.11*(1-k*.5),1,s*2.6*e);m.material.opacity=.95*(1-k)})}}
+function gnImpact(x,z,big){elRing(x,z,big?2.4:1.5,gnPk,.25);gnCross(x,z,big?1.3:.8);emit(x,1.5,z,big?9:5,gnPk,5,.3,1)}
+// fogonazo de boca de cañón + casquillos
+function gnMuzzle(x,z,dx,dz,big){const l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l,s=big?1.5:1;
+  elStreak(x,z,x+ux*1.1*s,z+uz*1.1*s,.55*s,gnPk,.09,1.6);elStreak(x,z,x+ux*.8*s,z+uz*.8*s,.22*s,0xffffff,.07,1.62);
+  emit(x,1.6,z,5,gnWh,4,.18,.5);emit(x,1.5,z,2,0xffd27a,3,.5,2)}
+// bala trazadora que viaja de un punto a otro
+function gnBullet(x0,z0,x1,z1,col,sp){const L=Math.hypot(x1-x0,z1-z0)||1,dur=Math.max(.05,L/(sp||90)),m=new T.Mesh(new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),elAdd(col||0xffe6ee));
+  m.rotation.y=Math.atan2(x1-x0,z1-z0);
+  elFx(m,dur+.06,(o,k)=>{const t=Math.min(1,o.t/dur);m.position.set(x0+(x1-x0)*t,1.6,z0+(z1-z0)*t);m.scale.set(.16,1,Math.min(2.2,L*t));m.material.opacity=o.t>dur?1-(o.t-dur)/.06:1})}
+// disparo completo: fogonazo, estela, bala e impacto
+function gnTracer(x0,z0,x1,z1,big){const L=Math.hypot(x1-x0,z1-z0)||1,ux=(x1-x0)/L,uz=(z1-z0)/L,sx=x0+ux*1.2,sz=z0+uz*1.2;
+  gnMuzzle(sx,sz,ux,uz,big);elStreak(sx,sz,x1,z1,.3,gnPk,.16,1.6);elStreak(sx,sz,x1,z1,.1,0xffffff,.12,1.62);gnBullet(sx,sz,x1,z1);
+  later(()=>gnImpact(x1,z1,big),Math.min(.2,L/90))}
+// láser de fijación entre dos puntos que se siguen en vivo
+function gnLaser(A,B,life){const m=new T.Mesh(new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),elAdd(gnRd));
+  elFx(m,life,(o,k)=>{const a=A(),b=B();if(!a||!b){o.t=o.T;return}const L=Math.hypot(b[0]-a[0],b[1]-a[1])||.01;
+    m.position.set((a[0]+b[0])/2,1.55,(a[1]+b[1])/2);m.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1]);m.scale.set(.07+.03*Math.sin(o.t*30),1,L);m.material.opacity=.55*(1-Math.max(0,k-.9)*10)})}
+// aviso en el suelo de la línea de la H1
+function gnLine(x,z,d){const ex=x+d[0]*10,ez=z+d[1]*10;elStreak(x,z,ex,ez,.5,gnPk,.5,.22);elStreak(x,z,ex,ez,.14,gnWh,.35,.24);
+  elStreak(ex-d[1]*1.2,ez+d[0]*1.2,ex+d[1]*1.2,ez-d[0]*1.2,.25,gnPk2,.6,.22)}
+// H2: flechas tácticas en el suelo, imágenes "glitch" holográficas, líneas de velocidad y anillos hexagonales
+function gnDashFx(x0,z0,x1,z1,T0){
+  const L=Math.hypot(x1-x0,z1-z0)||1,ux=(x1-x0)/L,uz=(z1-z0)/L,px=-uz,pz=ux,ay=Math.atan2(-uz,ux),yy=Math.atan2(ux,uz);
+  gnHex(x0,z0,2.6,.35,gnPk);for(let q=0;q<10;q++){const a=q/10*6.283;emit(x0+Math.cos(a)*.6,.3,z0+Math.sin(a)*.6,1,q%2?gnWh:gnPk2,5,.35,1)}
+  for(const lo of[-1.1,-.5,.5,1.1])elStreak(x0+px*lo,z0+pz*lo,x1+px*lo*.6,z1+pz*lo*.6,.1,gnWh,.3,.3);
+  for(let i=0;i<5;i++){const kf=(i+.5)/5,cx=x0+(x1-x0)*kf,cz=z0+(z1-z0)*kf;
+    later(()=>{const t=new T.Mesh(new T.CircleGeometry(.55,3),elAdd(gnPk));t.rotation.x=-Math.PI/2;t.rotation.z=ay;t.position.set(cx,.3,cz);
+      elFx(t,.5,(o,k)=>{t.scale.setScalar(1+.5*k);t.material.opacity=.9*(1-k)});
+      for(const w of[0,1]){const g=new T.Mesh(new T.PlaneGeometry(.9,1.9),elAdd(gnPk2));g.rotation.y=yy+w*1.5708;g.position.set(cx,1,cz);
+        elFx(g,.28,(o,k)=>{g.material.opacity=.45*(1-k)*(Math.sin(o.t*70)>0?1:.25);g.position.x=cx+(Math.random()-.5)*.25})}},kf*T0)}
+  later(()=>{gnHex(x1,z1,2.8,.4,gnPk2);for(let q=0;q<10;q++)emit(x1,.4,z1,1,q%2?0xd8c7b0:gnWh,4,.5,1)},T0)}
+// disparo de precisión (pasiva): onda hexagonal roja y tajo en X
+function gnPreFx(x,z){gnHex(x,z,2.6,.4,gnRd);gnCross(x,z,1.7,gnRd);elRing(x,z,3,gnPk2,.4);emit(x,1.7,z,16,gnPk2,7,.45,1.5)}
+// activación de la ulti: ondas hexagonales y columna de luz
+function gnUltFx(x,z){gnHex(x,z,3.4,.5,gnPk);gnHex(x,z,2.2,.4,gnWh);
+  const c=new T.Mesh(new T.CylinderGeometry(.5,.5,9,16,1,true).translate(0,4.5,0),elAdd(gnPk));c.position.set(x,0,z);
+  elFx(c,.6,(o,k)=>{c.scale.set(1-.7*k,elEo(k*2.5),1-.7*k);c.material.opacity=.55*(1-k)});
+  for(let q=0;q<20;q++){const a=q/20*6.283;emit(x+Math.cos(a)*1.5,.4,z+Math.sin(a)*1.5,1,q%2?gnWh:gnPk,3,.6,2)}}
 // ---- Pasiva: cada 3.er ataque consecutivo al mismo campeón = disparo de precisión ----
 function gnShot(e){
   const ch=e.type==='p';if(ch){if(GN.tg===e)GN.cnt++;else{GN.tg=e;GN.cnt=1}}else{GN.tg=null;GN.cnt=0}
   const pre=ch&&GN.cnt>=3;if(pre)GN.cnt=0;
   const m=gnBlt([e.x-P.x,e.z-P.z],1,pre);m.position.set(P.x+Math.sin(P.ang)*1.2,1.7,P.z+Math.cos(P.ang)*1.2);scene.add(m);
-  zb.push({m,e,dm:pre?Math.round(1.2*dmg(1)):dmg(1),gn:1,pre});playClip('ba',1,pre?.6:1.2)}
+  zb.push({m,e,dm:pre?Math.round(1.2*dmg(1)):dmg(1),gn:1,pre});gnMuzzle(P.x+Math.sin(P.ang)*1.2,P.z+Math.cos(P.ang)*1.2,Math.sin(P.ang),Math.cos(P.ang),pre);playClip('ba',1,pre?.6:1.2)}
 function gnHit(b){const e=b.e;
-  if(b.pre){DTN='t';FCRIT=0;bhit(e,b.dm,false,'#ff4a7a');if(en.includes(e)){gnMark(e);elReticle(e.x,e.z,1.8,.45);emit(e.x,1.7,e.z,10,0xff3b6a,6,.4)}}
+  if(b.pre){DTN='t';FCRIT=0;bhit(e,b.dm,false,'#ff4a7a');if(en.includes(e)){gnMark(e);gnPreFx(e.x,e.z);if(NET.on&&e.pid)ntSend({t:'cast',k:'gp',dx:0,dz:1,x:+e.x.toFixed(1),z:+e.z.toFixed(1),pid:e.pid})}}
   else{const was=e.gnM>0;bhit(e,b.dm,false);if(was)gnTrue(e,Math.round(.2*dmg(1)))}}
 // ---- H1: Lluvia de plomo (5 proyectiles en 1 s; el daño indicado es el total de la ráfaga) ----
 function gnS1Hit(e,v,i,dm){
   const c=(v.n.get(e)||0)+1;v.n.set(e,c);if(c===1){if(e.gnM>0)v.was.add(e);gnMark(e)}
-  hit(e,dm,false,'#ff8fb0');
+  hit(e,dm,false,'#ff8fb0');gnImpact(e.x,e.z,i===4);
   if(i===4&&v.was.has(e))gnTrue(e,Math.round(.2*dmg(1)));
   if(c===5&&en.includes(e)){e.slowT=Math.max(e.slowT||0,1);e.slowF=.8}}
 function gnS1(d){
-  if(!begin('s1'))return;P.ang=ang(d);act('1',1);rootT=.25;
-  const dm=Math.max(1,Math.round(skD('s1')/5)),v={n:new Map(),was:new Set()};
-  for(let i=0;i<5;i++)later(()=>{if(P.dead>0||cur!=='gina')return;const x=P.x+d[0]*1.3,z=P.z+d[1]*1.3;emit(x,1.6,z,6,0xffd9e4,4,.2,.5);
+  if(!begin('s1'))return;P.ang=ang(d);act('1',1);   // sin rootT: puede moverse mientras dispara
+  const dm=Math.max(1,Math.round(skD('s1')/5)),v={n:new Map(),was:new Set()};gnLine(P.x+d[0]*1.2,P.z+d[1]*1.2,d);
+  for(let i=0;i<5;i++)later(()=>{if(P.dead>0||cur!=='gina')return;const x=P.x+d[0]*1.3,z=P.z+d[1]*1.3;gnMuzzle(x,z,d[0],d[1],i===4);
     shoot({mesh:gnBlt(d,1.1),col:0xff9ab8,sp:34,life:.27,r:1,x,z,dx:d[0],dz:d[1],fn:e=>gnS1Hit(e,v,i,dm)});playClip('ba',1,1.3)},i*.2);
   playClip('h1')}
 // ---- H2: Maniobra evasiva (5 de desplazamiento sin atravesar muros + 3 disparos al más cercano) ----
@@ -3225,22 +3271,22 @@ function gnS2(d){
   if(!begin('s2'))return;P.ang=ang(d);act('2',.5);
   const L=5,T0=.22,st={dm:Math.max(1,Math.round(skD('s2')/3)),m:false},t0=gnNear(RNG);
   dash={t:0,T:T0,dx:d[0],dz:d[1],v:L/T0,hit:new Set(),nd:true,ph:0,fin:()=>gnS2Fire(st)};
-  gnTrail(P.x,P.z,P.x+d[0]*L,P.z+d[1]*L,T0);gnS2Fire(st);later(()=>gnS2Fire(st),T0*.5);
+  gnDashFx(P.x,P.z,P.x+d[0]*L,P.z+d[1]*L,T0);gnS2Fire(st);later(()=>gnS2Fire(st),T0*.5);
   NET.tg=t0?[+t0.x.toFixed(1),+t0.z.toFixed(1)]:null;GN.asT=3;playClip('h2');shake=Math.max(shake,.12)}
 // ---- Ulti: Protocolo de exterminio ----
 function gnUltTarget(){let b=null,bd=1e9;for(const e of en){if(e.type!=='p'||e.hid||e.hp<=0)continue;const l=Math.hypot(e.x-P.x,e.z-P.z)-(e.nx?2:0);if(l<=25&&l<bd){bd=l;b=e}}return b}
-function gnUltEnd(manual){const u=GN.ult;if(!u)return;GN.ult=null;elTagClear(u.e,'u');if(NET.on&&manual)ntSend({t:'cast',k:'gx',dx:0,dz:1,x:+P.x.toFixed(1),z:+P.z.toFixed(1)})}
+function gnUltEnd(manual){const u=GN.ult;if(!u)return;GN.ult=null;elTagClear(u.e,'x');gnHex(P.x,P.z,2.4,.35,gnRd);if(NET.on&&manual)ntSend({t:'cast',k:'gx',dx:0,dz:1,x:+P.x.toFixed(1),z:+P.z.toFixed(1)})}
 function gnS3(d){
   if(GN.ult){gnUltEnd(true);return}
   const e=gnUltTarget();if(!e)return;
   if(!begin('s3'))return;
   P.ang=Math.atan2(e.x-P.x,e.z-P.z);act('3',.8);GN.ult={e,t:3,n:0,acc:0};
-  elTag('u',elPosE(e),0,3,e);elRing(P.x,P.z,3,0xff6a9a,.4);NET.tg=[+e.x.toFixed(1),+e.z.toFixed(1)];
+  elTag('x',elPosE(e),0,3,e);gnUltFx(P.x,P.z);gnLaser(()=>GN.ult&&P.dead<=0?[P.x,P.z]:null,()=>en.includes(e)?[e.x,e.z]:null,3);NET.tg=[+e.x.toFixed(1),+e.z.toFixed(1)];
   if(NET.on&&e.pid)ntSend({t:'cast',k:'gu',dx:0,dz:1,x:+P.x.toFixed(1),z:+P.z.toFixed(1),pid:e.pid});
   playClip('ul');shake=Math.max(shake,.2)}
 function gnBolt(e){const m=new T.Mesh(gnBG,gnBM);m.scale.set(.8,.8,1.1);
   m.position.set(P.x+Math.sin(P.ang)*1.2+(Math.random()-.5)*.4,1.5+Math.random()*.3,P.z+Math.cos(P.ang)*1.2+(Math.random()-.5)*.4);
-  scene.add(m);GN.bl.push({m,e,age:0});emit(m.position.x,1.6,m.position.z,2,0xff9ab8,3,.2);playClip('ba',.5,1.5)}
+  scene.add(m);GN.bl.push({m,e,age:0});gnMuzzle(m.position.x,m.position.z,Math.sin(P.ang),Math.cos(P.ang),false);playClip('ba',.5,1.5)}
 function gnUp(dt){
   for(const e of en)if(e.gnM>0)e.gnM-=dt;
   if(GN.asT>0)GN.asT-=dt;
@@ -3254,18 +3300,19 @@ function gnUp(dt){
     const dx=b.e.x-p.x,dz=b.e.z-p.z,d=Math.hypot(dx,dz)||1,s=Math.min(d,42*dt);p.x+=dx/d*s;p.z+=dz/d*s;b.m.rotation.y=Math.atan2(dx,dz);
     emit(p.x,1.6,p.z,1,0xff9ab8,.5,.2);b.age+=dt;
     if(d<1.1||d<=42*dt||b.age>2){const e=b.e,f=Math.max(0,Math.min(1,1-e.hp/(e.max||e.hp)));
-      DTN='p';hit(e,Math.max(1,Math.round(skD('s3')*(1+2*f))),false,'#ff6aa0',true);emit(e.x,1.7,e.z,5,0xff9ab8,4,.3);scene.remove(b.m);GN.bl.splice(i,1)}}}
+      DTN='p';hit(e,Math.max(1,Math.round(skD('s3')*(1+2*f))),false,'#ff6aa0',true);gnImpact(e.x,e.z,false);scene.remove(b.m);GN.bl.splice(i,1)}}}
 function gnReset(){GN.tg=null;GN.cnt=0;GN.asT=0;GN.ult=null;for(const b of GN.bl)scene.remove(b.m);GN.bl.length=0;for(const e of en)e.gnM=0}
 // ---- Efectos para los demás jugadores ----
-function gnGhost(p,m){const k=m.k,x=m.x,z=m.z,d=[m.dx,m.dz];
-  if(k==='s1'){for(let i=0;i<5;i++)later(()=>gnTracer(x,z,x+d[0]*10.5,z+d[1]*10.5),i*.2);nClip('h1',x,z,1.2)}
-  else if(k==='s2'){const L=5;gnTrail(x,z,x+d[0]*L,z+d[1]*L,.22);nClip('h2',x,z,1.2);if(m.tg){const o=m.tg;for(let i=0;i<3;i++)later(()=>gnTracer(p.x,p.z,o[0],o[1]),i*.11)}}
-  else if(k==='s3'){elRing(x,z,3,0xff6a9a,.4);nClip('ul',x,z,1.2)}
-  else if(k==='gu'){const tok={},pos=elPosP(m.pid);p.gnU=tok;p.gnT=m.pid;elTag('u',pos,0,3,m.pid);
-    for(let i=0;i<15;i++)later(()=>{if(p.gnU!==tok)return;const t=pos();if(!t)return;gnTracer(p.x,p.z,t[0],t[1]);nClip('ba',p.x,p.z,1.4)},i*.2)}
-  else if(k==='gx'){p.gnU=null;if(p.gnT!=null)elTagClear(p.gnT,'u')}
+function gnGhost(p,m){const k=m.k,x=m.x,z=m.z,d=[m.dx,m.dz],px=()=>p.x!=null?p.x:x,pz=()=>p.z!=null?p.z:z;
+  if(k==='s1'){gnLine(x+d[0]*1.2,z+d[1]*1.2,d);for(let i=0;i<5;i++)later(()=>gnTracer(px(),pz(),px()+d[0]*10.5,pz()+d[1]*10.5,i===4),i*.2);nClip('h1',x,z,1.2)}
+  else if(k==='s2'){const L=5;gnDashFx(x,z,x+d[0]*L,z+d[1]*L,.22);nClip('h2',x,z,1.2);if(m.tg){const o=m.tg;for(let i=0;i<3;i++)later(()=>gnTracer(px(),pz(),o[0],o[1]),i*.11)}}
+  else if(k==='s3'){gnUltFx(x,z);nClip('ul',x,z,1.2)}
+  else if(k==='gu'){const tok={},pos=elPosP(m.pid);p.gnU=tok;p.gnT=m.pid;elTag('x',pos,0,3,m.pid);gnLaser(()=>p.gnU===tok?[px(),pz()]:null,pos,3);
+    for(let i=0;i<15;i++)later(()=>{if(p.gnU!==tok)return;const t=pos();if(!t)return;gnTracer(px(),pz(),t[0],t[1]);nClip('ba',px(),pz(),1.4)},i*.2)}
+  else if(k==='gx'){p.gnU=null;if(p.gnT!=null)elTagClear(p.gnT,'x');gnHex(px(),pz(),2.4,.35,gnRd)}
   else if(k==='gm')elTag('g',elPosP(m.pid),0,4,m.pid)
-  else emit(x,1.5,z,12,0xff9ab8,5,.5,1.5)}
+  else if(k==='gp')gnPreFx(x,z)
+  else emit(x,1.5,z,12,gnPk,5,.5,1.5)}
 const CHS={gina:{s1:gnS1,s2:gnS2,s3:gnS3},elaria:{s1:elS1,s2:elS2,s3:elS3},az:{s1:azS1,s2:azS2,s3:azS3},haspen:{s1:hsS1,s2:hsS2,s3:hsS3},ivar:{s1:ivS1,s2:ivS2,s3:ivS3},mikela:{s1:mhS1,s2:mhS2,s3:mhS3},aurelio:{s1:aS1,s2:aS2,s3:aS3},zeta:{s1:zS1,s2:zS2,s3:zS3},goran:{s1:gS1,s2:gS2,s3:gS3},stanley:{s1:stS1,s2:stS2,s3:stS3},miracle:{s1:miS1,s2:miS2,s3:miS3}};
 function useS1(d,a){CHS[cur].s1(d,a)}function useS2(d,a){if(cur==='miracle'&&miC){miDet();return}CHS[cur].s2(d||aimDir({manual:false,k:'s2'}),a)}function useS3(d,a){CHS[cur].s3(d,a)}
 // ---- Efecto visual al aturdir / inmovilizar: cambia según el personaje que lo causa ----
@@ -3399,7 +3446,7 @@ SK.gina.B.chest.add(gnRifle()); // el modelo de Gina no trae arma: fusil colgado
 // El modelo de Aurelio no trae espada: se le coloca la espada en la mano derecha
 SK.aurelio.B.bH.add(sword);sword.position.set(-.04,0,0);sword.scale.setScalar(.4);sword.rotation.set(0,0,-Math.PI/2);
 POSE.aurelio={a:{R:[-1.9,-.2,-.5],L:[.1,.15,-.3],n:.1,y:-.4},'1':{R:[-2.2,-.3,-.4],L:[-.6,.5,-.5],n:.2,y:-.6},'2':{R:[-1.0,-.9,-.9],L:[-1.0,.9,-.9],n:0,y:0},'3':{R:[-1.6,-.1,-.2],L:[.8,.3,-.3],n:.45,y:0,h:1}};
-POSE.ivar=POSE.aurelio;POSE.haspen=POSE.aurelio;POSE.az=POSE.aurelio;POSE.elaria=POSE.aurelio;
+POSE.ivar=POSE.aurelio;POSE.haspen=POSE.aurelio;POSE.az=POSE.aurelio;POSE.elaria=POSE.aurelio;POSE.gina=POSE.zeta;
 // ---- Animación de los modelos: parado, caminata y poses de ataque/habilidad ----
 function animSk(R,dt){
   R.t+=dt;R.w+=(target-R.w)*Math.min(1,dt*6);R.ph+=dt*(cur==='goran'?9:12)*R.w;
@@ -4509,7 +4556,7 @@ function animR(R,dt,p){const AN=ZC[p.ch],B=R.B,mv=p.mv,Z=p.zs||(p.zs={cur:'idle'
   for(let b=0;b<15;b++)B[ZB[b]].quaternion.set(s[b*4],s[b*4+1],s[b*4+2],s[b*4+3]);B.pel.position.set(R.p0.x+s[60],R.p0.y+s[61],R.p0.z+s[62]);B.root.position.set(0,0,0);B.root.rotation.set(0,0,0);if(p.ch==='stanley')stRlAnim(R,B,dt,p.rl>0&&!dead&&!(p.at>0&&ZK[p.ak]),1-p.rl/p.rd);
   const w=R.w,t=R.t;B.ch.forEach((q,i)=>{q.rotation.x=.08+Math.sin(t*1.4-i*.6)*.04*(1-w)+w*(.12+Math.sin(R.ph*2-i*.7)*.1)})}
 // ---- Aviso visual de las habilidades de los demás (el daño real lo calcula quien la lanza) ----
-function ntCastFx(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me)return;if(m.k!=='rl'){p.revT=1;if(p.vis===false&&!p.iv&&NET.me&&p.team!==NET.me.team&&ntSee(p.x,p.z))p.vis=true}if(m.k==='rl'){p.rl=p.rd=Math.min(5,Math.max(.3,+m.d||1.24));if(!(NET.me&&p.team!==NET.me.team&&p.vis===false))playClip('rl',.5);return}if((p.ch==='elaria'&&(m.k==='pm'||m.k==='pas'||m.k==='um'))||(p.ch==='gina'&&(m.k==='gm'||m.k==='gu'||m.k==='gx'))){(p.ch==='gina'?gnGhost:elGhost)(p,m);return}if(NET.me&&p.team!==NET.me.team&&p.vis===false)return;if(ntgCast(p,m))return;const sh=CHAR[p.ch].shape&&CHAR[p.ch].shape[m.k],col=p.team===NET.me.team?0x4da3ff:0xff5a5f;
+function ntCastFx(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me)return;if(m.k!=='rl'){p.revT=1;if(p.vis===false&&!p.iv&&NET.me&&p.team!==NET.me.team&&ntSee(p.x,p.z))p.vis=true}if(m.k==='rl'){p.rl=p.rd=Math.min(5,Math.max(.3,+m.d||1.24));if(!(NET.me&&p.team!==NET.me.team&&p.vis===false))playClip('rl',.5);return}if((p.ch==='elaria'&&(m.k==='pm'||m.k==='pas'||m.k==='um'))||(p.ch==='gina'&&(m.k==='gm'||m.k==='gu'||m.k==='gx'||m.k==='gp'))){(p.ch==='gina'?gnGhost:elGhost)(p,m);return}if(NET.me&&p.team!==NET.me.team&&p.vis===false)return;if(ntgCast(p,m))return;const sh=CHAR[p.ch].shape&&CHAR[p.ch].shape[m.k],col=p.team===NET.me.team?0x4da3ff:0xff5a5f;
   if(!sh){emit(m.x,1.5,m.z,16,col,6,.5);return}
   let g;if(sh.t==='line'){g=new T.PlaneGeometry(sh.w,sh.len);g.rotateX(-Math.PI/2);g.translate(0,0,sh.len/2)}
   else if(sh.t==='circle'){g=new T.CircleGeometry(sh.r,28);g.rotateX(-Math.PI/2);g.translate(0,0,sh.off||0)}
@@ -4623,7 +4670,7 @@ function ntgBasic(p,m){const ch=p.ch,x=m.x,z=m.z,tx=m.tx,tz=m.tz,L=Math.hypot(tx
   const pr=(mesh,up,fb)=>{mesh.position.set(x+dx*1.2,1.7,z+dz*1.2);scene.add(mesh);NET.pr.push({m:mesh,dx,dz,sp:34,life:Math.max(.05,(L-1.2)/34),t:0,up,fb})};
   if(ch==='stanley'){const red=!!m.pw;nClip('ba',x,z,red?.6:1);pr(faMake(dx,dz,red,.45),(b,dt)=>faAnim(b.m,dt,b.dx,b.dz),b=>{for(let q=0;q<3;q++)faShard(b.m.position.x,b.m.position.z,b.dx,b.dz,true,red,.5);emit(b.m.position.x,1.7,b.m.position.z,6,red?0xff7a6a:0x9dffc0,5,.35);nClip('ba',b.m.position.x,b.m.position.z,red?.45:.7)})}
   else if(ch==='miracle'){const big=!!m.big;nClip('miba',x,z,big?1.6:1);pr(crMake(big),(b,dt)=>crUp(b,dt,b.dx,b.dz),b=>{for(let q=0;q<(big?9:4);q++)faShard(b.m.position.x,b.m.position.z,b.dx,b.dz,true);emit(b.m.position.x,1.7,b.m.position.z,big?14:6,0x9dffc0,5,.4);nClip('miba',b.m.position.x,b.m.position.z,big?1.12:.7)})}
-  else if(ch==='gina'){nClip('ba',x,z,1.2);pr(gnBlt([dx,dz],1,false),(b,dt)=>{emit(b.m.position.x,1.7,b.m.position.z,1,0xff9ab8,.5,.2)},b=>{emit(b.m.position.x,1.7,b.m.position.z,6,0xff9ab8,5,.3)})}
+  else if(ch==='gina'){nClip('ba',x,z,1.2);gnMuzzle(x,z,dx,dz,false);pr(gnBlt([dx,dz],1,false),(b,dt)=>{emit(b.m.position.x,1.7,b.m.position.z,1,0xff9ab8,.5,.2)},b=>{emit(b.m.position.x,1.7,b.m.position.z,6,0xff9ab8,5,.3)})}
   else if(ch==='haspen'){pr(hsOrbMake(),(b,dt)=>hsOrbUp(b,dt),b=>hsOrbHit(b.m.position.x,b.m.position.z))}
   else if(ch==='zeta'){nClip('zba',x,z);pr(zeMini(.7),(b,dt)=>zeBUp(b,dt,b.dx,b.dz),b=>{for(let q=0;q<3;q++)faShard(b.m.position.x,b.m.position.z,b.dx,b.dz,true,2,.5);emit(b.m.position.x,1.7,b.m.position.z,6,0x9fe8ff,5,.3);nClip('zba',b.m.position.x,b.m.position.z,.55)})}
   else if(ch==='aurelio'){nClip(m.sn?'ah2':'aba',x,z,m.ps?.85:1);aurHit({x:tx,z:tz},!!m.hv,x,z)}
