@@ -1612,12 +1612,16 @@ function healFx(n){if(!(n>0))return;if(n>=50){popDmg(P.x,3.2,P.z,n,false,'h');re
 function healTick(dt){HA.t+=dt;if(HA.t>=1){if(HA.n>=50)popDmg(P.x,3.2,P.z,HA.n,false,'h');HA.n=0;HA.t=0}}
 function hpAdd(n){if(PX&&PX.K.manant)n*=1.1;if(window.HPS&&HPS.gw>0)n*=.5;const o=P.hp;P.hp=Math.min(P.max,P.hp+n);healFx(P.hp-o)}
 const DPL=[];
+let DSD=1;const DRL=[];   // lado alterno de los números de daño y marcas de tiempo de los últimos
 function popDmg(x,y,z,n,crit,ty){n=Math.round(+n)||0;if(n<=0)return;if(DPOP.length>(CFG.res<=.5?24:60))return;const sp=dmgSprite(n,crit,ty),pe=DPL.pop()||(()=>{const d=document.createElement('div'),c=document.createElement('canvas');d.appendChild(c);return{d,c}})(),d=pe.d,c=pe.c;
   if(c.width!==sp.width||c.height!==sp.height){c.width=sp.width;c.height=sp.height}else c.getContext('2d').clearRect(0,0,c.width,c.height);
   c.style.width=sp.width/DK*UIU+'px';c.style.height=sp.height/DK*UIU+'px';c.style.marginLeft=-sp.width/DK/2*UIU+'px';c.style.marginTop=-sp.height/DK/2*UIU+'px';c.getContext('2d').drawImage(sp,0,0);
   d.className='dmg2'+(crit?' cr':'');d.style.transform='translate(-999px,-999px)';document.body.appendChild(d);
-  const o={d,x,y,z,jx:(Math.random()-.5)*26,jy:(Math.random()-.5)*8};DPOP.push(o);dmgUpd();setTimeout(()=>{d.remove();if(DPL.length<40)DPL.push(pe);const i=DPOP.indexOf(o);if(i>=0)DPOP.splice(i,1)},crit?1450:1150)}
-function dmgUpd(){for(const o of DPOP){const[a,b]=scr(o.x,o.y,o.z);o.d.style.transform=`translate(${a+o.jx}px,${b+o.jy}px)`}}
+  const tn=performance.now();while(DRL.length&&tn-DRL[0]>350)DRL.shift();const kk=DRL.length%6;DRL.push(tn);DSD=-DSD;
+  const o={d,x,y,z,jx:(Math.random()-.5)*6,jy:0,sd:DSD,t0:tn,kk};DPOP.push(o);dmgUpd();setTimeout(()=>{d.remove();if(DPL.length<40)DPL.push(pe);const i=DPOP.indexOf(o);if(i>=0)DPOP.splice(i,1)},crit?1450:1150)}
+// cada número salta hacia arriba y hacia un lado, alternando derecha e izquierda (más lejos si hay ráfagas de golpes) para que no se solapen
+function dmgUpd(){const now=performance.now(),u=typeof UIU==='number'?UIU:1;for(const o of DPOP){const[a,b]=scr(o.x,o.y,o.z),e=Math.sin(Math.min(1,(now-o.t0)/600)*Math.PI/2);
+  o.d.style.transform=`translate(${a+o.jx+o.sd*(10+(30+o.kk*12)*e)*u}px,${b+o.jy-(50+o.kk*12)*e*u}px)`}}
 // ================= ATRIBUTOS (estilo League of Legends) =================
 // Daño físico (AD) · Poder de habilidad (AP) · Vida · Vel. de ataque · Armadura · Resistencia mágica
 // Penetración de armadura (fija | %) · Penetración mágica (fija | %) · Robo de vida (%) · Prob. de crítico (%) · Daño crítico (%)
