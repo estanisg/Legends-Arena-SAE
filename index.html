@@ -926,6 +926,14 @@ html body #frb .frDot{right:calc(1*var(--u));top:calc(1*var(--u));width:calc(12*
 #csOv.prep #csBig{background:none!important;border:0!important;box-shadow:none}
 #csOv.prep #csBig::after{display:none}
 #csOv.prep #csBig .liTx{text-shadow:0 2px 10px #000,0 0 18px #000}
+/* --- Selección ya confirmada: mismo fondo que en preparación (splash nítido y laterales difuminados) --- */
+#csOv.lkd #csBg{opacity:1;filter:brightness(.9) saturate(1.05)}
+#csOv.lkd #csBg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.4) 0,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 60%,rgba(0,0,0,.65) 100%)}
+#csOv.lkd .csSide{background:linear-gradient(90deg,rgba(5,13,32,.3),rgba(5,13,32,.06));-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);border-radius:calc(12*var(--u))}
+#csOv.lkd #csB{background:linear-gradient(270deg,rgba(5,13,32,.3),rgba(5,13,32,.06))}
+#csOv.lkd #csBig{background:none!important;border:0!important;box-shadow:none}
+#csOv.lkd #csBig::after{display:none}
+#csOv.lkd #csBig .liTx{text-shadow:0 2px 10px #000,0 0 18px #000}
 /* --- Hechizos: dos círculos abajo al centro; tocar uno abre el panelito para cambiarlo --- */
 #csSp{display:none;position:relative;flex-direction:column;align-items:center;min-width:0}
 #csOv.prep #csSp{display:flex;grid-column:2;grid-row:1}
@@ -1986,7 +1994,7 @@ function stunE(e,dur){e.stun=dur*(e.boss?.45:1);e.sfBy=cur;e.sfK=0;emit(e.x,3.4,
 function aoe(x,z,o){for(const e of [...en])if((Math.hypot(e.x-x,e.z-z)-(e.nx?2:0))<o.r+.8)hit(e,(o.k?skD(o.k):dmg(o.dm))*(o.nf&&!(e.rp&&!e.mid)?o.nf:(e.mid&&o.mf?o.mf:1)),o.st);
   for(let q=0;q<36;q++){const a=q/36*6.283;emit(x+Math.cos(a)*o.r*.8,.3,z+Math.sin(a)*o.r*.8,1,0xd2a06a,3,.7,3,.3)}
   emit(x,.5,z,25,0xffd9a0,8,.7,2);burst(x,z);shake=Math.max(shake,.6);if(cur!=='goran')SFX.boom()}
-function begin(k){if(!ready(k))return false;P.mp-=MP[k];cd[k]=CD[k];sw.on=false;auto=false;return true}
+function begin(k){if(LD.hold||!ready(k))return false;P.mp-=MP[k];cd[k]=CD[k];sw.on=false;auto=false;return true}
 const zbG=new T.SphereGeometry(.3,8,8),zbM=new T.MeshBasicMaterial({color:0x9fe8ff});
 function zShot(e,pct,col){if(cur==='gina')return gnShot(e);const cr=cur==='miracle',st=cur==='stanley',red=st&&pct===3,ze=cur==='zeta',ha=cur==='haspen',m=cr?crMake(!!e.mark):st?faMake(e.x-P.x,e.z-P.z,red,.45):ha?hsOrbMake():ze?zeMini(.7):new T.Mesh(zbG,col?new T.MeshBasicMaterial({color:col}):zbM);m.position.set(P.x+Math.sin(P.ang)*1.2,1.7,P.z+Math.cos(P.ang)*1.2);scene.add(m);zb.push({m,e,dm:dmg(st?1.35:(pct||1)),fc:red,cr,fa:st,red,ze,ha});if(cur==='zeta')playClip('zba',1);else if(cur==='miracle')playClip('miba',1,e&&e.mark?1.6:1);else if(cur==='haspen')hsSnd.shot();else if(cur!=='stanley')SFX.zshot()}
 // ================= Zeta: H1 lanza eléctrica rápida · H2 abanico de rayos · Ulti lluvia de mini disparos · básicos =================
@@ -4701,12 +4709,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntWake()})
 function ntHostRecv(c,m){const id=c.peer;{const n=performance.now(),pv=NET.seen[id]||n;NET.seen[id]=n;if(n-pv>600)NET.lag[id]=n+700}
   switch(m.t){
     case'join':if(NET.pw&&m.pw!==NET.pw){c.send({t:'badpw'});setTimeout(()=>c.close(),300);return}NET.conns[id]=c;if(NET.lobby.started||NET.lobby.phase||!ntSlotAdd(id,m.name,m.av,m.best)){c.send({t:'full'});setTimeout(()=>c.close(),300);return}ntLobbySync();break;
-    case'pick':if(NET.lobby.phase==='pick'){ntPick(id,m.ch,m.skn,m.hp);ntLobbySync()}break;case'hps':{const q=NET.lobby&&NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase){q.hp=ntHpClean(m.hp);ntLobbySync()}break}case'hr':{const q=NET.players&&NET.players.find(z=>z.id===id);if(q)q.hr=m.v?1:0;break}case'rdy':{const q=NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase==='prep'){q.rdy=1;ntLobbySync()}break}
+    case'pick':if(NET.lobby.phase==='pick'){ntPick(id,m.ch,m.skn,m.hp);ntLobbySync()}break;case'hps':{const q=NET.lobby&&NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase){q.hp=ntHpClean(m.hp);ntLobbySync()}break}case'hr':{const q=NET.players&&NET.players.find(z=>z.id===id);if(q)q.hr=m.v?1:0;break}case'ldp':ldRecv(id,+m.p);break;case'rdy':{const q=NET.lobby.slots.find(z=>z.id===id);if(q&&NET.lobby.phase==='prep'){q.rdy=1;ntLobbySync()}break}
     case'team':ntTeamSet(id,m.team);ntLobbySync();break;
     case'st':m.id=id;NET.hs[id]=m;ntHandle(m);break;case'cast':m.id=id;ntBcast(m,id);ntHandle(m);break;case'hp':m.id=id;ntBcast(m,id);ntHandle(m);break;
     case'dmg':case'fx':m.from=id;if(m.t==='dmg'&&!ntOkDmg(id,m))break;ntRoute(m);break;
     case'sur':ntSurr(id);break;case'death':ntDeath(id,m.by);break;case'mdmg':if(NET.map==='lane'&&performance.now()>=(NET.lag[id]||0))lnHit(m.mid,m.n,id);break;case'agro':if(NET.map==='lane')lnAgro(m.a,m.x,m.z);break}}
-function ntClientRecv(m){switch(m.t){case'lobby':clearTimeout(NET._jt);NET.lobby=m.L;ntLobbyUI();break;case'full':ntLeave();ntShow(1);ntMsg('La sala está llena');break;case'badpw':ntLeave();ntShow(1);ntMsg('Contraseña incorrecta');break;case'start':ntStart(m.slots,m.map);break;default:ntHandle(m)}}
+function ntClientRecv(m){switch(m.t){case'lobby':clearTimeout(NET._jt);NET.lobby=m.L;ntLobbyUI();break;case'full':ntLeave();ntShow(1);ntMsg('La sala está llena');break;case'badpw':ntLeave();ntShow(1);ntMsg('Contraseña incorrecta');break;case'start':ntLoad(m.slots,m.map);break;case'ldst':ldOnSt(m);break;case'go':ldGoRecv();break;default:ntHandle(m)}}
 function ntHandle(m){if(!NET.on)return;switch(m.t){case'snap':NET.ls=performance.now();for(const q of m.s)ntState(q);break;case'st':ntState(m);break;case'cast':ntCastFx(m);break;case'dmg':ntOnDmg(m);break;case'fx':ntOnFx(m);break;case'score':ntOnScore(m);break;case'end':ntEnd(m.w,m.nx,m.sr,m.by);break;case'left':ntOnLeft(m.id);break;case'ln':lnApply(m);break;case'lb':lnFxMake(m);break;case'wv':banner(m.sp?'¡Minion de asedio en camino!':'¡Oleada de minions en camino!');break;case'm4t':m4Msg(m);break;case'm4b':m4Buff(m);break;case'kst':NET.st=m.s;if(window.kstRefresh)kstRefresh();break;case'dec':banner('¡Los Nexos se debilitan! -1% de vida por segundo');break;case'xp':gainXP(m.n);if(m.g)addGold(m.g);if(m.c){KDA.m+=(+m.c||1);if(m.j&&window.HPS)HPS.jk++}break;case'hp':hpNet(m);break}}
 function ntRecon(pe){try{if(pe&&pe.disconnected&&!pe.destroyed)pe.reconnect()}catch(_){}}
 function ntErr(e){const t=e&&e.type;if(NET.on){ntRecon(NET.peer);return}
@@ -4724,11 +4732,11 @@ function ntJoin(code,tr){tr=tr|0;if(typeof Peer==='undefined'){ntMsg('No se pudo
   peer.on('error',ntErr);peer.on('disconnected',()=>ntRecon(peer));NET._jr=setTimeout(()=>{if(!NET.lobby&&!NET.on&&NET.peer&&tr<2)ntJoin(code,tr+1)},9000);NET._jt=setTimeout(()=>{if(!NET.lobby){const m=!NET.id?'No hay conexión con el servidor de salas (¿bloqueado o sin internet?)':(NET.hc&&!NET.hc.open?'La sala existe pero no se pudo abrir la conexión directa (tu red la bloquea). Prueba con otra red o configura TURN':'No se encontró esa sala');ntLeave();ntShow(1);ntMsg(m)}},20000)}
 function ntDrop(id){if(!NET.peer)return;delete NET.conns[id];delete NET.hs[id];delete NET.seen[id];if(NET.on){if(NET.lobby)NET.lobby.slots=NET.lobby.slots.filter(s=>s.id!==id);const m={t:'left',id};ntBcast(m);ntHandle(m)}else if(NET.lobby){NET.lobby.slots=NET.lobby.slots.filter(s=>s.id!==id);ntLobbySync()}}
 function ntLost(){if(!NET.peer)return;const was=NET.on;ntLeave();if(was){showMain()}else{$('ntPanel').style.display='flex';ntShow(1);ntMsg('Se perdió la conexión con la sala')}}
-function ntLeave(){clearTimeout(NET._jr);clearTimeout(NET._jt);clearTimeout(NET._ht);lnClear();const pe=NET.peer,cs=NET.conns,hc=NET.hc;NET.peer=null;NET.conns={};NET.hc=null;
+function ntLeave(){ldAbort();clearTimeout(NET._jr);clearTimeout(NET._jt);clearTimeout(NET._ht);lnClear();const pe=NET.peer,cs=NET.conns,hc=NET.hc;NET.peer=null;NET.conns={};NET.hc=null;
   try{for(const id in cs)cs[id].close()}catch(_){}try{hc&&hc.close()}catch(_){}try{pe&&pe.destroy()}catch(_){}
   NET.players.forEach(p=>{if(p.sk)scene.remove(p.sk.g);if(p.bar)p.bar.remove();if(p.mh)ntgHandsKill(p)});NET.pr.splice(0).forEach(b=>{scene.remove(b.m);if(b.m.userData.dis)b.m.userData.dis()});NET.gt.splice(0);miGl.slice().forEach(c=>miKill(c));NET.fx.splice(0).forEach(f=>{scene.remove(f.m);f.m.material.dispose();f.m.geometry.dispose()});
   ntStallUI(false);Object.assign(NET,{on:false,host:false,id:null,lobby:null,players:[],me:null,over:false,map:'arena',goal:20,hs:{},seen:{},lag:{},ls:0,stall:false});['ntScore','ntRes','ntEnd'].forEach(i=>$(i).style.display='none')}
-function ntToLobby(){if(!NET.peer||!NET.lobby){ntLeave();showMain();return}lnClear();
+function ntToLobby(){ldAbort();if(!NET.peer||!NET.lobby){ntLeave();showMain();return}lnClear();
   NET.players.forEach(p=>{if(p.sk)scene.remove(p.sk.g);if(p.bar)p.bar.remove();if(p.mh)ntgHandsKill(p)});
   NET.pr.splice(0).forEach(b=>{scene.remove(b.m);if(b.m.userData.dis)b.m.userData.dis()});NET.gt.splice(0);miGl.slice().forEach(c=>miKill(c));
   NET.fx.splice(0).forEach(f=>{scene.remove(f.m);f.m.material.dispose();f.m.geometry.dispose()});
@@ -4748,7 +4756,7 @@ function ntLobbyUI(){const L=NET.lobby;if(!L)return;if(csSync(L))return;ntShow(2
   $('ntWait').textContent=L.phase?'Partida en preparación…':NET.host?'Elige un mapa para empezar · puedes jugar aunque estés solo':'Esperando a que el anfitrión elija el mapa…';ntMapUI(L)}
 function ntDoPick(ch){if(window.LOCK&&LOCK.c(ch)){LOCK.toast('Personaje bloqueado: desbloquéalo en Leyendas');return}const skn=SKS.get(ch);if(NET.host){ntPick(NET.id,ch,skn,ntHpOf(ch));ntLobbySync()}else if(NET.hc&&NET.hc.open)NET.hc.send({t:'pick',ch,skn,hp:ntHpOf(ch)})}
 function ntDoTeam(t){if(NET.host){ntTeamSet(NET.id,t);ntLobbySync()}else if(NET.hc&&NET.hc.open)NET.hc.send({t:'team',team:t})}
-function ntHostStart(){const L=NET.lobby;if(!NET.host||!L||!ntReady(L))return;L.started=true;const m={t:'start',slots:L.slots,map:L.map};ntBcast(m);ntStart(m.slots,m.map)}
+function ntHostStart(){const L=NET.lobby;if(!NET.host||!L||!ntReady(L))return;L.started=true;const m={t:'start',slots:L.slots,map:L.map};ntBcast(m);ntLoad(m.slots,m.map)}
 // ---- Partida ----
 function ntBase(p){const tm=NET.players.filter(q=>q.team===p.team),i=tm.indexOf(p);if(NET.map==='lane'){const[x,z]=lnW((p.team==='A'?-1:1)*(NET.m4?16.5*M4K+8:LN.U-8),(i-(tm.length-1)/2)*5);return{x,z}}return{x:p.team==='A'?-24:24,z:(i-(tm.length-1)/2)*6}}
 function ntEnt(p){const e={rp:1,pid:p.id,type:'p',boss:false,at:-1,hit:false,mv:false,chT:0,x:p.x,z:p.z,hp:p.hp,max:p.max,spd:0,dm:0,spawn:0,atk:0,shoot:0,flash:0,ph:0,g:p.sk.g,bar:p.bar,weakT:0,_st:0,_sl:0,mat:{emissive:{setHex(){}},emissiveIntensity:0}};
@@ -4863,13 +4871,13 @@ function csRender(L,me){const pick=L.phase==='pick',lk=!!me.ch,my=me.team,rv=my=
   $('csPh').textContent=pick?(lk?'Campeón seleccionado':'Elige tu campeón'):'Prepárate para la batalla';
   $('csA').innerHTML='<div class="csTh csThA"><span>Tu equipo</span>'+(nHr?'':'<span class="csJg">Falta Jungla'+(H.herir?'<u style="background-image:url('+H.herir.ic+')"></u>':'')+'</span>')+'</div>'+T(my).map(s=>pl(s,1)).join('');
   $('csB').innerHTML='<div class="csTh">Equipo enemigo</div>'+(T(rv).map(s=>pl(s,0)).join('')||'<div class="csTh">Sin rivales</div>');
-  $('csOv').classList.toggle('prep',!pick);
+  $('csOv').classList.toggle('prep',!pick);$('csOv').classList.toggle('lkd',pick&&lk);
   const dk=pick&&!lk&&cs.sel&&ASSET[cs.sel],bg=$('csBg'),pk=!pick&&me.ch&&ASSET[me.ch];
-  csBgFull(dk?cs.sel:pk?me.ch:'');
-  bg.classList.toggle('on',!!(dk||pk));
+  const lp=pick&&lk&&me.ch&&ASSET[me.ch];csBgFull(dk?cs.sel:(lp||pk)?me.ch:'');
+  bg.classList.toggle('on',!!(dk||lp||pk));
   const gr=$('csGrid'),st=gr.scrollTop,big=$('csBig');gr.style.display=pick&&!lk?'grid':'none';big.style.display=lk?'block':'none';
   if(pick&&!lk){gr.innerHTML=Object.keys(CHAR).map(k=>{const taken=L.slots.some(s=>s!==me&&s.team===my&&s.ch===k),lock=!!(window.LOCK&&LOCK.c(k)),lg=window.csLegInfo&&csLegInfo(k);return`<button class="lgc${cs.sel===k?' on':''}${lock?' lk':''}" data-k="${k}" ${taken||lock?'disabled':''}><b>${CHAR[k].n}</b>${lg?`<small><i class="ci ci-${lg.c}"></i>${lg.n}</small>`:''}</button>`}).join('');gr.scrollTop=st;csGridFit();gr.querySelectorAll('.lgc').forEach(b=>csBgSet(b,b.dataset.k))}
-  if(lk){$('csBigN').textContent=CHAR[me.ch].n;const lg=window.csLegInfo&&csLegInfo(me.ch);$('csBigC').innerHTML=lg?`<i class="ci ci-${lg.c}"></i>${lg.n}`:'';if(pick)csBgSet(big,me.ch);else big.style.backgroundImage='none'}
+  if(lk){$('csBigN').textContent=CHAR[me.ch].n;const lg=window.csLegInfo&&csLegInfo(me.ch);$('csBigC').innerHTML=lg?`<i class="ci ci-${lg.c}"></i>${lg.n}`:'';big.style.backgroundImage='none'}
   $('csLock').style.display=pick?'block':'none';$('csLock').disabled=!cs.sel||lk;$('csLock').textContent=lk?'Seleccionado ✔':'Seleccionar';
   $('csRdy').style.display=pick?'none':'block';$('csRdy').disabled=!!me.rdy;$('csRdy').textContent=me.rdy?'Listo ✔':'¡Listo!';if(window.csHpRender)csHpRender();csTick()}
 addEventListener('resize',()=>{const L=NET.lobby,me=L&&L.phase&&L.slots.find(s=>s.id===NET.id);if(me&&$('csOv').style.display!=='none')csRender(L,me)});
@@ -4880,10 +4888,104 @@ function csTick(){const L=NET.lobby;if(!L||!L.phase||$('csOv').style.display==='
   if(!NET.host)return;
   if(L.phase==='pick'&&(left<=-900||L.slots.every(s=>s.ch)))csEndPick();
   else if(L.phase==='prep'&&(left<=0||L.slots.filter(s=>s.ch).every(s=>s.rdy)))csGo()}
+// ================= Pantalla de carga de la partida: todos empiezan a la vez (100 % o 30 s) =================
+const LD={on:0,hold:false,pr:{},t0:0,iv:0,ids:[],ready:0,go:0,el:0};
+function ldEsc(t){return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ldEnsure(){if($('mlOv'))return;
+  const st=document.createElement('style');st.id='mlCss';st.textContent=`
+#mlOv{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;background:linear-gradient(rgba(5,9,18,.55),rgba(5,9,18,.8)),var(--mbg) center/cover no-repeat #070b12;overflow:hidden;box-sizing:border-box;height:100vh;height:100dvh;max-width:100vw;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);transition:opacity .35s;touch-action:none;user-select:none;-webkit-user-select:none}
+#mlOv.out{opacity:0;pointer-events:none}
+#mlOv,#mlOv *{font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif!important;font-weight:500!important;letter-spacing:calc(1*var(--u))!important;text-transform:uppercase!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+#mlTop{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:clamp(4px,1.2vh,10px) clamp(10px,2.4vw,24px);font-size:clamp(11px,2.2vw,16px)}
+#mlTm{font-size:clamp(16px,3.4vw,26px);min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
+.mlLb{align-self:flex-start;font-size:clamp(8px,1.5vw,11px);opacity:.8;padding:0 clamp(10px,2.4vw,24px)}
+.mlRow{flex:1;min-height:0;width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:stretch;gap:clamp(6px,1.4vw,16px);padding:clamp(2px,.8vh,8px) clamp(8px,2vw,20px)}
+.mlC{position:relative;height:100%;width:clamp(60px,18vw,150px);flex:none;box-sizing:border-box;border:2px solid var(--tc);border-radius:6px;overflow:hidden;background:#0a1830;box-shadow:0 0 12px rgba(0,0,0,.5)}
+.mlC.me{box-shadow:0 0 0 2px #ffb13b,0 0 14px rgba(255,177,59,.6)}
+.mlP{position:absolute;inset:0;background-color:#0a1830}
+.mlC::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 52%,rgba(3,8,20,.93));pointer-events:none}
+.mlSp{position:absolute;z-index:2;top:3%;right:5%;display:flex;gap:4%}
+.mlSp u{display:block;width:clamp(9px,17cqw,22px);height:clamp(9px,17cqw,22px);border-radius:50%;border:1px solid rgba(255,217,138,.9);background:#0a1830 center/cover no-repeat;box-shadow:0 0 4px #000}
+.mlPc{position:absolute;z-index:2;top:3%;left:6%;font-size:clamp(7px,9cqw,12px);text-shadow:0 1px 4px #000,0 0 8px #000}
+.mlI{position:absolute;z-index:2;left:6%;right:6%;bottom:calc(clamp(3px,.8vh,6px) + 4%);display:flex;flex-direction:column;gap:2px;min-width:0;text-shadow:0 1px 6px #000}
+.mlI b,.mlI small,.mlI em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal}
+.mlI b{font-size:clamp(9px,13cqw,18px)}
+#mlOv .mlI small{font-size:clamp(7px,9.5cqw,12px);color:#ffd98a!important;-webkit-text-fill-color:#ffd98a!important;white-space:normal;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mlI em{font-size:clamp(8px,10.5cqw,14px);opacity:.9}
+.mlPg{position:absolute;z-index:3;left:0;right:0;bottom:0;height:clamp(3px,.8vh,6px);background:rgba(255,255,255,.18)}
+.mlPg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb13b,#ffd98a);transition:width .2s}
+.mlC.ok .mlPg i{background:#5fe08a}
+#mlFt{display:flex;align-items:center;gap:clamp(8px,1.6vw,14px);width:100%;box-sizing:border-box;padding:clamp(4px,1.2vh,10px) clamp(10px,2.4vw,24px);font-size:clamp(8px,1.5vw,11px)}
+#mlBar{flex:1;height:clamp(5px,1vh,8px);background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}
+#mlBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb13b,#ffd98a);transition:width .2s}
+@supports (container-type:size){
+ .mlRow{container-type:size}
+ .mlC{width:min(56.25cqh,calc((100cqw - 3*clamp(6px,1.4vw,16px))/4));container-type:inline-size}
+}`;
+  document.head.appendChild(st);
+  const o=document.createElement('div');o.id='mlOv';
+  o.innerHTML='<div id="mlTop"><span>Cargando partida</span><span id="mlTm">30</span></div><div class="mlLb">Tu equipo</div><div class="mlRow" id="mlA"></div><div class="mlLb">Equipo enemigo</div><div class="mlRow" id="mlB"></div><div id="mlFt"><div id="mlBar"><i></i></div><span id="mlTx">Cargando…</span></div>';
+  document.body.appendChild(o);
+  addEventListener('resize',()=>{document.querySelectorAll('#mlOv .mlP').forEach(e=>e._f&&e._f())})}
+function ldFit(el,url,cx,cy){const im=new Image(),ap=()=>{const w=el.clientWidth,h=el.clientHeight;if(!w||!h||!im.naturalWidth)return;
+    const sc=Math.max(w/im.naturalWidth,h/im.naturalHeight),iw=im.naturalWidth*sc,ih=im.naturalHeight*sc,fx=Math.min(1-w/2/iw,Math.max(w/2/iw,cx)),fy=Math.min(1-h/2/ih,Math.max(h/2/ih,cy));
+    el.style.backgroundImage='url('+url+')';el.style.backgroundRepeat='no-repeat';el.style.backgroundSize=iw+'px '+ih+'px';el.style.backgroundPosition=(w/2-fx*iw)+'px '+(h/2-fy*ih)+'px'};
+  el._f=ap;im.src=url;if(im.complete&&im.naturalWidth)ap();else im.addEventListener('load',ap,{once:true})}
+function ldBuild(slots){ldEnsure();
+  const me=slots.find(s=>s.id===NET.id)||slots[0],my=me.team,rv=my==='A'?'B':'A',H=(window.PREP&&PREP.HPD)||{},SD=(typeof SKIN_DEF!=='undefined'?SKIN_DEF:{}),
+  skOf=s=>s.ch&&s.skn?(SD[s.ch]||[]).find(z=>z.id===s.skn):null,
+  card=s=>{const ch=CHAR[s.ch]?s.ch:'',d=skOf(s),sp=(s.hp||[]).filter(x=>H[x]).map(x=>'<u title="'+ldEsc(H[x].n)+'" style="background-image:url('+H[x].ic+')"></u>').join('');
+    return '<div class="mlC'+(s.id===NET.id?' me':'')+'" data-id="'+ldEsc(s.id)+'" style="--tc:#'+NT_TC[s.team].toString(16).padStart(6,'0')+'"><div class="mlP"></div>'+(sp?'<span class="mlSp">'+sp+'</span>':'')+'<span class="mlPc">0%</span><div class="mlI"><b>'+ldEsc(ch?CHAR[ch].n:'?')+'</b>'+(d?'<small>'+ldEsc(d.n)+'</small>':'')+'<em>'+ldEsc(s.name)+(s.id===NET.id?' (tú)':'')+'</em></div><div class="mlPg"><i></i></div></div>'},
+  rvs=slots.filter(s=>s.team===rv);
+  $('mlA').innerHTML=slots.filter(s=>s.team===my).map(card).join('');$('mlB').innerHTML=rvs.map(card).join('');
+  $('mlB').style.display=$('mlB').previousElementSibling.style.display=rvs.length?'':'none';
+  const o=$('mlOv');o.classList.remove('out');o.style.display='flex';
+  for(const c of o.querySelectorAll('.mlC')){const s=slots.find(q=>String(q.id)===c.dataset.id);if(!s||!CHAR[s.ch])continue;
+    const d=skOf(s),pe=c.querySelector('.mlP');
+    if(d&&d.img)ldFit(pe,d.img,d.cx||.5,.5);else{pe._f=()=>cropFit(pe,s.ch,'card');pe._f()}}}
+function ldMatchImgs(slots){const o=new Set(),add=u=>{if(u&&typeof u==='string')o.add(u)},H=(window.PREP&&PREP.HPD)||{},SD=(typeof SKIN_DEF!=='undefined'?SKIN_DEF:{});
+  for(const s of slots){const a=ASSET[s.ch];if(a){add(a.splash);(a.icons||[]).forEach(add)}const d=s.skn?(SD[s.ch]||[]).find(z=>z.id===s.skn):null;if(d)add(d.img);(s.hp||[]).forEach(x=>H[x]&&add(H[x].ic))}
+  return[...o]}
+function ldPaint(pr,el){const o=$('mlOv');if(!o||o.style.display==='none')return;let tot=0,n=0;
+  for(const c of o.querySelectorAll('.mlC')){const p=Math.max(0,Math.min(1,+pr[c.dataset.id]||0)),pc=Math.round(p*100);tot+=p;n++;c.querySelector('.mlPg i').style.width=pc+'%';const t=c.querySelector('.mlPc');if(t._v!==pc){t._v=pc;t.textContent=pc>=100?'Listo':pc+'%'}c.classList.toggle('ok',pc>=100)}
+  if(n)o.querySelector('#mlBar i').style.width=(tot/n*100).toFixed(1)+'%';
+  if(el!=null)LD.el=el;$('mlTm').textContent=Math.max(0,Math.ceil(30-LD.el/1000));
+  $('mlTx').textContent=(+pr[NET.id]||0)>=1?'Esperando a los demás jugadores…':'Cargando…'}
+function ldOnSt(m){if(!LD.on||!m||!m.pr)return;for(const id in m.pr)LD.pr[id]=Math.max(LD.pr[id]||0,+m.pr[id]||0);ldPaint(LD.pr,m.el)}
+function ldMy(p){if(!LD.on)return;p=Math.max(0,Math.min(1,p));LD.pr[NET.id]=Math.max(LD.pr[NET.id]||0,p);
+  if(!NET.host&&NET.hc&&NET.hc.open)try{NET.hc.send({t:'ldp',p:+p.toFixed(3)})}catch(_){}
+  ldPaint(LD.pr,NET.host?performance.now()-LD.t0:null)}
+function ldRecv(id,p){if(!LD.on||!NET.host||!(id in LD.pr))return;LD.pr[id]=Math.max(LD.pr[id]||0,Math.min(1,p||0))}
+function ldGone(id){if(id===NET.id)return false;const c=NET.conns&&NET.conns[id];return!(c&&c.open!==false)}
+function ldHostTick(){if(!LD.on||!NET.host){clearInterval(LD.iv);LD.iv=0;return}
+  const el=performance.now()-LD.t0,all=LD.ids.every(id=>(LD.pr[id]||0)>=1||ldGone(id));
+  ntBcast({t:'ldst',pr:LD.pr,el:Math.round(el)});ldPaint(LD.pr,el);
+  if(all||el>=30000){clearInterval(LD.iv);LD.iv=0;ntBcast({t:'go'});ldGoRecv()}}
+function ldGoRecv(){if(!LD.on)return;LD.go=1;if(LD.ready)ldFinish()}
+function ldFinish(){if(!LD.on)return;LD.on=0;LD.hold=false;clearInterval(LD.iv);LD.iv=0;
+  const o=$('mlOv');if(o){o.classList.add('out');setTimeout(()=>{if(!LD.on){o.style.display='none';o.classList.remove('out')}},380)}
+  const nw=performance.now();NET.ls=nw;try{last=nw}catch(_){}
+  try{banner(NET.map==='lane'?'¡Rompe el Nexo enemigo o llega a '+NET.goal+' kills!':'¡A por '+NET.goal+' kills!')}catch(_){}}
+function ldAbort(){if(!LD.on&&!LD.hold)return;LD.on=0;LD.hold=false;clearInterval(LD.iv);LD.iv=0;const o=$('mlOv');if(o){o.style.display='none';o.classList.remove('out')}}
+async function ntLoad(slots,map){
+  if(LD.on)return;ldEnsure();
+  LD.on=1;LD.hold=true;LD.go=0;LD.ready=0;LD.el=0;LD.pr={};LD.t0=performance.now();LD.ids=slots.map(s=>s.id);for(const s of slots)LD.pr[s.id]=0;
+  if(NET.lobby)NET.lobby.phase=null;$('csOv').style.display='none';$('ntPanel').style.display='none';$('main').style.display='none';
+  ldBuild(slots);ldPaint(LD.pr,0);
+  if(NET.host)LD.iv=setInterval(ldHostTick,250);
+  await nf();
+  // 1) imágenes de todos los jugadores (retratos, aspectos, íconos de habilidades y hechizos)
+  const list=ldMatchImgs(slots),tot=list.length+1;let done=0;
+  for(let i=0;i<list.length&&LD.on;i+=3){await Promise.all(list.slice(i,i+3).map(async u=>{const im=new Image();im.src=u;LDKEEP.push(im);try{if(im.decode)await im.decode();else await until(()=>im.complete,3000)}catch(_){}done++}));ldMy(.7*done/tot);await nf()}
+  if(!LD.on)return;
+  ldMy(.75);await nf();
+  // 2) se prepara la partida detrás de la pantalla de carga (el juego queda congelado hasta la señal de inicio)
+  try{ntStart(slots,map)}catch(e){console.error('[ntLoad]',e)}
+  ldMy(1);LD.ready=1;if(LD.go)ldFinish()}
 function csEndPick(){const L=NET.lobby,me=L.slots.find(s=>s.id===NET.id);
   if(!me||!me.ch){L.phase=null;ntLobbySync();ntMsg('No elegiste personaje: volviste a la sala');return}
   L.phase='prep';L.pt=(L.pt|0)+1;L.dur=15;L.slots.forEach(s=>s.rdy=0);ntLobbySync()}
-function csGo(){const L=NET.lobby;if(!NET.host||!L||L.phase!=='prep')return;const slots=L.slots.filter(s=>s.ch);L.phase=null;L.started=true;$('csOv').style.display='none';const m={t:'start',slots,map:L.map};ntBcast(m);ntStart(slots,L.map)}
+function csGo(){const L=NET.lobby;if(!NET.host||!L||L.phase!=='prep')return;const slots=L.slots.filter(s=>s.ch);L.phase=null;L.started=true;$('csOv').style.display='none';const m={t:'start',slots,map:L.map};ntBcast(m);ntLoad(slots,L.map)}
 $('ntMaps').onclick=e=>{const b=e.target.closest('.ntMap');if(b&&!b.disabled)csPickMap(b.dataset.map)};
 $('csGrid').onclick=e=>{const b=e.target.closest('.lgc');if(!b||b.disabled)return;cs.sel=b.dataset.k;const L=NET.lobby,me=L&&L.slots.find(s=>s.id===NET.id);if(me)csRender(L,me)};
 $('csLock').onclick=()=>{if(cs.sel)ntDoPick(cs.sel)};
@@ -5643,7 +5745,7 @@ let _le=0,_dT=0;
 function loopErr(err){requestAnimationFrame(loop);if(_le++<5)console.error("[loop]",err);try{if(!NET.on&&P.dead>0&&running){P.dead=-1;gameOver()}}catch(e2){console.error(e2)}}
 function loop0(t){if(!floorOk)floorPaint();if(CFG.fps&&t-lastR<1000/CFG.fps-2){requestAnimationFrame(loop);return}lastR=t;
   const dR=t-lastP;lastP=t;if(running&&!pfDone&&dR<500){pfA+=dR;pfN++;if(pfA>9000){pfDone=true;if(pfN/(pfA/1000)<26&&CFG.pre!=='minimo')banner('El juego va lento: baja los gráficos en Ajustes (menú de pausa)')}}
-  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=(P.dead>0&&running)?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!ARC.pick&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++){try{step(dt)}catch(e){if(_le++<5)console.error('[step]',e);if(!NET.on&&P.dead>0){P.dead=-1;gameOver()}break}}}
+  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=(P.dead>0&&running)?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!ARC.pick&&!LD.hold&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++){try{step(dt)}catch(e){if(_le++<5)console.error('[step]',e);if(!NET.on&&P.dead>0){P.dead=-1;gameOver()}break}}}
   if(!NET.on&&running&&P.dead>0){if(!_dT)_dT=performance.now();else if(performance.now()-_dT>6000){_dT=0;P.dead=-1;gameOver()}}else _dT=0;
   if(ENDEL.style.display==='flex'){requestAnimationFrame(loop);return}
   {arngUpd(rawDt);cbT=Math.max(0,cbT-rawDt);renderer.render(scene,camera);ui();if(DPOP.length)dmgUpd()}requestAnimationFrame(loop)}
