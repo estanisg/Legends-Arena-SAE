@@ -4675,7 +4675,7 @@ const NT_TC={A:0x4da3ff,B:0xff5a5f},ntMine=t=>!NET.me||NET.me.team===t,ntCH=t=>n
 const ntMyAv=()=>window.LAAV?window.LAAV.av:-1,ntMyBest=()=>window.LAA?(+window.LAA.best||0):0,
  ntRk=b=>RANKS.filter(r=>(+b||0)>=r[0]).pop()||RANKS[0],
  ntReady=L=>L.slots.length>0;
-function ntSlotAdd(id,name,av,best){const L=NET.lobby;if(L.slots.length>=ntCap())return null;const cnt=t=>L.slots.filter(s=>s.team===t).length,team=cnt('A')<=cnt('B')?'A':'B';
+function ntSlotAdd(id,name,av,best){const L=NET.lobby;if(L.slots.length>=ntCap()){const bi=L.slots.findIndex(s=>s.bot);if(bi<0)return null;L.slots.splice(bi,1)}const cnt=t=>L.slots.filter(s=>s.team===t).length,team=cnt('A')<=cnt('B')?'A':'B';
   av=Number.isInteger(av)&&av>=0&&av<5?av:-1;best=Math.max(0,Math.min(2e6,Math.floor(+best)||0));
   const s={id,name:ntEsc(name||'Jugador').slice(0,12)||'Jugador',team,ch:'',av,best};L.slots.push(s);return s}
 function ntHpClean(a){const H=window.PREP&&PREP.HPD;return Array.isArray(a)&&H?a.slice(0,2).filter(x=>H[x]):[]}
@@ -4687,7 +4687,7 @@ function ntTeamSet(id,team){const L=NET.lobby,s=L.slots.find(q=>q.id===id);if(!s
 // ---- Red ----
 function ntBcast(m,ex){for(const id in NET.conns){const c=NET.conns[id];if(id!==ex&&c.open)c.send(m)}}
 function ntSend(m){if(NET.host){m.id=NET.id;ntBcast(m)}else if(NET.hc&&NET.hc.open)NET.hc.send(m)}
-function ntRoute(m){if(NET.host&&m.t==='dmg'&&!m.by&&m.from&&m.to){NET.dl=NET.dl||{};(NET.dl[m.to]=NET.dl[m.to]||{})[m.from]=performance.now()}if(m.to===NET.id)ntHandle(m);else{const c=NET.conns[m.to];if(c&&c.open)c.send(m)}}
+function ntRoute(m){if(NET.host&&m.t==='dmg'&&!m.by&&m.from&&m.to){NET.dl=NET.dl||{};(NET.dl[m.to]=NET.dl[m.to]||{})[m.from]=performance.now()}if(NET.bots&&NET.bots[m.to]){botMsg(m);return}if(m.to===NET.id)ntHandle(m);else{const c=NET.conns[m.to];if(c&&c.open)c.send(m)}}
 function ntSendTo(id,m){if(m.t==='dmg'&&!m.by&&LN.on&&LN.cb&&NET.me&&LN.cb[NET.me.team]>0)m.n*=1.15;m.from=NET.id;m.to=id;if(NET.host)ntRoute(m);else if(NET.hc&&NET.hc.open)NET.hc.send(m)}
 function ntLobbySync(){ntBcast({t:'lobby',L:NET.lobby});ntLobbyUI()}
 
@@ -4760,10 +4760,10 @@ function ntShow(v){$('ntV1').style.display=v===1?'flex':'none';$('ntV2').style.d
 function ntMsg(t){$('ntMsg').textContent=t||'';$('ntMsg2').textContent=t||''}
 function ntLobbyUI(){const L=NET.lobby;if(!L)return;if(csSync(L))return;ntShow(2);ntMsg('');$('ntC').textContent=NET.code;$('ntModeT').textContent='Multijugador'+(NET.host?(NET.pw?' · 🔒':'')+(NET.pub?' · Pública':' · Privada'):'');const me=L.slots.find(s=>s.id===NET.id);
   const AVS=window.LAAV?window.LAAV.AV:[];
-  const row=s=>{const rk=ntRk(s.best),im=s.av>=0&&AVS[s.av]?`style="background-image:url(${AVS[s.av]})"`:'';
+  const row=s=>{if(s.bot)return botRow(s);const rk=ntRk(s.best),im=s.av>=0&&AVS[s.av]?`style="background-image:url(${AVS[s.av]})"`:'';
     return`<div class="ntP${s.id===NET.id?' me':''}" data-n="${ntEsc(s.name)}"><div class="ntPa" ${im}>${im?'':ntEsc(s.name).charAt(0).toUpperCase()}</div><div class="ntPr"><img src="${rk[3]}"><small style="color:${rk[2]}">${rk[1]}</small></div><div class="ntPn">${ntEsc(s.name)}${s.id===NET.id?' (tú)':''}</div><div class="ntPc">${s.ch?`<i style="background-image:url(${ASSET[s.ch].splash})"></i><span>${CHAR[s.ch].n}</span>`:'<span>—</span>'}</div></div>`};
   $('ntList').innerHTML=['A','B'].map(t=>{const col=NT_TC[t].toString(16).padStart(6,'0'),ps=L.slots.filter(s=>s.team===t),empty=Math.max(0,L.mode-ps.length);
-    return`<div class="ntT" style="border-color:#${col}"><div class="ntTh"><b style="color:#${col}">${t==='A'?'Equipo azul':'Equipo rojo'} · ${ps.length}/${L.mode}</b>${me&&me.team===t?'':`<button class="mb sec" data-team="${t}">Unirme</button>`}</div>${ps.map(row).join('')}${'<div class="ntP ntE">Libre</div>'.repeat(empty)}</div>`}).join('');
+    return`<div class="ntT" style="border-color:#${col}"><div class="ntTh"><b style="color:#${col}">${t==='A'?'Equipo azul':'Equipo rojo'} · ${ps.length}/${L.mode}</b>${me&&me.team===t?'':`<button class="mb sec" data-team="${t}">Unirme</button>`}${botAddBtn(L,t,ps)}</div>${ps.map(row).join('')}${'<div class="ntP ntE">Libre</div>'.repeat(empty)}</div>`}).join('');
   $('ntChars').innerHTML=Object.keys(CHAR).map(k=>{const taken=me&&L.slots.some(s=>s!==me&&s.team===me.team&&s.ch===k);return`<button class="ntCh${me&&me.ch===k?' on':''}" data-k="${k}" ${taken?'disabled':''} style="background-image:url(${ASSET[k].splash})"><span>${CHAR[k].n}</span></button>`}).join('');
   const cap=ntCap(),n=t=>L.slots.filter(s=>s.team===t).length,ready=ntReady(L);$('ntStart').style.display='none';$('ntStart').disabled=!ready;
   $('ntWait').textContent=L.phase?'Partida en preparación…':NET.host?'Elige un mapa para empezar · puedes jugar aunque estés solo':'Esperando a que el anfitrión elija el mapa…';ntMapUI(L)}
@@ -4782,7 +4782,7 @@ function ntStart(slots,map){if(NET.lobby)NET.lobby.phase=null;$('csOv').style.di
     p.sk=mkSkin(p.ch,p.skn);p.sk.ring.material.color.setHex(ntCH(p.team));if(p.ch==='mikela')ntgHands(p);p.sk.g.visible=true;p.x=p.tx=b.x;p.z=p.tz=b.z;p.a=p.ta=ntFace(p.team);p.hp=p.max=CHAR[p.ch].hp;p.dead=0;p.mv=0;p.at=0;p.ad=1;p.ak='a';p.dt=0;
     p.bar=ntMkHud(p,myT);
     if(p.team!==myT){p.ent=ntEnt(p);en.push(p.ent)}}
-  P.x=NET.me.bx;P.z=NET.me.bz;P.ang=ntFace(myT);focus.set(P.x,0,P.z);ntScoreUI();$('ntScore').style.display='block';banner('¡A por '+NET.goal+' kills!');if(!NET.host&&NET.hc&&NET.hc.open)try{NET.hc.send({t:'hr',v:window.hpHasHerir&&hpHasHerir()?1:0})}catch(_){}if(NET.map==='lane')lnBegin()}
+  NET.bots=null;if(NET.host)try{botInit()}catch(e){console.error('[bots]',e)}P.x=NET.me.bx;P.z=NET.me.bz;P.ang=ntFace(myT);focus.set(P.x,0,P.z);ntScoreUI();$('ntScore').style.display='block';banner('¡A por '+NET.goal+' kills!');if(!NET.host&&NET.hc&&NET.hc.open)try{NET.hc.send({t:'hr',v:window.hpHasHerir&&hpHasHerir()?1:0})}catch(_){}if(NET.map==='lane')lnBegin()}
 function ntScoreUI(){const mt=NET.me?NET.me.team:'A',et=mt==='A'?'B':'A',a=$('tbS1'),b=$('tbS2');if(a)a.textContent=NET.score[mt];if(b)b.textContent=NET.score[et];$('ntScore').innerHTML=`<small>${NET.map==='lane'?'Tu Nexo '+lnPct(mt)+'% · Nexo enemigo '+lnPct(et)+'% · ':''}Primero a ${NET.goal} kills</small>`}
 function ntState(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me||!p.sk)return;if(p.ent)p.ent.rst={u:m.su,sl:m.ss};p.sl=m.ss?1:0;if(m.cc){const o=p.cc;if(!o||o[0]!==m.cc[0]||o[1]!==m.cc[1]||o[2]!==m.cc[2]){p.cc=m.cc;p.ccT=performance.now()}}
   p.tx=m.x;p.tz=m.z;p.ta=m.a;p.hp=m.hp;p.max=m.mx;p.sh=m.sh>0?m.sh:0;p.ak=m.ak;p.at=m.at;p.ad=m.ad||1;p.mv=m.mv;p.lv=m.lv||1;p.xf=m.xf||0;p.mp=m.mp;p.mm=m.mm;p.iv=m.iv?1:0;p.rs=m.rs|0;
@@ -4821,7 +4821,7 @@ function ntCastFx(m){const p=NET.players.find(q=>q.id===m.id);if(!p||p===NET.me)
   else if(sh.t==='circle'){g=new T.CircleGeometry(sh.r,28);g.rotateX(-Math.PI/2);g.translate(0,0,sh.off||0)}
   else{const a=(sh.a||90)*Math.PI/180;g=new T.CircleGeometry(sh.r||7,24,-Math.PI/2-a/2,a);g.rotateX(-Math.PI/2)}
   const o=new T.Mesh(g,new T.MeshBasicMaterial({color:col,transparent:true,opacity:.5,depthWrite:false,side:T.DoubleSide}));o.position.set(m.x,.25,m.z);o.rotation.y=Math.atan2(m.dx,m.dz);scene.add(o);NET.fx.push({m:o,t:0});emit(m.x,1.5,m.z,10,col,5,.4)}
-function ntUp(dt){if(!NET.on)return;for(const p of NET.players)if(p.revT>0)p.revT-=dt;ntVisUpd();if(pStunT>0)pStunT-=dt;if(dbRootT>0)dbRootT-=dt;if(NET.map==='lane')lnUp(dt);ntgUp(dt);NET.inv=Math.max(0,NET.inv-dt);ntSlowT=Math.max(0,ntSlowT-dt);
+function ntUp(dt){if(!NET.on)return;if(NET.host&&NET.bots)botUp(dt);for(const p of NET.players)if(p.revT>0)p.revT-=dt;ntVisUpd();if(pStunT>0)pStunT-=dt;if(dbRootT>0)dbRootT-=dt;if(NET.map==='lane')lnUp(dt);ntgUp(dt);NET.inv=Math.max(0,NET.inv-dt);ntSlowT=Math.max(0,ntSlowT-dt);
   NET.acc+=dt;if(NET.acc>=.06){NET.acc=0;ntSt({t:'st',x:+P.x.toFixed(2),z:+P.z.toFixed(2),a:+P.ang.toFixed(2),hp:Math.round(P.hp),mx:P.max,ak:actK,at:+actT.toFixed(2),ad:+actD.toFixed(2),mv:target>.5?1:0,d:P.dead>0?1:0,lv:P.lvl,xf:+(P.lvl>=MAXLV?1:P.xp/xpNeed(P.lvl)).toFixed(2),mp:Math.round(P.mp),mm:P.mpMax,su:pStunT>0?1:0,ss:ntSlowT>0?1:0,cc:(P.dead>0||PX.stas>0)?[0,0,0]:[+Math.max(0,pStunT).toFixed(2),+Math.max(0,dbRootT).toFixed(2),+Math.max(0,ntSlowT).toFixed(2)],iv:invP()?1:0,sh:Math.round(PX.sh),rs:P.dead>0?Math.ceil(P.dead):0})}
   for(const p of NET.players){if(p===NET.me||!p.sk)continue;const k=Math.min(1,dt*14);p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let da=p.ta-p.a;da=Math.atan2(Math.sin(da),Math.cos(da));p.a+=da*k;p.at=Math.max(0,p.at-dt);p.rl=Math.max(0,(p.rl||0)-dt);if(p.dead)p.dt+=dt;
     p.sk.g.position.set(p.x,0,p.z);p.sk.g.rotation.y=p.a;p.sk.ring.rotation.z+=dt*1.5;p.sk.g.visible=(!p.dead||p.dt<2.2)&&(p.team===NET.me.team||p.vis!==false);animR(p.sk,dt,p);PXghost(p.sk.g,(!!p.iv||p.azInv>0)&&p.team===NET.me.team,p);
@@ -4842,13 +4842,131 @@ $('ntChars').onclick=e=>{const b=e.target.closest('.ntCh');if(b&&!b.disabled)ntD
 $('ntList').onclick=e=>{const b=e.target.closest('[data-team]');if(b)ntDoTeam(b.dataset.team)};
 $('ntStart').onclick=ntHostStart;
 $('ntLeave').onclick=()=>{ntLeave();$('ntPanel').style.display='none';$('main').style.display='flex'};
+// ================= BOTS (aliados / enemigos) · IA ligera simulada por el anfitrión =================
+// Un bot es un jugador más de la sala (slot con bot:1). El anfitrión lo mueve y lo hace atacar; los demás lo ven como a cualquier jugador remoto.
+(function(){
+const BC={AGG:15,MAG:11,SKILL:.8};
+const css=document.createElement('style');
+css.textContent='.ntBotR{display:flex;align-items:center;gap:6px}.ntBotR .ntPa{font-size:16px}.ntBotSel{flex:1;min-width:0;background:#0d1a2e;color:#fff;border:1px solid rgba(120,165,230,.5);border-radius:6px;padding:4px;font:inherit;font-size:12px}.ntBotX,.ntBotAdd{flex:none;padding:2px 8px!important;min-height:0!important}';
+document.head.appendChild(css);
+
+// ---------- sala ----------
+window.botRow=function(s){const L=NET.lobby,host=NET.host&&!L.phase;
+  const opts='<option value="">Personaje: al azar</option>'+Object.keys(CHAR).map(k=>`<option value="${k}"${s.bch===k?' selected':''}>${CHAR[k].n}</option>`).join('');
+  const ch=s.ch&&CHAR[s.ch]?`<span>${CHAR[s.ch].n}</span>`:`<span>${s.bch&&CHAR[s.bch]?CHAR[s.bch].n:'Al azar'}</span>`;
+  return`<div class="ntP ntBotR" data-n="${ntEsc(s.name)}"><div class="ntPa">🤖</div><div class="ntPn">${ntEsc(s.name)}</div>${host?`<select class="ntBotSel" data-bot="${ntEsc(s.id)}">${opts}</select><button class="mb sec ntBotX" data-botdel="${ntEsc(s.id)}">✕</button>`:`<div class="ntPc">${ch}</div>`}</div>`};
+window.botAddBtn=function(L,t,ps){return NET.host&&!L.phase&&ps.length<L.mode&&L.slots.length<ntCap()?`<button class="mb sec ntBotAdd" data-addbot="${t}">+ Bot</button>`:''};
+function botAdd(team){const L=NET.lobby;if(!NET.host||!L||L.phase)return;
+  if(L.slots.length>=ntCap()||L.slots.filter(s=>s.team===team).length>=L.mode){ntMsg('Ese equipo está lleno');return}
+  NET.botN=(NET.botN|0)+1;L.slots.push({id:'bot'+NET.botN+Math.random().toString(36).slice(2,5),name:'Bot '+NET.botN,team,ch:'',av:-1,best:0,bot:1,bch:''});ntLobbySync()}
+const L0=()=>NET.host&&NET.lobby&&!NET.lobby.phase?NET.lobby:null;
+document.getElementById('ntList').addEventListener('click',e=>{const a=e.target.closest('[data-addbot]');if(a){botAdd(a.dataset.addbot);return}
+  const d=e.target.closest('[data-botdel]'),L=L0();if(d&&L){L.slots=L.slots.filter(s=>s.id!==d.dataset.botdel);ntLobbySync()}});
+document.getElementById('ntList').addEventListener('change',e=>{const s=e.target.closest('.ntBotSel'),L=L0();if(!s||!L)return;const q=L.slots.find(z=>z.id===s.dataset.bot);if(q){q.bch=CHAR[s.value]?s.value:'';ntLobbySync()}});
+// personajes elegidos de antemano: se asignan al abrir la selección; los de "al azar" se reparten al final, sin quitarle opciones a los jugadores
+window.botPickFixed=function(L){for(const s of L.slots)if(s.bot&&s.bch&&CHAR[s.bch]&&!L.slots.some(q=>q!==s&&q.team===s.team&&q.ch===s.bch)){s.ch=s.bch;s.skn='';s.hp=[]}};
+window.botPickRand=function(L){for(const s of L.slots){if(!s.bot||s.ch)continue;
+  const fr=Object.keys(CHAR).filter(k=>!L.slots.some(q=>q!==s&&q.team===s.team&&q.ch===k));if(!fr.length)continue;s.ch=fr[Math.floor(Math.random()*fr.length)];s.skn='';s.hp=[]}};
+
+// ---------- partida ----------
+const en2=b=>b.team==='A'?'B':'A',now=()=>performance.now();
+function sOf(b){const S=statOf(b.ch,b.lv-1),k=1+.03*(b.lv-1);return{hp:Math.round(S.hp*(1+.02*(b.lv-1))),ad:S.ad*k,as:Math.min(1.8,S.as*.9),arm:S.arm+6,mr:S.mr+6}}
+window.botInit=function(){NET.bots={};const tm={A:0,B:0};
+  for(const p of NET.players){if(!p.bot)continue;const i=tm[p.team]++,b={id:p.id,p,team:p.team,ch:p.ch,i,t:0,lv:1,dead:0,inv:2.5,stun:0,slow:0,slowF:1,atk:0,atkD:.5,pend:null,cd:[2,4,12],acc:0,thk:0,tg:null,lastBy:null,lastT:0,ln:i%2,wi:0,ret:false,ot:0,q:[],mp:200,sk:0};
+    const S=sOf(b);b.max=b.hp=S.hp;p.max=p.hp=b.hp;p.lv=1;p.bx=p.bx||0;NET.bots[p.id]=b}
+  for(const id in NET.bots){const b=NET.bots[id];b.ty=((STATS[b.ch]&&STATS[b.ch].ap[0])||0)>CHAR[b.ch].ad[0]*.6?'m':'p'}};
+function reach(sh){return!sh?6:sh.t==='line'?sh.len:sh.t==='cone'?sh.r:(sh.off||0)+sh.r}
+function pathOf(b){return LN.m4&&typeof M4P==='function'?(b.path||(b.path=M4P(b.ln,b.team))):null}
+function prog(b,x,z){const pa=pathOf(b);if(pa){let bi=0,bd=1e9;for(let i=0;i<pa.length;i++){const d=Math.hypot(pa[i][0]-x,pa[i][1]-z);if(d<bd){bd=d;bi=i}}return{v:bi,d:bd}}const u=lnUV(x,z)[0];return{v:(b.team==='A'?u:-u),d:0}}
+function danger(b,x,z){const et=en2(b);if(LN.tw)for(const w of LN.tw)if(w.team===et&&w.hp>0&&Math.hypot(w.x-x,w.z-z)<w.rr+.5)return true;const nx=LN.nx[et];return!!(nx&&nx.hp>0&&Math.hypot(nx.x-x,nx.z-z)<LN.R+.5)}
+function allyNear(b,x,z,r){for(const m of LN.mn)if(m.team===b.team&&m.hp>0&&Math.hypot(m.x-x,m.z-z)<r)return true;return false}
+function foes(b){const o=[],px=b.p.x,pz=b.p.z,et=en2(b);
+  for(const q of NET.players){if(q.team!==et)continue;const me=q===NET.me;if(me?(P.dead>0||invP()):(q.dead||q.iv||q.azInv>0))continue;const x=me?P.x:q.x,z=me?P.z:q.z,d=Math.hypot(x-px,z-pz);if(d>BC.AGG)continue;
+    if(d>7){const bb=lnBushAt(x,z);if(bb>=0&&bb!==lnBushAt(px,pz))continue}o.push({k:'p',q,x,z,d,r:.8,sc:d-5-(1-q.hp/Math.max(1,q.max))*5,id:q.id})}
+  for(const m of LN.mn){if(m.hp<=0||m.team===b.team||m.team==='N')continue;const d=Math.hypot(m.x-px,m.z-pz);if(d<=BC.MAG)o.push({k:'m',m,x:m.x,z:m.z,d,r:.7,sc:d,id:m.id})}
+  if(LN.tw)for(const w of LN.tw){if(w.team!==et||w.hp<=0||(typeof m4TwImm==='function'&&m4TwImm(w)))continue;const d=Math.hypot(w.x-px,w.z-pz);if(d<=BC.MAG)o.push({k:'w',w,x:w.x,z:w.z,d,r:2,sc:d+4,id:'tw'+LN.tw.indexOf(w)})}
+  const nx=LN.nx[et];if(nx&&nx.hp>0&&!(LN.m4&&typeof m4NxImm==='function'&&m4NxImm(et))){const d=Math.hypot(nx.x-px,nx.z-pz);if(d<=BC.MAG+3)o.push({k:'n',x:nx.x,z:nx.z,d,r:3.4,sc:d+6,id:'nx'+et})}
+  return o}
+// daño que hace el bot: pasa por las mismas rutas que el de un jugador
+function hit(b,t,n,ty,st){n=Math.round(n);if(n<=0)return;
+  if(t.k==='p'){const m={t:'dmg',n,ty,from:b.id,to:t.q.id};if(st)m.st=st;ntRoute(m);if(LN.on)lnAgro(b.id,t.x,t.z)}
+  else if(t.k==='m'){lnHit(t.m.id,n,b.id)}else if(t.k==='w'||t.k==='n'){lnHit(t.id,n,b.id)}}
+function sendCast(b,k,x,z,tx,tz){const L=Math.hypot(tx-x,tz-z)||1,m={t:'cast',id:b.id,k,x:+x.toFixed(1),z:+z.toFixed(1),dx:+((tx-x)/L).toFixed(2),dz:+((tz-z)/L).toFixed(2),tx:+tx.toFixed(1),tz:+tz.toFixed(1),tg:[+tx.toFixed(1),+tz.toFixed(1)],pw:0,big:0,hv:0,ps:0,sn:0};ntBcast(m);ntHandle(m)}
+function inShape(sh,ox,oz,dx,dz,tx,tz,qx,qz){const rx=qx-ox,rz=qz-oz,al=rx*dx+rz*dz,pe=Math.abs(rx*dz-rz*dx),d=Math.hypot(rx,rz);
+  if(!sh)return d<=6;if(sh.t==='line')return al>=0&&al<=sh.len&&pe<=sh.w/2+.8;
+  if(sh.t==='cone'){if(d>sh.r+.8)return false;if(d<1.2)return true;let a=Math.abs(Math.atan2(rx,rz)-Math.atan2(dx,dz));a=Math.min(a,6.283-a);return a<=(sh.a||90)*Math.PI/360+.1}
+  const off=Math.min(sh.off||0,Math.hypot(tx-ox,tz-oz)),cx=ox+dx*off,cz=oz+dz*off;return Math.hypot(qx-cx,qz-cz)<=sh.r+.8}
+function skill(b,i,t,S){const sh=(CHAR[b.ch].shape||{})['s'+(i+1)],k='s'+(i+1),x=b.p.x,z=b.p.z,L=Math.hypot(t.x-x,t.z-z)||1,dx=(t.x-x)/L,dz=(t.z-z)/L;
+  b.cd[i]=CHAR[b.ch].cd[i]*1.3;b.atk=.45;b.atkD=.45;b.ak=k;b.pend=null;b.p.a=b.a=Math.atan2(dx,dz);sendCast(b,k,x,z,t.x,t.z);
+  const mul=[1.1,.9,2.1][i],base=[55,40,110][i]+S.ad*mul,ty=b.ty,tx=t.x,tz=t.z;
+  b.q.push({t:.3,f:()=>{if(b.dead>0)return;for(const q of foes2(b)){if(!inShape(sh,x,z,dx,dz,tx,tz,q.x,q.z))continue;
+    if(q.k==='p')hit(b,q,base,ty,i===1?.5:0);else if(q.k==='m')hit(b,q,base*.6,ty)}}})}
+function foes2(b){const old=BC.AGG,om=BC.MAG;BC.AGG=26;BC.MAG=26;const o=foes(b);BC.AGG=old;BC.MAG=om;return o.filter(q=>q.k==='p'||q.k==='m')}
+// daño recibido (lo llama ntRoute)
+function hurt(b,n,ty,pn,pf,from,by){if(b.dead>0||b.inv>0||NET.over)return;const S=sOf(b),r=ty==='t'?0:Math.max(0,((ty==='m'?S.mr:S.arm)-(pf||0))*(1-(pn||0)/100));n=n*100/(100+r);
+  b.hp-=n;b.lastBy=by||from;b.lastT=now();if(!by&&from)b.lastP=from,b.lastPT=now();emit(b.p.x,1.5,b.p.z,5,0xff5050,4,.3);
+  if(!by&&NET.map==='lane'&&from)lnAgro(from,b.p.x,b.p.z);if(b.hp<=0)die(b)}
+function die(b){b.hp=0;b.dead=Math.round(10+(Math.min(13,b.lv)-1)*15/12);b.tg=null;b.pend=null;b.q.length=0;
+  const nw=now();let by=nw-b.lastT<8000?b.lastBy:null;if(typeof by==='string'&&by.length===2&&by[0]==='t'&&b.lastP&&nw-b.lastPT<8000&&NET.players.some(q=>q.id===b.lastP))by=b.lastP;ntDeath(b.id,by)}
+window.botMsg=function(m){const b=NET.bots&&NET.bots[m.to];if(!b||NET.over)return;
+  if(m.t==='dmg')hurt(b,+m.n||0,m.ty,m.pn,m.pf,m.from,m.by);
+  else if(m.t==='fx'){if(m.st)b.stun=Math.max(b.stun,Math.min(2.5,m.st*.7));if(m.rt)b.stun=Math.max(b.stun,Math.min(2,m.rt*.6));if(m.sl){b.slow=Math.max(b.slow,Math.min(2.5,m.sl.t*.7));b.slowF=Math.max(.35,Math.min(1,m.sl.f||.5))}}};
+function push(b){for(const o of obst){const dx=b.p.x-o.x,dz=b.p.z-o.z,d=Math.hypot(dx,dz),r=o.r+.8;if(d<r&&d>.001){b.p.x=o.x+dx/d*r;b.p.z=o.z+dz/d*r}}if(NET.map==='lane')lnClamp(b.p)}
+function step(b,gx,gz,dt,sp){const dx=gx-b.p.x,dz=gz-b.p.z,d=Math.hypot(dx,dz);if(d<.4)return false;const s=Math.min(d,sp*dt);b.p.x+=dx/d*s;b.p.z+=dz/d*s;b.a=Math.atan2(dx,dz);push(b);return true}
+function think(b,S){const hp=b.hp/b.max,p=b.p;if(hp<.3)b.ret=true;else if(hp>.85)b.ret=false;
+  const fs=b.ret?[]:foes(b);let best=null;
+  for(const f of fs){if(f.k!=='p'&&f.k!=='m'&&!allyNear(b,f.x,f.z,9))continue;if(danger(b,f.x,f.z)&&!allyNear(b,f.x,f.z,9)&&f.k==='p')continue;if(!best||f.sc<best.sc)best=f}
+  b.tg=best;
+  // meta de movimiento
+  let g=null;const pa=pathOf(b),dir=b.team==='A'?1:-1;
+  if(b.ret){g=[p.bx,p.bz]}
+  else{let fm=null,fv=-1e9;for(const m of LN.mn){if(m.team!==b.team||m.hp<=0)continue;if(pa){const q=prog(b,m.x,m.z);if(q.d>9)continue}const v=prog(b,m.x,m.z).v;if(v>fv){fv=v;fm=m}}
+    if(fm)g=[fm.x-(pa?0:dir*.7071*2.5),fm.z+(pa?0:dir*.7071*2.5)];
+    else if(pa){const i=Math.floor(pa.length*.3);g=pa[i]}else{const w=lnW(-dir*10,(b.i-.5)*5);g=w}
+    if(g&&danger(b,g[0],g[1])&&!allyNear(b,g[0],g[1],9))g=null;
+    if(!g)g=[p.bx,p.bz]}
+  if(!b.ret&&LN.on){const lat=pa?0:(b.i%2?3:-3),uv=lnUV(g[0],g[1]);if(!pa)g=lnW(uv[0],uv[1]+lat)}
+  b.g=g}
+window.botUp=function(dt){if(!NET.bots||NET.over||!NET.on)return;dt=Math.min(dt,.1);
+  for(const id in NET.bots){const b=NET.bots[id],p=b.p;if(!NET.players.includes(p)){delete NET.bots[id];continue}
+    b.t+=dt;const lv=Math.min(13,1+Math.floor(b.t/70));if(lv!==b.lv){const r=b.hp/b.max;b.lv=lv;const S=sOf(b);b.max=S.hp;b.hp=Math.max(1,r*b.max)}
+    b.inv=Math.max(0,b.inv-dt);b.stun=Math.max(0,b.stun-dt);b.slow=Math.max(0,b.slow-dt);b.atk=Math.max(0,b.atk-dt);for(let i=0;i<3;i++)b.cd[i]=Math.max(0,b.cd[i]-dt);
+    for(let i=b.q.length-1;i>=0;i--){const e=b.q[i];e.t-=dt;if(e.t<=0){b.q.splice(i,1);e.f()}}
+    let mv=0;
+    if(b.dead>0){b.dead-=dt;if(b.dead<=0){b.dead=0;b.hp=b.max;p.x=p.tx=p.bx;p.z=p.tz=p.bz;b.inv=2.5;b.ret=false;b.cd=[2,4,12];b.tg=null}}
+    else{const S=sOf(b);
+      const nx=LN.nx[b.team];let heal=b.max*.008;if(nx&&Math.hypot(p.x-nx.x,p.z-nx.z)<LN.R)heal=b.max*.2;b.hp=Math.min(b.max,b.hp+heal*dt);
+      b.thk-=dt;if(b.thk<=0){b.thk=.25;think(b,S)}
+      // validar objetivo
+      const t=b.tg;let alive=false;if(t){if(t.k==='p'){const q=t.q,me=q===NET.me;alive=!(me?P.dead>0:q.dead);t.x=me?P.x:q.x;t.z=me?P.z:q.z}else if(t.k==='m'){alive=t.m.hp>0;t.x=t.m.x;t.z=t.m.z}else if(t.k==='w'){alive=t.w.hp>0}else alive=!!LN.nx[en2(b)]&&LN.nx[en2(b)].hp>0}
+      if(b.pend){b.pend.t-=dt;if(b.pend.t<=0){const e=b.pend;b.pend=null;if(e.t0&&(e.t0.k!=='p'||!e.t0.q.dead)){hit(b,e.t0,e.n,b.ty)}}}
+      if(b.stun>0){}
+      else if(b.atk>0){}
+      else{const sp=CHAR[b.ch].spd*(b.slow>0?b.slowF:1);
+        if(t&&alive){const rg=CHAR[b.ch].rng,d=Math.hypot(t.x-p.x,t.z-p.z);b.a=Math.atan2(t.x-p.x,t.z-p.z);
+          // habilidades
+          let used=false;if(t.k==='p'||(t.k==='m'&&LN.mn.filter(m=>m.team!==b.team&&Math.hypot(m.x-p.x,m.z-p.z)<9).length>=3)){
+            for(let i=2;i>=0&&!used;i--){if(b.cd[i]>0)continue;const sh=(CHAR[b.ch].shape||{})['s'+(i+1)],r=reach(sh)*.85;if(d>r)continue;
+              if(i===2&&!(t.k==='p'&&(t.q.hp<t.q.max*.6||b.hp<b.max*.5)))continue;if(i===1&&t.k!=='p')continue;skill(b,i,t,S);used=true}}
+          if(!used){if(d<=rg+t.r){if(b.atkc<=0||b.atkc==null){/* ataque básico */}
+              b.atkc=(b.atkc||0);if(b.cdA==null)b.cdA=0;
+              if(b.cdA<=0){b.cdA=1/S.as;b.atk=b.atkD=Math.max(.25,CHAR[b.ch].swD*.9);b.ak='a';sendCast(b,'a',p.x,p.z,t.x,t.z);b.pend={t:CHAR[b.ch].swD*(CHAR[b.ch].hitAt||.25)+(CHAR[b.ch].melee?0:.12),n:S.ad,t0:{k:t.k,q:t.q,m:t.m,w:t.w,id:t.id,x:t.x,z:t.z}}}
+              else{b.ak=null}}
+            else{mv=step(b,t.x-Math.sin(b.a)*(rg*.8),t.z-Math.cos(b.a)*(rg*.8),dt,sp)?1:0}}}
+        else if(b.g){mv=step(b,b.g[0],b.g[1],dt,sp)?1:0}}
+      if(b.cdA>0)b.cdA-=dt}
+    // estado hacia todos
+    b.acc+=dt;if(b.acc>=.06){b.acc=0;const S=sOf(b),m={t:'st',id:b.id,x:+p.x.toFixed(2),z:+p.z.toFixed(2),a:+((b.a||p.a||0)).toFixed(2),hp:Math.round(Math.max(0,b.hp)),mx:b.max,ak:b.ak||'a',at:+b.atk.toFixed(2),ad:+(b.atkD||.5).toFixed(2),mv:(mv&&b.atk<=0)?1:0,d:b.dead>0?1:0,lv:b.lv,xf:+((b.t%70)/70).toFixed(2),mp:200,mm:200,su:b.stun>0?1:0,ss:b.slow>0?1:0,cc:b.dead>0?[0,0,0]:[+b.stun.toFixed(2),0,+b.slow.toFixed(2)],iv:0,sh:0,rs:b.dead>0?Math.ceil(b.dead):0};
+      NET.hs[b.id]=m;ntState(m);p.tx=p.x;p.tz=p.z}}};
+})();
+
 // ================= Selección de campeón (estilo LoL): 15 s para elegir + 10 s para prepararte =================
 const cs={pt:-1,end:0,sel:'',al:0,iv:null,sk:0};
 function ntMapUI(L){document.querySelectorAll('.ntMap').forEach(b=>{b.classList.toggle('on',b.dataset.map===L.map&&!!L.phase);b.disabled=!NET.host||!!L.phase})}
 function csPickMap(map){const L=NET.lobby;if(!NET.host||!L||L.phase)return;
   if(map==='lane'){if(L.slots.length>4){ntMsg('La Línea de nexos admite hasta 4 jugadores (2v2)');return}
     for(const t of['A','B']){const ps=L.slots.filter(s=>s.team===t);while(ps.length>2){const x=ps.pop();x.team=t==='A'?'B':'A'}}}
-  L.map=map;L.slots.forEach(s=>{s.ch='';s.skn='';s.rdy=0});L.phase='pick';L.pt=(L.pt|0)+1;L.dur=30;ntLobbySync()}
+  L.map=map;L.slots.forEach(s=>{s.ch='';s.skn='';s.rdy=0});botPickFixed(L);L.phase='pick';L.pt=(L.pt|0)+1;L.dur=30;ntLobbySync()}
 function csSync(L){const ov=$('csOv');
   if(!L||!L.phase){ov.style.display='none';cs.pt=-1;cs.sel='';cs.al=0;cs.sk=0;return false}
   const me=L.slots.find(s=>s.id===NET.id);
@@ -4928,7 +5046,7 @@ function csTick(){const L=NET.lobby;if(!L||!L.phase||$('csOv').style.display==='
   const me=L.slots.find(s=>s.id===NET.id);
   if(L.phase==='pick'&&left<=300&&me&&!me.ch&&cs.sel&&!cs.al){cs.al=1;ntDoPick(cs.sel)}
   if(!NET.host)return;
-  if(L.phase==='pick'&&(left<=-900||L.slots.every(s=>s.ch)))csEndPick();
+  if(L.phase==='pick'&&(left<=-900||L.slots.every(s=>s.ch||s.bot))){botPickRand(L);csEndPick()}
   else if(L.phase==='prep'&&(left<=0||L.slots.filter(s=>s.ch).every(s=>s.rdy)))csGo()}
 // ================= Pantalla de carga de la partida: todos empiezan a la vez (100 % o 30 s) =================
 const LD={on:0,hold:false,pr:{},t0:0,iv:0,ids:[],ready:0,go:0,el:0,fw:0},LD_MIN=3000; // la pantalla de carga dura como mínimo 3 s aunque todos hayan cargado
@@ -5031,7 +5149,7 @@ async function ntLoad(slots,map){
   ldMy(1);LD.ready=1;if(LD.go)ldFinish()}
 function csEndPick(){const L=NET.lobby,me=L.slots.find(s=>s.id===NET.id);
   if(!me||!me.ch){L.phase=null;ntLobbySync();ntMsg('No elegiste personaje: volviste a la sala');return}
-  L.phase='prep';L.pt=(L.pt|0)+1;L.dur=15;L.slots.forEach(s=>s.rdy=0);ntLobbySync()}
+  L.phase='prep';L.pt=(L.pt|0)+1;L.dur=15;L.slots.forEach(s=>s.rdy=s.bot?1:0);ntLobbySync()}
 function csGo(){const L=NET.lobby;if(!NET.host||!L||L.phase!=='prep')return;const slots=L.slots.filter(s=>s.ch);L.phase=null;L.started=true;$('csOv').style.display='none';const m={t:'start',slots,map:L.map};ntBcast(m);ntLoad(slots,L.map)}
 $('ntMaps').onclick=e=>{const b=e.target.closest('.ntMap');if(b&&!b.disabled)csPickMap(b.dataset.map)};
 $('csGrid').onclick=e=>{const b=e.target.closest('.lgc');if(!b||b.disabled)return;cs.sel=b.dataset.k;const L=NET.lobby,me=L&&L.slots.find(s=>s.id===NET.id);if(me)csRender(L,me)};
