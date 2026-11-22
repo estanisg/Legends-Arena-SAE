@@ -5785,12 +5785,7 @@ function step(dt){
     else for(const r of obst)if(Math.hypot(p.x-r.x,p.z-r.z)<r.r+.3){gone=true;break}
     if(gone){emit(p.x,1.6,p.z,8,0xc08bff,4,.4);poolFree(b.m);eb.splice(i,1)}}
   const k=1-Math.pow(.001,dt);
-  {const kk=1-Math.pow(.02,dt),kp=1-Math.pow(.003,dt);let vx=0,vz=0;if(CP.px!==null&&dt>0){vx=(P.x-CP.px)/dt;vz=(P.z-CP.pz)/dt}CP.px=P.x;CP.pz=P.z;
-   const v=Math.hypot(vx,vz);let tx=0,tz=0;
-   if(v>1.5&&v<40&&!(P.dead>0)){const ux=vx/v,uz=vz/v;tx=ux*.7;tz=uz*(uz>0?1.5:.5)} // hacia abajo hay menos visión, así que se adelanta más
-   CP.lx+=(tx-CP.lx)*kk;CP.lz+=(tz-CP.lz)*kk;
-   focus.x+=(P.x+CP.lx-focus.x)*k;focus.z+=(P.z+CP.lz-focus.z)*k}
-  {const act=MMV.id!==null;MMV.b+=((act?1:0)-MMV.b)*Math.min(1,dt*(act?14:9));if(!act&&MMV.b<.003)MMV.b=0;const bx=focus.x+CP.tx,bz=focus.z+CP.tz;CFV.set(bx+(MMV.x-bx)*MMV.b,focus.y,bz+(MMV.z-bz)*MMV.b)}camera.position.copy(CFV).add(CAM);if(shake>0){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake=Math.max(0,shake-dt*3)}camera.lookAt(CFV);updP(dt);
+  camUpd(dt);updP(dt);
   sun.position.set(CFV.x+18,34,CFV.z+10);sun.target.position.set(CFV.x,0,CFV.z)}
 const ENDEL=$('end');const hud=$('hud'),hbI=hud.querySelector('.h i'),mbI=hud.querySelector('.m i'),lvE=$('lv');
 let mmN=0;
@@ -6013,12 +6008,22 @@ setInterval(()=>{arUI.style.display=(ARC.on&&running)?'flex':'none';if(!running|
 const arLk=document.createElement('div');arLk.style.cssText='position:fixed;left:calc(calc(130*var(--u)) + env(safe-area-inset-left,0px));top:calc(calc(14*var(--u)) + env(safe-area-inset-top,0px));z-index:6;display:none;padding:calc(4*var(--u)) calc(10*var(--u));border-radius:calc(14*var(--u));background:rgba(15,25,35,.75);border:calc(1*var(--u)) solid #c99a3f;font:700 calc(12*var(--u)) system-ui,sans-serif;color:#9dffb8;pointer-events:none';document.body.appendChild(arLk);
 setInterval(()=>{const on=ARC.on&&running;arLk.style.display=on?'block':'none';if(on)arLk.textContent='🍀 Suerte '+ARC.lk},300);
 {const _sgE=startGame;startGame=function(k){fzClear();pStun=0;pBurn=0;_sgE(k)}}
+function camUpd(dt){
+  const k=1-Math.pow(.001,dt);
+  {if(!isFinite(focus.x)||!isFinite(focus.z)){focus.set(isFinite(P.x)?P.x:0,0,isFinite(P.z)?P.z:0);CP.lx=CP.lz=0;CP.px=null}const kk=1-Math.pow(.02,dt),kp=1-Math.pow(.003,dt);let vx=0,vz=0;if(CP.px!==null&&dt>0){vx=(P.x-CP.px)/dt;vz=(P.z-CP.pz)/dt}CP.px=P.x;CP.pz=P.z;
+   const v=Math.hypot(vx,vz);let tx=0,tz=0;
+   if(v>1.5&&v<40&&!(P.dead>0)){const ux=vx/v,uz=vz/v;tx=ux*.7;tz=uz*(uz>0?1.5:.5)} // hacia abajo hay menos visión, así que se adelanta más
+   CP.lx+=(tx-CP.lx)*kk;CP.lz+=(tz-CP.lz)*kk;
+   focus.x+=(P.x+CP.lx-focus.x)*k;focus.z+=(P.z+CP.lz-focus.z)*k}
+  {const act=MMV.id!==null;MMV.b+=((act?1:0)-MMV.b)*Math.min(1,dt*(act?14:9));if(!act&&MMV.b<.003)MMV.b=0;const bx=focus.x+CP.tx,bz=focus.z+CP.tz;CFV.set(bx+(MMV.x-bx)*MMV.b,focus.y,bz+(MMV.z-bz)*MMV.b)}camera.position.copy(CFV).add(CAM);if(shake>0){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake=Math.max(0,shake-dt*3)}camera.lookAt(CFV);
+  if(!isFinite(camera.position.x+camera.position.y+camera.position.z)){focus.set(0,0,0);CFV.copy(focus);camera.position.copy(CFV).add(CAM);camera.lookAt(CFV)}
+}
 function loop(t){try{loop0(t)}catch(err){loopErr(err)}}
 let _le=0,_dT=0;
 function loopErr(err){requestAnimationFrame(loop);if(_le++<5)console.error("[loop]",err);try{if(!NET.on&&P.dead>0&&running){P.dead=-1;gameOver()}}catch(e2){console.error(e2)}}
 function loop0(t){if(!floorOk)floorPaint();if(CFG.fps&&t-lastR<1000/CFG.fps-2){requestAnimationFrame(loop);return}lastR=t;
   const dR=t-lastP;lastP=t;if(running&&!pfDone&&dR<500){pfA+=dR;pfN++;if(pfA>9000){pfDone=true;if(pfN/(pfA/1000)<26&&CFG.pre!=='minimo')banner('El juego va lento: baja los gráficos en Ajustes (menú de pausa)')}}
-  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=(P.dead>0&&running)?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!ARC.pick&&!LD.hold&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++){try{step(dt)}catch(e){if(_le++<5)console.error('[step]',e);if(!NET.on&&P.dead>0){P.dead=-1;gameOver()}break}}}
+  const rawDt=Math.min(.2,Math.max(0,(t-last)/1000));last=t;const nSub=Math.min(4,Math.max(1,Math.ceil(rawDt/.034))),dt=rawDt/nSub;{const gf=(P.dead>0&&running)?'grayscale(.75)':'';if(renderer._gf!==gf){renderer._gf=gf;const cv=renderer.domElement;cv.style.transition='filter .4s';cv.style.filter=gf}}if(running&&!ARC.pick&&!LD.hold&&!(shOpen&&!NET.on)){for(let si=0;si<nSub;si++){try{step(dt)}catch(e){if(_le++<5)console.error('[step]',e);try{camUpd(dt)}catch(_){}if(!NET.on&&P.dead>0){P.dead=-1;gameOver()}break}}}
   if(!NET.on&&running&&P.dead>0){if(!_dT)_dT=performance.now();else if(performance.now()-_dT>6000){_dT=0;P.dead=-1;gameOver()}}else _dT=0;
   if(ENDEL.style.display==='flex'){requestAnimationFrame(loop);return}
   {arngUpd(rawDt);cbT=Math.max(0,cbT-rawDt);renderer.render(scene,camera);ui();if(DPOP.length)dmgUpd()}requestAnimationFrame(loop)}
