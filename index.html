@@ -3734,7 +3734,7 @@ function noxTexPool(){if(noxTP)return noxTP;const c=document.createElement('canv
   g.addColorStop(0,'rgba(190,255,90,.95)');g.addColorStop(.55,'rgba(90,200,30,.78)');g.addColorStop(.9,'rgba(40,120,16,.5)');g.addColorStop(1,'rgba(20,80,10,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
   for(let i=0;i<26;i++){const a=Math.random()*6.283,r=Math.random()*46,px=64+Math.cos(a)*r,py=64+Math.sin(a)*r,s=4+Math.random()*12,gg=x.createRadialGradient(px,py,0,px,py,s);gg.addColorStop(0,Math.random()<.5?'rgba(220,255,130,.55)':'rgba(10,50,6,.45)');gg.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gg;x.beginPath();x.arc(px,py,s,0,6.283);x.fill()}
   noxTP=new T.CanvasTexture(c);return noxTP}
-const noxGeo=new T.CircleGeometry(1,40),noxRgG=new T.RingGeometry(.93,1,40),noxDome=new T.SphereGeometry(2.1,20,14),noxCyl=new T.CylinderGeometry(1.7,2.1,6,24,1,true),noxVG=new T.CylinderGeometry(.16,.16,.46,10),noxCapG=new T.CylinderGeometry(.19,.19,.12,10);
+const noxGeo=new T.CircleGeometry(1,40),noxRgG=new T.RingGeometry(.93,1,40),noxCyl=new T.CylinderGeometry(1.7,2.1,6,24,1,true),noxVG=new T.CylinderGeometry(.16,.16,.46,10),noxCapG=new T.CylinderGeometry(.19,.19,.12,10);
 // ---------- infección ----------
 function noxSt(e,mk){let o=NOX.inf.get(noxK(e));if(!o&&mk){o={i:0,c:0,s:0};NOX.inf.set(noxK(e),o)}return o}
 function noxSpit(x,z,big){emit(x,1.2,z,big?24:10,noxC1,big?5:3,.7,big?4:2);if(big)emit(x,.4,z,10,noxC2,3,.9,4)}
@@ -3765,18 +3765,22 @@ function noxPool(x,z,dps,sl,gh){const R=3.5,g=new T.Group(),pv=new T.Group(),pv2
     m1=new T.MeshBasicMaterial({map:noxTexPool(),transparent:true,opacity:.92,depthWrite:false,side:T.DoubleSide}),
     m3=new T.MeshBasicMaterial({map:noxTexPool(),color:0xd8ff80,transparent:true,opacity:.5,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide}),
     m2=new T.MeshBasicMaterial({color:noxC2,transparent:true,opacity:.9,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending}),
-    a=new T.Mesh(noxGeo,m1),a2=new T.Mesh(noxGeo,m3),b=new T.Mesh(noxRgG,m2),gl=new T.Sprite(faSM(noxC1));
-  a.rotation.x=a2.rotation.x=b.rotation.x=-Math.PI/2;a.position.y=.1;a2.position.y=.13;b.position.y=.14;a2.scale.setScalar(.7);pv.add(a);pv2.add(a2);gl.position.y=.7;gl.scale.set(7,3.2,1);gl.material.opacity=.5;
-  g.add(pv,pv2,b,gl);g.position.set(x,0,z);g.scale.setScalar(R*.2);scene.add(g);
-  NOX.zones.push({x,z,r:R,t:0,T:3,dps,sl,gh,g,pv,pv2,m1,m2,m3,gl,set:new Set(),tk:0});
+    a=new T.Mesh(noxGeo,m1),a2=new T.Mesh(noxGeo,m3),b=new T.Mesh(noxRgG,m2);
+  a.rotation.x=a2.rotation.x=b.rotation.x=-Math.PI/2;a.position.y=.1;a2.position.y=.13;b.position.y=.14;a2.scale.setScalar(.7);pv.add(a);pv2.add(a2);
+  g.add(pv,pv2,b);g.position.set(x,0,z);g.scale.setScalar(R*.2);scene.add(g);
+  NOX.zones.push({x,z,r:R,t:0,T:3,dps,sl,gh,g,pv,pv2,m1,m2,m3,set:new Set(),tk:0});
   noxWave(x,z,.5,R*1.2,.5,noxC2);noxSpit(x,z,1);emit(x,.5,z,26,noxC1,6,.8,5)}
-// Escudo corrosivo (H2): aro giratorio con símbolo de radiación, cúpula pulsante y ondas
-function noxRing(R,on){if(!R||!R.g)return;if(!R.noxR){const g=new T.Group(),pv=new T.Group(),
-      m1=new T.MeshBasicMaterial({map:noxTexTre(),color:noxC2,transparent:true,opacity:.24,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide}),d1=new T.Mesh(noxGeo,m1),
-      m2=new T.MeshBasicMaterial({color:noxC2,transparent:true,opacity:.75,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending}),rg=new T.Mesh(noxRgG,m2),
-      m3=new T.MeshBasicMaterial({color:noxC1,transparent:true,opacity:.14,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide}),dome=new T.Mesh(noxDome,m3);
-    d1.rotation.x=rg.rotation.x=-Math.PI/2;d1.position.y=.12;d1.scale.setScalar(5);rg.position.y=.14;rg.scale.setScalar(5);pv.add(d1);dome.position.y=1.6;g.add(pv,rg,dome);g.visible=false;R.g.add(g);R.noxR={g,pv,m2,m3,pt:0}}
-  R.noxR.g.visible=!!on;if(on)NOX.rings.add(R);else NOX.rings.delete(R)}
+// Nube de veneno (H2): niebla baja en el suelo y bocanadas de gas verde que giran y se hinchan alrededor de ella
+let noxTC=null;
+function noxTexCloud(){if(noxTC)return noxTC;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  for(let i=0;i<9;i++){const a=Math.random()*6.283,r=Math.random()*26,px=64+Math.cos(a)*r,py=64+Math.sin(a)*r,s=26+Math.random()*22,g=x.createRadialGradient(px,py,0,px,py,s);g.addColorStop(0,'rgba(255,255,255,.55)');g.addColorStop(.6,'rgba(255,255,255,.22)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.beginPath();x.arc(px,py,s,0,6.283);x.fill()}
+  noxTC=new T.CanvasTexture(c);return noxTC}
+function noxRing(R,on,inst){if(!R||!R.g)return;if(!R.noxR){const g=new T.Group(),fm=new T.MeshBasicMaterial({map:noxTexCloud(),color:0x59c91e,transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide}),fog=new T.Mesh(noxGeo,fm),pf=[];
+    fog.rotation.x=-Math.PI/2;fog.position.y=.14;fog.scale.setScalar(5);g.add(fog);
+    for(let i=0;i<18;i++){const m=new T.SpriteMaterial({map:noxTexCloud(),color:i%3?0x6fdc2a:0xa6f23e,transparent:true,opacity:0,depthWrite:false,fog:false}),s=new T.Sprite(m),sz=2.6+Math.random()*2.4;
+      s.scale.set(sz,sz,1);g.add(s);pf.push({s,m,a:Math.random()*6.283,r:.5+Math.sqrt(Math.random())*3.6,y:.5+Math.random()*1.9,ph:Math.random()*6.283,sp:(Math.random()<.5?-1:1)*(.12+Math.random()*.25),sz,bo:.28+Math.random()*.2})}
+    g.visible=false;R.g.add(g);R.noxR={g,fm,fog,pf,k:0,want:0}}
+  const o=R.noxR;o.want=on?1:0;if(on){o.g.visible=true;NOX.rings.add(R)}else if(inst){o.k=0;o.g.visible=false;NOX.rings.delete(R)}}
 // Aura de la ulti: símbolo de radiación giratorio en el suelo, columna de luz y orbes
 function noxAura(R,on,until){if(!R||!R.g)return;if(!R.noxA){const g=new T.Group(),pv=new T.Group(),
       m1=new T.MeshBasicMaterial({map:noxTexTre(),color:noxC2,transparent:true,opacity:.7,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide}),d=new T.Mesh(noxGeo,m1),
@@ -3794,28 +3798,31 @@ function noxS1(d,a){if(!begin('s1'))return;const[tx,tz]=hsTgt(d,a,12,'s1',false)
 // ---------- H2: Blindaje corrosivo (se activa y se desactiva; consume 10 de veneno por segundo) ----------
 function noxShOff(){if(!NOX.sh)return;NOX.sh=false;noxRing(SK.noxira,false);if(NET.on&&cur==='noxira')ntSend({t:'cast',k:'nox2',dx:0,dz:1,x:+P.x.toFixed(1),z:+P.z.toFixed(1)})}
 function noxS2(){if(NOX.sh){if(cd.s2>0||P.dead>0)return;noxShOff();return}
-  if(!ready('s2'))return;cd.s2=CD.s2;sw.on=false;auto=false;NOX.sh=true;NOX.st=new Set();act('2',.5);noxRing(SK.noxira,true);playClip('h2');noxSpit(P.x,P.z,1);noxWave(P.x,P.z,.8,5,.6,noxC1)}
+  if(!ready('s2'))return;cd.s2=CD.s2;sw.on=false;auto=false;NOX.sh=true;NOX.st=new Set();act('2',.5);noxRing(SK.noxira,true);playClip('h2');emit(P.x,1,P.z,40,noxC1,6,1,1)}
 // ---------- Ulti: Sobrecarga radiactiva (+300 → +600 de vida máxima) ----------
 function noxS3(){if(!begin('s3'))return;if(NOX.on)noxUltEnd(true);act('3',.9);NOX.hp=Math.round(skI('s3',[300,600]));P.max+=NOX.hp;P.hp+=NOX.hp;NOX.mx=100;P.mpMax+=100;NOX.spd0=P.speed;P.speed=NOX.spd0*(1+skI('s3',[.15,.35]));NOX.on=true;NOX.t=15;
   noxAura(SK.noxira,true,performance.now()+15000);noxUltFx(P.x,P.z);playClip('ul');shake=Math.max(shake,.4)}
 function noxUltEnd(q){if(!NOX.on)return;NOX.on=false;NOX.t=0;P.max=Math.max(1,P.max-NOX.hp);P.hp=Math.min(P.hp,P.max);NOX.hp=0;P.mpMax=Math.max(1,P.mpMax-NOX.mx);P.mp=Math.min(P.mp,P.mpMax);NOX.mx=0;if(NOX.spd0)P.speed=NOX.spd0;NOX.spd0=0;noxAura(SK.noxira,false);
   if(!q&&NET.on&&cur==='noxira')ntSend({t:'cast',k:'noxe',dx:0,dz:1,x:+P.x.toFixed(1),z:+P.z.toFixed(1)})}
 function noxReset(){for(const q of NOX.zones){scene.remove(q.g);q.m1.dispose();q.m2.dispose();q.m3.dispose()}NOX.zones.length=0;NOX.inf.clear();NOX.on=false;NOX.t=0;NOX.hp=0;NOX.mx=0;NOX.spd0=0;NOX.sh=false;NOX.tk=0;
-  for(const m of NOX.marks)m.g.remove(m.s);NOX.marks.length=0;for(const R of[...NOX.rings])noxRing(R,false);for(const R of[...NOX.aur])noxAura(R,false)}
+  for(const m of NOX.marks)m.g.remove(m.s);NOX.marks.length=0;for(const R of[...NOX.rings])noxRing(R,false,true);for(const R of[...NOX.aur])noxAura(R,false)}
 function noxUp(dt){
   document.body.classList.toggle('noxOn',cur==='noxira');
   const now=performance.now();
   for(let i=NOX.zones.length-1;i>=0;i--){const q=NOX.zones[i];q.t+=dt;const k=Math.min(1,q.t/.25),fd=q.T-q.t<.5?Math.max(0,(q.T-q.t)/.5):1;
-    q.g.scale.setScalar(q.r*(.2+.8*k));q.pv.rotation.y+=dt*.5;q.pv2.rotation.y-=dt*.9;q.m1.opacity=.92*fd;q.m3.opacity=(.42+.12*Math.sin(q.t*7))*fd;q.m2.opacity=.9*fd;q.gl.material.opacity=(.45+.15*Math.sin(q.t*5))*fd;
+    q.g.scale.setScalar(q.r*(.2+.8*k));q.pv.rotation.y+=dt*.5;q.pv2.rotation.y-=dt*.9;q.m1.opacity=.92*fd;q.m3.opacity=(.42+.12*Math.sin(q.t*7))*fd;q.m2.opacity=.9*fd;
     if(Math.random()<dt*30)emit(q.x+(Math.random()-.5)*q.r*1.7,.25,q.z+(Math.random()-.5)*q.r*1.7,1,noxC1,.8,1.1,3);
     if(Math.random()<dt*10)emit(q.x+(Math.random()-.5)*q.r*1.4,.3,q.z+(Math.random()-.5)*q.r*1.4,2,noxC2,.5,.5,2.2);
     if(!q.gh&&cur==='noxira'){q.tk+=dt;if(q.tk>=.5){q.tk-=.5;for(const e of[...en]){if(e.hid||!(e.hp>0))continue;if(Math.hypot(e.x-q.x,e.z-q.z)-(e.nx?2:0)>q.r)continue;
       DTN='m';hit(e,q.dps*.5,false,null,1);brSlow(e,.7,q.sl);const ky=noxK(e);if(!q.set.has(ky)){q.set.add(ky);noxInfect(e,7)}}}}
-    if(q.t>=q.T){scene.remove(q.g);q.m1.dispose();q.m2.dispose();q.m3.dispose();q.gl.material.dispose();NOX.zones.splice(i,1)}}
+    if(q.t>=q.T){scene.remove(q.g);q.m1.dispose();q.m2.dispose();q.m3.dispose();NOX.zones.splice(i,1)}}
   noxMarks(dt);
-  for(const R of NOX.rings){const o=R.noxR;if(!o||!R.g.visible)continue;const p=R.nxP;if(p&&p.dead>0){noxRing(R,false);continue}
-    o.pv.rotation.y+=dt*.6;o.m3.opacity=.12+.05*Math.sin(now/220);o.m2.opacity=.62+.2*Math.sin(now/300);o.pt-=dt;if(o.pt<=0){o.pt=1;noxWave(R.g.position.x,R.g.position.z,.8,5,.9,noxC1)}
-    if(Math.random()<dt*14){const a=Math.random()*6.283;emit(R.g.position.x+Math.cos(a)*4.8,.3,R.g.position.z+Math.sin(a)*4.8,1,noxC1,1.5,.7,2)}}
+  for(const R of NOX.rings){const o=R.noxR;if(!o)continue;const p=R.nxP;if(p&&p.dead>0)o.want=0;o.k+=(o.want-o.k)*Math.min(1,dt*4);
+    if(!o.want&&o.k<.04){o.g.visible=false;NOX.rings.delete(R);continue}
+    if(!R.g.visible)continue;
+    o.fm.opacity=.34*o.k;o.fog.rotation.z+=dt*.15;
+    for(const q of o.pf){q.a+=q.sp*dt;const b=(1+.12*Math.sin(now/600+q.ph))*(.6+.4*o.k);q.s.position.set(Math.cos(q.a)*q.r,q.y+Math.sin(now/800+q.ph)*.25,Math.sin(q.a)*q.r);q.s.scale.set(q.sz*b,q.sz*b,1);q.m.opacity=q.bo*o.k*(.85+.15*Math.sin(now/500+q.ph))}
+    if(Math.random()<dt*10){const a=Math.random()*6.283,r=Math.random()*4.2;emit(R.g.position.x+Math.cos(a)*r,.4+Math.random()*1.5,R.g.position.z+Math.sin(a)*r,1,noxC1,.6,1.1,.6)}}
   for(const R of NOX.aur){const o=R.noxA;if(!o||!R.g.visible)continue;const p=R.nxP;if(now>R.noxAu||(p&&p.dead>0)){noxAura(R,false);continue}
     o.pv.rotation.y-=dt*1.1;o.col.scale.set(1+.06*Math.sin(now/200),1,1+.06*Math.sin(now/200));o.m2.opacity=.14+.05*Math.sin(now/260);
     o.orb.forEach((s,i)=>{const a=now/500+i*1.2566;s.position.set(Math.cos(a)*2.3,1+1.2*Math.sin(now/400+i),Math.sin(a)*2.3)});
@@ -3843,7 +3850,7 @@ function noxGhost(p,m){const k=m.k,R=p.sk,x=m.x,z=m.z,tg=m.tg||[x,z];
   if(k==='nox2'){noxRing(R,false);return}if(k==='noxe'){noxAura(R,false);return}
   if(NET.me&&p.team!==NET.me.team&&p.vis===false)return;
   if(k==='s1'){nClip('h1',x,z,1.1);const dx=tg[0]-x,dz=tg[1]-z,l=Math.hypot(dx,dz)||1;noxLob(x+dx/l*.8,z+dz/l*.8,tg[0],tg[1],.35,()=>noxPool(tg[0],tg[1],0,1,true))}
-  else if(k==='s2'){R.nxP=p;noxRing(R,true);nClip('h2',x,z,1.1);noxSpit(x,z,1);noxWave(x,z,.8,5,.6,noxC1)}
+  else if(k==='s2'){R.nxP=p;noxRing(R,true);nClip('h2',x,z,1.1);emit(x,1,z,40,noxC1,6,1,1)}
   else if(k==='s3'){R.nxP=p;noxAura(R,true,performance.now()+15300);noxUltFx(x,z);nClip('ul',x,z,1.1)}}
 
 const CHS={noxira:{s1:noxS1,s2:noxS2,s3:noxS3},boris:{s1:brS1,s2:brS2,s3:brS3},azrael:{s1:azrS1,s2:azrS2,s3:azrS3},gina:{s1:gnS1,s2:gnS2,s3:gnS3},elaria:{s1:elS1,s2:elS2,s3:elS3},az:{s1:azS1,s2:azS2,s3:azS3},haspen:{s1:hsS1,s2:hsS2,s3:hsS3},ivar:{s1:ivS1,s2:ivS2,s3:ivS3},mikela:{s1:mhS1,s2:mhS2,s3:mhS3},aurelio:{s1:aS1,s2:aS2,s3:aS3},zeta:{s1:zS1,s2:zS2,s3:zS3},goran:{s1:gS1,s2:gS2,s3:gS3},stanley:{s1:stS1,s2:stS2,s3:stS3},miracle:{s1:miS1,s2:miS2,s3:miS3}};
