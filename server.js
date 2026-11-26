@@ -30,7 +30,7 @@ const MAX_SCORE = 2_000_000;
 const MAX_WAVE = 999;
 // Arena Coins: moneda del juego
 const COINS_START = 500, COINS_VIP = 999999, VIP_NAME = 'estanis';
-const CHAR_IDS = ['aurelio', 'zeta', 'goran', 'stanley', 'miracle', 'mikela', 'ivar', 'haspen', 'az', 'elaria', 'gina', 'azrael', 'boris', 'noxira'];
+const CHAR_IDS = ['aurelio', 'zeta', 'goran', 'stanley', 'miracle', 'mikela', 'ivar', 'haspen', 'az', 'elaria', 'gina', 'azrael', 'boris', 'noxira', 'clid'];
 const FREE_CHARS = ['aurelio', 'zeta', 'goran'], CHAR_PRICE = 100;
 const SKIN_PRICES = { 'miracle:hielo': 2500 };
 const COIN_PERCENT = 1; // % del puntaje de cada partida de arena que se entrega como Arena Coins (5000 pts = 50 coins)
