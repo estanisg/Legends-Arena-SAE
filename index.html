@@ -1663,7 +1663,8 @@ function statOf(k,L){const c=CHAR[k],t=STATS[k];return{ad:Math.round(c.ad[0]+c.a
   arm:Math.round(t.arm[0]+t.arm[1]*L),mr:Math.round(t.mr[0]+t.mr[1]*L),apen:t.apen,mpen:t.mpen,ls:t.ls,crit:t.crit,cdmg:t.cdmg,ten:t.ten||0}}
 function stat(){const S=statOf(cur,P.lvl-1);S.ad+=IT.ad;S.ap+=IT.ap;S.arm+=IT.arm;S.mr+=IT.mr;S.apen=Math.min(100,S.apen+IT.apen);S.apenF=IT.apenF;S.mpen=Math.min(100,S.mpen+IT.mpen);S.mpenF=IT.mpenF;S.ls+=IT.ls;S.crit=Math.min(100,S.crit+IT.crit);S.cdmg+=IT.cdmg;S.ten+=IT.ten;S.hp=Math.round(P.max);S.as=asNow();if(PX.K.sabid)S.ap=Math.round(S.ap*1.35);if(PX.K.impcrit)S.cdmg+=65;if(cur==='boris')brStat(S);if(cur==='noxira')noxStat(S);if(cur==='bob')bbStat(S);PXst(S);return S}
 const mdmg=p=>{DTN='m';return Math.round((C.ad[0]+C.ad[1]*(P.lvl-1)+stat().ap)*p)};
-function sOut(e,n,dty){if(dty==='t'){SO.cr=false;SO.ty='t';SO.pn=0;SO.pf=0;return Math.max(1,Math.round(n))}const S=stat(),mg=dty==='m';let cr=false;if(BF&&cur==='boris'){n=brBasic(e,n)}
+function sOut(e,n,dty){if(dty==='t'){SO.cr=false;SO.ty='t';SO.pn=0;SO.pf=0;return Math.max(1,Math.round(n))}const S=stat();let mg=dty==='m';let cr=false;if(BF&&cur==='boris'){n=brBasic(e,n)}
+  if(BF&&e&&e.nx&&S.ap>S.ad){mg=true;n+=.5*S.ap} // más PH que AD: los básicos contra torres y Nexo son mágicos y suman 50% de PH
   if(BF&&!mg&&!NOCR&&(FCRIT||(S.crit>0&&Math.random()*100<S.crit))){n*=S.cdmg/100;cr=true}
   SO.cr=cr;SO.ty=mg?'m':'p';SO.pn=mg?S.mpen:S.apen;SO.pf=mg?S.mpenF:S.apenF;n=PXout(e,n,mg,S,cr);
   if(!(e.rp&&!e.mid)){const eff=Math.max(0,(PXres(e,ERES(e)[mg?1:0],mg)-SO.pf)*(1-SO.pn/100)); // 1º puntos fijos, 2º porcentaje
